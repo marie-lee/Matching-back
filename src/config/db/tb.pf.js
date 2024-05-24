@@ -10,10 +10,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: true
     },
-    PF_IMG: {
-      type: DataTypes.STRING(255),
-      allowNull: true
-    },
     CREATED_DT: {
       type: DataTypes.DATE,
       allowNull: false,

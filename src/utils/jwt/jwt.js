@@ -5,6 +5,9 @@ class TokenService {
     constructor() {
         this.accessTokenSecret = process.env.ACCESS_TOKEN_SECRET;
         this.refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET;
+
+        // 메서드 바인딩
+        this.authenticateToken = this.authenticateToken.bind(this);
     }
 
     generateAccessToken(userSn) {
