@@ -28,3 +28,4 @@ out/
 
 ### VS Code ###
 .vscode/
+!/logs/

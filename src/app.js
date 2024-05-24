@@ -1,5 +1,8 @@
 // Modules
 const express = require('express');
+const morganMiddleware = require('./middleware/morganMiddleware');
+const errorMiddleware = require('./middleware/errorMidleware');
+const { logger } = require('./utils/logger');
 
 // Utils
 const { swaggerUi, specs } = require("./config/swagger/index");
@@ -9,8 +12,15 @@ const { swaggerUi, specs } = require("./config/swagger/index");
 // Middlewares
 require('dotenv').config();
 
-const app = express();
 
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// morgan 미들웨어 설정
+app.use(morganMiddleware);
+// 에러 미들웨어 설정
+app.use(errorMiddleware);
 /**
  * @swagger
  * /:
@@ -37,5 +47,5 @@ app.get('/', (req, res) => {
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 app.listen(process.env.PORT, () => {
-  console.log('Server is running on port 8080');
+  logger.info('Server is running on port 8080');
 });
