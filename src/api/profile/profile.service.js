@@ -1,15 +1,49 @@
 const db = require('../../config/db/db');
 const {logger} = require('../../utils/logger');
-const multer = require('multer');
 const minio = require('../../middleware/minio/minio.service');
 
 class profileService {
-    async profileUpload(req, res){
+    async profileUpload(req, res, data){
+        const files = req.files;
+
+        // 포트폴리오 파일들을 저장할 객체
+        let portfolios = {};
+        let profileImg = null;
+
+        files.forEach(file => {
+            // 필드 이름이 'portfolio'로 시작하는지 확인
+            if (file.fieldname.startsWith('portfolio')) {
+                if (!portfolios[file.fieldname]) {
+                    portfolios[file.fieldname] = [];
+                }
+                portfolios[file.fieldname].push(file);
+            } else if (file.fieldname === 'profile') {
+                // 프로필 사진 파일을 처리
+                profileImg = file;
+            }
+        });
+
         const t = await db.transaction(); // 트랜잭션 시작
         try{
-            const pf = await this.profileInsert(req.body.profile, req.userSn, t);
-            for (const portfolio of req.body.portfolios){
+            // 프로필 입력
+            const pf = await this.profileInsert(data.profile, req.userSn, t);
+            await minio.upload(profileImg, 'profile', pf.PF_SN, t);
+
+            // 포트폴리오 입력
+            for (const portfolio of data.portfolios){
                 const pfol = await this.portfolioInsert(portfolio, pf, t);
+                console.log(portfolio.ID);
+                for (const file of portfolios[portfolio.ID]) {
+                    console.log(file.originalname + '업로드 중');
+                    // 파일이 대표 파일인지 확인
+                    const isMain = portfolio.FILE.find(f => f.FILENAME === file.originalname && f.MAIN_YN === "1");
+                    if(isMain) {
+                       await minio.portfolioUpload(file, '1', pfol.PFOL_SN, t);
+                    } else {
+                        // 대표 파일이 아닌 경우의 처리
+                        await minio.portfolioUpload(file, '0', pfol.PFOL_SN, t);
+                    }
+                }
             }
             await t.commit(); // 모든 작업이 성공하면 트랜잭션 커밋
             res.status(200).send('프로필 포트폴리오 입력 완료');
@@ -67,7 +101,6 @@ class profileService {
 
     async portfolioInsert(portfolio, pf, transaction){
         try{
-            console.log("portfolioInsert : " + portfolio);
             // 포트폴리오 생성
             const pfol = await db.TB_PFOL.create({
                 PFOL_NM: portfolio.PFOL_NM,

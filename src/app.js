@@ -13,10 +13,8 @@ const db = require('./config/db/db');
 // Middlewares
 require('dotenv').config();
 
-
 // ctrl
 const memberCtrl = require('./api/member/member.ctrl');
-const minioCtrl = require('./middleware/minio/minio.ctrl');
 const profileCtrl = require('./api/profile/profile.ctrl');
 
 const app = express();
@@ -66,7 +64,6 @@ app.get('/', (req, res) => {
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 app.use("/api/member", memberCtrl);
-app.use("/api/member", minioCtrl);
 app.use("/api/member", profileCtrl);
 
 

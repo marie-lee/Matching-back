@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const {logger} = require('../../utils/logger');
 require('dotenv').config();
 
 class TokenService {
@@ -40,7 +41,10 @@ class TokenService {
         if (token == null) return res.sendStatus(401);
 
         jwt.verify(token, this.accessTokenSecret, (err, USER_SN) => {
-            if (err) return res.sendStatus(403);
+            if (err) {
+                logger.error("토큰 인증 에러 : " + err);
+                return res.status(403).send("토큰 인증 에러 : " + err);
+            }
             req.userSn = USER_SN;
             next();
         });
