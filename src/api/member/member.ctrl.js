@@ -3,11 +3,8 @@ const router = express.Router();
 const MemberService = require('./member.service');
 
 router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-
     try {
-        const result = await MemberService.login(email, password);
-        res.json(result);
+        await MemberService.login(res, req);
     } catch (error) {
         res.status(400).json({ message: error.message });
     }

@@ -1,13 +1,15 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('../../utils/jwt/jwt');
 const db = require('../../config/db/db');
+const { logger } = require('../../utils/logger');
 
 class MemberService {
-    async login(email, password) {
+    async login(req, res) {
         try{
-            const user = await db.TB_USER.findOne({ where: { USER_EMAIL: email, USER_PW: password } });
+            const user = await db.TB_USER.findOne({ where: { USER_EMAIL: req.body.email, USER_PW: req.body.password } });
             if (!user) {
-                throw new Error('User not found');
+                logger.error('로그인 실패 : 유저 정보를 찾지 못했습니다.')
+                return res.status(401).send('로그인 실패 : 유저 정보를 찾지 못했습니다.')
             }
             
             // const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -21,11 +23,11 @@ class MemberService {
             // 리프레시 토큰을 데이터베이스에 저장 (기존 토큰을 갱신)
             await db.TB_USER.update({ REFRESH_TOKEN: refreshToken }, { where: { USER_SN: userSn } });
 
-            return {
+            return res.status(200).json({
                 accessToken: jwt.generateAccessToken(userSn),
-                refreshToken,
+                refreshToken: refreshToken,
                 USER_NM: user.USER_NM,
-            };
+            });
         }
         catch(error){
             return error;
