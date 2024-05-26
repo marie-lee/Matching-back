@@ -36,6 +36,7 @@ module.exports = (sequelize, DataTypes) => {
       tableName: 'TB_PFOL_MEDIA',
       timestamps: true, // 타임스탬프 활성화
       createdAt: 'CREATED_DT', // createdAt을 CREATED_DT로 매핑
+      updatedAt: false
     });
   
     TB_PFOL_MEDIA.associate = models => {
