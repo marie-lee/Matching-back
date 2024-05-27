@@ -127,6 +127,35 @@ components:
                 MAIN_YN: "1"
               - URL: http://218.232.137.30:20090/matching/portfolio/video.mp4
                 MAIN_YN: "0"
+          - PFOL_NM: 포트폴리오2
+            INTRO: 설명
+            PERIOD: "3"
+            START_DT: "2021-01-01"
+            END_DT: "2022-01-01"
+            MEM_CNT: "3"
+            CONTRIBUTION: "40"
+            SERVICE_STTS: STOP
+            RESULT: 아쉬움
+            STACK:
+              - ST_NM: REACT
+              - ST_NM: NEST.JS
+            ROLE:
+              - 디자인
+              - 프론트엔드
+            URL:
+              - URL: www.url4.com
+                URL_INTRO: url 설명
+                RELEASE_YN: "0"
+                OS: LINUX
+              - URL: www.url5.com
+                URL_INTRO: url 설명
+                RELEASE_YN: "1"
+                OS: IOS
+            MEDIA:
+              - URL: http://218.232.137.30:20090/matching/portfolio/portfolio.png
+                MAIN_YN: "0"
+              - URL: http://218.232.137.30:20090/matching/portfolio/media.mp4
+                MAIN_YN: "1"
   securitySchemes:
     JWT:
       type: http
