@@ -5,6 +5,14 @@ const minioClient = require('./minio');
 const stream = require('stream');
 
 class minio {
+    async deleteFile(fileName){
+        try {
+            await minioClient.removeObject('matching', fileName);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     async upload(file, type, serialNum, transaction){
         const validTypes = ['profile', 'portfolio', 'project'];
 
