@@ -3,7 +3,7 @@ info:
   title: Matching Back API
   version: 1.0.0
 servers:
-  - url: http://218.232.137.30:20080/api/v1
+  - url: http://218.232.137.30:20080/api
 tags:
   - name: member
     description: Operations about member
@@ -35,24 +35,16 @@ paths:
       summary: 프로필, 포트폴리오 입력
       description: |
         프로필, 포트폴리오 입력
-        여기에는 portfolio1 만 예시로 되어있지만 실제 사용시 프론트엔드에서
-        portfolio2, portfolio3... 으로 동적 생성하여 요청 하시면 처리 됩니다.
-        json 데이터는 application/json 탭에 예시를 참고하여 작성 후
-        multipart/form-data 탭의 data 란에 입력 후 요청 바랍니다.
-        portfolios 안에 포트폴리오 데이터들이 담기며 포트폴리오 데이터들안에 ID 필드로 파일의 필드 이름과 동일하게 작성해야됩니다. (ex. portfolio1의 파일들은 json데이터의 portfolio1과 연결)
-        예시에서 벗어나거나 필드 이름이 틀릴 시 에러 발생합니다.
       requestBody:
         content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/profileUpload'
           application/json:
             schema:
-              $ref: '#/components/schemas/profileUploadExample'
-
+              $ref: '#/components/schemas/profileUpload'
       responses:
         '200':
           $ref: '#/components/responses/profileUpload200'
+      security:
+        - JWT: []
 
 
 components:
@@ -73,39 +65,26 @@ components:
         - email
         - password
     profileUpload:
-      description: 프로필, 포트폴리오 업로드
       type: object
       properties:
         profile:
-          type: string
-          format: binary
-        portfolio1:
-          type: string
-          format: binary
-        data:
-          type: string
-      required:
-        - data
-    profileUploadExample:
-      type: object
-      properties:
-        profile:
-          $ref: '#/components/schemas/profileUploadExample'
+          $ref: '#/components/schemas/profileUpload'
         portfolios:
           type: array
           items:
-            $ref: '#/components/schemas/profileUploadExample'
+            $ref: '#/components/schemas/profileUpload'
       example: # 여기에 JSON 예시를 추가합니다.
         profile:
           PF_INTRO: 설명
-          CAREERS:
+          USER_IMG: http://218.232.137.30:20090/matching/profile/img.jpg
+          CAREER:
             - CAREER_NM: 회사
               ENTERING_DT: "2021-01-01"
               QUIT_DT: "2022-12-31"
             - CAREER_NM: 회사2
               ENTERING_DT: "2023-01-01"
               QUIT_DT: "2024-01-31"
-          STACKS:
+          STACK:
             - ST_NM: JAVA
               LEVEL: LOW
             - ST_NM: JS
@@ -114,11 +93,12 @@ components:
             - JAVA
             - REACT
           URL:
-            - www.www.www
-            - www.www.com
+            - URL: www.www.www
+              URL_INTRO: url 설명1
+            - URL: www.www.com
+              URL_INTRO: url 설명2
         portfolios:
-          - ID: portfolio1
-            PFOL_NM: 포트폴리오1
+          - PFOL_NM: 포트폴리오1
             INTRO: 설명
             PERIOD: "5"
             START_DT: "2021-01-01"
@@ -127,7 +107,7 @@ components:
             CONTRIBUTION: "20"
             SERVICE_STTS: ACTIVE
             RESULT: 만족
-            STACKS:
+            STACK:
               - ST_NM: JAVA
               - ST_NM: STRING
             ROLE:
@@ -135,15 +115,17 @@ components:
               - 백엔드
             URL:
               - URL: www.url.com
+                URL_INTRO: url1 설명
                 RELEASE_YN: "1"
                 OS: WINDOWS
               - URL: www.url2.com
+                URL_INTRO: url2 설명
                 RELEASE_YN: "0"
                 OS: MAC OS
-            FILE:
-              - FILENAME: 2.jpg
+            MEDIA:
+              - URL: http://218.232.137.30:20090/matching/portfolio/img.png
                 MAIN_YN: "1"
-              - FILENAME: 1.JPG
+              - URL: http://218.232.137.30:20090/matching/portfolio/video.mp4
                 MAIN_YN: "0"
   securitySchemes:
     JWT:

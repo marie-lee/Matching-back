@@ -4,7 +4,7 @@ const MemberService = require('./member.service');
 
 router.post('/login', async (req, res) => {
     try {
-        await MemberService.login(res, req);
+        return await MemberService.login(req, res);
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
