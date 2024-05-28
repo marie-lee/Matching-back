@@ -6,7 +6,9 @@ servers:
   - url: http://218.232.137.30:20080/api
 tags:
   - name: member
-    description: Operations about member
+    description: 멤버 관련
+  - name: project
+    description: 프로젝트 관련
 paths:
   /member/login:
     post:
@@ -43,6 +45,17 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/profileUpload200'
+      security:
+        - JWT: []
+  /project:
+    get:
+      tags:
+        - project
+      summary: 내 프로젝트 조회
+      description: 내 프로젝트 조회
+      responses:
+        '200':
+          $ref: '#/components/responses/myProjects200'
       security:
         - JWT: []
 
@@ -197,4 +210,58 @@ components:
       content:
         text:
           example: 프로필, 포트폴리오 입력 완료
+    myProjects200:
+      description: 내 프로젝트 조회 성공
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                PJT_SN:
+                  type: integer
+                  description: 프로젝트 PK
+                  example: 1
+                PJT_NM:
+                  type: string
+                  description: 프로젝트 이름
+                  example: project 1
+                PJT_INTRO:
+                  type: string
+                  description: 프로젝트 설명
+                  example: 설명
+                START_DT:
+                  type: string
+                  description: 프로젝트 시작 날짜
+                  example: 2024-05-01
+                PERIOD:
+                  type: integer
+                  description: 프로젝트 기간
+                  example: 6
+                CREATED_USER_SN:
+                  type: integer
+                  description: 프로젝트 생성자 SN
+                  example: 2
+                PJT_STTS:
+                  type: string
+                  description: 프로젝트 상태
+                  example: PROGRESS
+          example:
+            - PJT_SN: 1
+              PJT_NM: project1
+              PJT_INTRO: 설명1
+              START_DT: null
+              PERIOD: null
+              CREATED_USER_SN: 1
+              PJT_STTS: RECUIT
+            - PJT_SN: 2
+              PJT_NM: project2
+              PJT_INTRO: 설명2
+              START_DT: 2024-05-01
+              PERIOD: 5
+              CREATED_USER_SN: 1
+              PJT_STTS: PROGRESS
+
+
 
