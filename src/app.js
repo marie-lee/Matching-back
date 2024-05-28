@@ -16,6 +16,7 @@ require('dotenv').config();
 // ctrl
 const memberCtrl = require('./api/member/member.ctrl');
 const profileCtrl = require('./api/profile/profile.ctrl');
+const projectCtrl = require('./api/projects/project.ctrl');
 
 const app = express();
 app.use(express.json());
@@ -39,6 +40,7 @@ db.sync({ force: false }).then(() => {
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/api/member", memberCtrl);
 app.use("/api/member", profileCtrl);
+app.use("/api", projectCtrl);
 
 app.listen(process.env.PORT, () => {
   logger.info('Server is running on port 8080');
