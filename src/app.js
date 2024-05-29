@@ -1,5 +1,6 @@
 // Modules
 const express = require('express');
+const bodyParser = require('body-parser');
 const morganMiddleware = require('./middleware/morganMiddleware');
 const errorMiddleware = require('./middleware/errorMidleware');
 const { logger } = require('./utils/logger');
@@ -30,6 +31,7 @@ app.use(errorMiddleware);
 app.use(express.json());
 // URL 인코딩된 요청 본문을 파싱하기 위한 미들웨어
 app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 // db 동기화
 db.sync({ force: false }).then(() => {
