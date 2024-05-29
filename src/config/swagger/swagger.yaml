@@ -70,7 +70,6 @@ paths:
       security:
         - JWT: []
 
-
 components:
   schemas:
     loginReq:
