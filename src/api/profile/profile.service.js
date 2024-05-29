@@ -1,6 +1,7 @@
 const db = require('../../config/db/db');
 const {logger} = require('../../utils/logger');
 const minio = require('../../middleware/minio/minio.service');
+const {QueryTypes} = require("sequelize");
 
 class profileService {
     async profileUpload(req, res){
@@ -19,6 +20,99 @@ class profileService {
         catch (error){
             await this.deleteFileFromMinio(req.body.profile, req.body.portfolios);
             await t.rollback(); // 에러 발생 시 트랜잭션 롤백
+            throw error;
+        }
+    }
+
+    async pfPfolSelect(req, res){
+        const userSn = req.userSn.USER_SN;
+
+        try {
+            // 프로필 조회
+            const profile = await this.profileSelect(userSn);
+            console.log(profile)
+            // 포트폴리오정보 조회
+            const portfolioInfo = await this.portfolioInfoSelect(profile[0].PF_SN);
+
+            const pfPfol = {profile: profile, portfolioInfo: portfolioInfo};
+
+            return res.status(200).send(pfPfol);
+        } catch (error){
+            throw error;
+        }
+    }
+
+    async profileSelect(userSn){
+        const query = `SELECT  pf.PF_SN
+                                    , usr.USER_SN
+                                    , usr.USER_NM
+                                    , usr.USER_IMG
+                                    , JSON_ARRAYAGG( DISTINCT
+                                        JSON_OBJECT(
+                                            'CARRER_NM', cr.CAREER_NM
+                                            , 'ENTERING_DT', cr.ENTERING_DT
+                                            , 'QUIT_DT', cr.QUIT_DT
+                                        )
+                                    ) AS carrer
+                                    , JSON_ARRAYAGG( DISTINCT
+                                        JSON_OBJECT( 
+                                            'ST_NM', st.ST_NM
+                                            , 'ST_LEVEL', ps.ST_LEVEL
+                                        )
+                                    ) AS stack
+                                    , JSON_ARRAYAGG( DISTINCT
+                                        JSON_OBJECT( 'INTEREST_NM', i.INTRST_NM )
+                                    ) AS interest
+                                    , JSON_ARRAYAGG( DISTINCT
+                                        JSON_OBJECT( 
+                                            'URL_ADDR', u.URL
+                                            ,'URL_INTRO', u.URL_INTRO
+                                        )
+                                    ) AS url
+                                                                FROM TB_PF pf
+                                    LEFT JOIN TB_USER usr ON usr.USER_SN = pf.USER_SN 
+                                    LEFT JOIN TB_CAREER cr ON cr.PF_SN = pf.PF_SN AND cr.DEL_YN = 'N'
+                                    LEFT JOIN TB_PF_ST ps ON pf.PF_SN = ps.PF_SN
+                                    LEFT JOIN TB_ST st ON ps.ST_SN = st.ST_SN
+                                    LEFT JOIN TB_PF_INTRST pi ON pf.PF_SN = pi.PF_SN
+                                    LEFT JOIN TB_INTRST i ON pi.INTRST_SN = i.INTRST_SN
+                                    LEFT JOIN TB_PF_URL pu ON pf.PF_SN = pu.PF_SN
+                                    LEFT JOIN TB_URL u ON pu.URL_SN = u.URL_SN AND u.DEL_YN = 'N'
+                                WHERE pf.DEL_YN = 'N' AND usr.USER_SN = ${userSn}`;
+        try{
+            const profile = await db.query(query, {type: QueryTypes.SELECT});
+            return profile;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+
+    async portfolioInfoSelect(pfSn) {
+        const query = `SELECT pl.PFOL_SN
+                                    , pl.PFOL_NM
+                                    , pl.START_DT
+                                    , pl.END_DT
+                                    , pl.PERIOD
+                                    , JSON_ARRAYAGG( DISTINCT
+                                        JSON_OBJECT(
+                                            'ST_NM', st.ST_NM
+                                        )
+                                    ) AS stack
+                                    , pm.URL  AS IMG
+                                FROM TB_PFOL pl 
+                                LEFT JOIN TB_PF_PFOL pp ON pl.PFOL_SN = pp.PFOL_SN
+                                LEFT JOIN TB_PFOL_ST ps ON ps.PFOL_SN = pp.PFOL_SN
+                                LEFT JOIN TB_ST st ON st.ST_SN = ps.ST_SN
+                                LEFT JOIN TB_PFOL_MEDIA pm ON pl.PFOL_SN = pm.PFOL_SN AND pm.MAIN_YN = 1
+                                WHERE pp.PF_SN = ${pfSn}
+                                GROUP BY pl.PFOL_SN
+                                ORDER BY pl.START_DT ASC`;
+        try{
+            const portfolioInfo = await db.query(query, {type: QueryTypes.SELECT});
+            return portfolioInfo;
+        }
+        catch (error) {
             throw error;
         }
     }
