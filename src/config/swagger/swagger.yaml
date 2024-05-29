@@ -4,6 +4,7 @@ info:
   version: 1.0.0
 servers:
   - url: http://218.232.137.30:20080/api
+  - url: http://localhost:8080/api
 tags:
   - name: member
     description: 멤버 관련
@@ -45,6 +46,16 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/profileUpload200'
+      security:
+        - JWT: []
+    get:
+      tags:
+        - member
+      summary: 프로필, 포트폴리오 조회
+      description: 프로필, 포트폴리오 조회
+      responses:
+        '200':
+          $ref: '#/components/responses/myProfile200'
       security:
         - JWT: []
   /project:
@@ -210,6 +221,116 @@ components:
       content:
         text:
           example: 프로필, 포트폴리오 입력 완료
+    myProfile200:
+      description: 내 프트폴리오 조회 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              PF_SN:
+                type: integer
+                description: 프로필 PK
+                example: 1
+              USER_SN:
+                type: integer
+                description: 회원 PK
+                example: 1
+              USER_NM:
+                type: string
+                description: 회원명
+                example: 홍길동
+              USER_IMG:
+                type: string
+                description: 회원 이미지
+                example: www.www.com
+              CAREER_NM:
+                type: string
+                description: 회사명
+                example: 회사명
+              ENTERING_DT:
+                type: string
+                description: 입사일
+                example: 2023-01-01
+              QUIT_DT:
+                type: string
+                description: 퇴사일
+                example: 2023-12-31
+              ST_NM:
+                type: string
+                description: 보유 스택
+                example: REACT
+              ST_LEVEL:
+                type: string
+                description: 보유 스택 수준
+                example: HIGH
+              INTEREST_NM:
+                type: string
+                description: 관심분야
+                example: WEB
+              URL_ADDR:
+                type: string
+                description: URL 주소
+                example: http://github.com/user
+              URL_INTRO:
+                type: string
+                description: URL 설명
+                example: 깃허브
+              PFOL_SN:
+                type: integer
+                description: 포트폴리오 Pk
+                example: 1
+              PFOL_NM:
+                type: string
+                description: 프로젝트명
+                example: project1
+              START_DT:
+                type: string
+                description: 프로젝트 시작일
+                example: 2024-01-01
+              END_DT:
+                type: string
+                description: 프로젝트 종료일
+                example: 2024-05-01
+              PERIOD:
+                type: integer
+                description: 프로젝트 진행 기간
+                example: 121
+            example:
+              profile:
+                PF_SN: 1
+                USER_SN: 1
+                USER_NM: 홍길동
+                USER_IMG: http://218.232.137.30:20090/matching/profile/img.jpg
+                career:
+                  - CAREER_NM: 회사1
+                    ENTERING_DT: 2023-01-01
+                    QUIT_DT: 2023-10-31
+                  - CAREER_NM: 회사2
+                    ENTERING_DT: 2024-01-01
+                    QUIT_DT: NULL
+                stack:
+                  - ST_NM: JAVA
+                    ST_LEVEL: HIGH
+                  - ST_NM: REACT
+                    ST_LEVEL: LOW
+                interest:
+                  - INTEREST_NM: WEB
+                  - INTEREST_NM: JAVA
+                url:
+                  - URL_ADDR: www.www.com
+                    URL_INTRO: 깃허브
+              portfolioInfo:
+                - PFOL_SN: 1
+                  PFOL_NM: 프로젝트1
+                  START_DT: 2023-01-01
+                  END_DT: 2023-05-01
+                  PERIOD: 121
+                - PFOL_SN: 2
+                  PFOL_NM: 프로젝트2
+                  START_DT: 2024-07-01
+                  END_DT: 2023-07-31
+                  PERIOD: 31
     myProjects200:
       description: 내 프로젝트 조회 성공
       content:
