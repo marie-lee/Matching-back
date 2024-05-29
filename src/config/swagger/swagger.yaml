@@ -10,6 +10,8 @@ tags:
     description: 멤버 관련
   - name: project
     description: 프로젝트 관련
+  - name: status
+    description: 현황 관련
 paths:
   /member/login:
     post:
@@ -95,6 +97,17 @@ paths:
               schema:
                 type: string
                 example: '프로젝트 등록 중 에러 발생 에러내용: {에러메시지}'
+      security:
+        - JWT: [ ]
+  /status:
+    get:
+      tags:
+        - status
+      summary: 현황 조회 (나의 현황, 내가 생성한 프로젝트 현황)
+      description: 현황 조회 (나의 현황, 내가 생성한 프로젝트 현황)
+      responses:
+        '200':
+          $ref: '#/components/responses/status200'
       security:
         - JWT: [ ]
 
@@ -499,6 +512,126 @@ components:
               PERIOD: 5
               CREATED_USER_SN: 1
               PJT_STTS: PROGRESS
-
-
-
+    status200:
+      description: 현황 조회 성공
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                myReqList:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      REQ_SN:
+                        type: integer
+                        description: 요청 PK 값
+                      PJT_SN:
+                        type: integer
+                        description: 프로젝트 PK 값
+                      PJT_IMG:
+                        type: string
+                        description: 프로젝트 이미지
+                      PJT_NM:
+                        type: string
+                        description: 프로젝트 이름
+                      TOTAL_CNT:
+                        type: integer
+                        description: 총 모집 인원
+                      PART:
+                        type: string
+                        description: 요청된 모집 분야
+                      REQ_STTS:
+                        type: string
+                        description: 요청 상태코드
+                projectReqList:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      PJT_SN:
+                        type: integer
+                        description: 프로젝트 PK 값
+                      PJT_NM:
+                        type: string
+                        description: 프로젝트 이름
+                      REQ_LIST:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            REQ_SN:
+                              type: integer
+                              description: 요청 PK 값
+                            PF_SN:
+                              type: integer
+                              description: 프로필 PK 값
+                            USER_IMG:
+                              type: string
+                              description: 요청 대상 프로필 이미지
+                            USER_NM:
+                              type: string
+                              description: 요청 대상 이름
+                            PF_INTRO:
+                              type: string
+                              description: 요청 대상 프로필 설명
+                            PART:
+                              type: string
+                              description: 요청된 모집 분야
+                            REQ_STTS:
+                              type: string
+                              description: 요청 상태코드
+          example:
+            - myReqList:
+              - REQ_SN: 1
+                PJT_SN: 1
+                PJT_IMG: http://218.232.137.30:20090/matching/project/img.png
+                PJT_NM: project1
+                TOTAL_CNT: 11
+                PART: 프론트엔드
+                REQ_STTS: REQ
+              - REQ_SN: 2
+                PJT_SN: 2
+                PJT_IMG: http://218.232.137.30:20090/matching/project/img.png
+                PJT_NM: project2
+                TOTAL_CNT: 7
+                PART: 기획
+                REQ_STTS: AGREE
+            - projectReqList:
+                - PJT_SN: 3
+                  PJT_NM: project3
+                  REQ_LIST:
+                    - REQ_SN: 3
+                      PF_SN: 2
+                      USER_IMG: http://218.232.137.30:20090/matching/profile/img.png
+                      USER_NM: 홍길동
+                      PF_INTRO: 프로필 설명 1
+                      PART: 백엔드
+                      REQ_STTS: REJECTION
+                    - REQ_SN: 4
+                      PF_SN: 3
+                      USER_IMG: http://218.232.137.30:20090/matching/profile/img.png
+                      USER_NM: 김철수
+                      PF_INTRO: 프로필 설명 2
+                      PART: 디자인
+                      REQ_STTS: REQ
+                - PJT_SN: 4
+                  PJT_NM: project4
+                  REQ_LIST:
+                    - REQ_SN: 5
+                      PF_SN: 5
+                      USER_IMG: http://218.232.137.30:20090/matching/profile/img.png
+                      USER_NM: 김영희
+                      PF_INTRO: 프로필 설명 3
+                      PART: 프론트앤드
+                      REQ_STTS: REQ
+                    - REQ_SN: 6
+                      PF_SN: 6
+                      USER_IMG: http://218.232.137.30:20090/matching/profile/img.png
+                      USER_NM: 아무개
+                      PF_INTRO: 프로필 설명 4
+                      PART: 디자인
+                      REQ_STTS: AGREE
