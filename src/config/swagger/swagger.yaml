@@ -58,7 +58,34 @@ paths:
           $ref: '#/components/responses/myProjects200'
       security:
         - JWT: []
-
+  /project/add:
+    post:
+      tags:
+        - project
+      summary: 프로젝트 등록
+      description: 새로운 프로젝트를 등록합니다.
+      requestBody:
+        description: 프로젝트 등록 정보
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/registerProject'
+        required: true
+      responses:
+        '200':
+          description: 프로젝트 등록 성공
+          content:
+            text:
+              example: 프로젝트 등록 성공
+        '400':
+          description: 잘못된 요청
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '프로젝트 등록 중 에러 발생 에러내용: {에러메시지}'
+      security:
+        - JWT: [ ]
 
 components:
   schemas:
@@ -169,6 +196,86 @@ components:
                 MAIN_YN: "0"
               - URL: http://218.232.137.30:20090/matching/portfolio/media.mp4
                 MAIN_YN: "1"
+    registerProject:
+      type: object
+      properties:
+        PJT_NM:
+          type: string
+          description: 프로젝트 이름
+          example: Sample Project
+        PJT_IMG:
+          type: string
+          description: 프로젝트 이미지 URL
+          example: https://example.com/image.png
+        PJT_INTRO:
+          type: string
+          description: 프로젝트 소개
+          example: 이건 이런 프로젝트에요.
+        PJT_OPEN_YN:
+          type: string
+          description: 프로젝트 공개 여부
+          example: Y
+        CONSTRUCTOR_ROLE:
+          type: string
+          description: 생성자 역할
+          example: Developer
+        SELECTED_DT_YN:
+          type: string
+          description: 선택된 날짜 여부
+          example: Y
+        START_DT:
+          type: string
+          format: date
+          description: 프로젝트 시작 날짜
+          example: 2024-06-01
+        PERIOD:
+          type: string
+          description: 프로젝트 기간
+          example: 6
+        WANTED:
+          type: array
+          items:
+            type: string
+          description: 원하는 기술/경험 목록
+          example: ["3년경력이상", "깔끔한코드", "협업경험"]
+        PJT_DETAIL:
+          type: string
+          description: 프로젝트 상세 정보
+          example: 이 프로젝트에 대한 자세한 소개입니다
+        PJT_STTS:
+          type: string
+          description: 프로젝트 상태
+          example: active
+        STACKS:
+          type: array
+          items:
+            type: object
+            properties:
+              ST_NM:
+                type: string
+                description: 스택 이름
+                example: JavaScript
+    project:
+      type: object
+      properties:
+        PJT_SN:
+          type: integer
+          description: 프로젝트 PK
+          example: 1
+        PJT_NM:
+          type: string
+          description: 프로젝트 이름
+          example: Sample Project
+        PJT_INTRO:
+          type: string
+          description: 프로젝트 설명
+          example: 이건 이런 프로젝트에요.
+        PJT_STTS:
+          type: string
+          description: 프로젝트 상태
+          example: active
+
+
   securitySchemes:
     JWT:
       type: http
