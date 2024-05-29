@@ -13,4 +13,15 @@ router.get('/project', jwt.authenticateToken, async (req, res)=>{
     }
 });
 
+router.post('/project/add', jwt.authenticateToken, async (req, res) => {
+  try {
+    const newProject = await projectService.registerProject(req.body, req.userSn);
+    res.status(200).send('프로젝트 등록 성공');
+  } catch (error) {
+    logger.error('프로젝트 등록 실패:', error);
+    return res.status(400).send('프로젝트 등록 중 에러 발생 에러내용: ' + error.message);
+  }
+});
+
+
 module.exports = router;
