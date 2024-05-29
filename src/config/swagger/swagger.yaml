@@ -80,11 +80,11 @@ components:
         email:
           type: string
           description: 유저 이메일
-          example: example@google.com
+          example: example@gmail.com
         password:
           type: string
           description: 유저 패스워드
-          example: asdf1234
+          example: 1234
       required:
         - email
         - password
@@ -296,41 +296,50 @@ components:
                 type: integer
                 description: 프로젝트 진행 기간
                 example: 121
+              IMG:
+                type: string
+                description: 프로젝트 메인 이미지
+                example: http://000.000.000/image1.jps
             example:
               profile:
-                PF_SN: 1
-                USER_SN: 1
-                USER_NM: 홍길동
-                USER_IMG: http://218.232.137.30:20090/matching/profile/img.jpg
-                career:
-                  - CAREER_NM: 회사1
-                    ENTERING_DT: 2023-01-01
-                    QUIT_DT: 2023-10-31
-                  - CAREER_NM: 회사2
-                    ENTERING_DT: 2024-01-01
-                    QUIT_DT: NULL
-                stack:
-                  - ST_NM: JAVA
-                    ST_LEVEL: HIGH
-                  - ST_NM: REACT
-                    ST_LEVEL: LOW
-                interest:
-                  - INTEREST_NM: WEB
-                  - INTEREST_NM: JAVA
-                url:
-                  - URL_ADDR: www.www.com
-                    URL_INTRO: 깃허브
+                - PF_SN: 1
+                  USER_SN: 1
+                  USER_NM: 홍길동
+                  USER_IMG: http://218.232.137.30:20090/matching/profile/img.jpg
+                  career:
+                    - CAREER_NM: 회사1
+                      ENTERING_DT: 2023-01-01
+                      QUIT_DT: 2023-10-31
+                    - CAREER_NM: 회사2
+                      ENTERING_DT: 2024-01-01
+                      QUIT_DT: NULL
+                  stack:
+                    - ST_NM: JAVA
+                      ST_LEVEL: HIGH
+                    - ST_NM: REACT
+                      ST_LEVEL: LOW
+                  interest:
+                    - INTEREST_NM: WEB
+                    - INTEREST_NM: JAVA
+                  url:
+                    - URL_ADDR: www.www.com
+                      URL_INTRO: 깃허브
               portfolioInfo:
                 - PFOL_SN: 1
                   PFOL_NM: 프로젝트1
                   START_DT: 2023-01-01
                   END_DT: 2023-05-01
+                  IMG: http://218.232.137.30:20090/matching/portfolio/portfolio.png
                   PERIOD: 121
                 - PFOL_SN: 2
                   PFOL_NM: 프로젝트2
                   START_DT: 2024-07-01
                   END_DT: 2023-07-31
                   PERIOD: 31
+                  stack:
+                    - ST_NM: JAVA
+                    - ST_NM: REACT
+                  IMG: http://218.232.137.30:20090/matching/portfolio/portfolio.png
     myProjects200:
       description: 내 프로젝트 조회 성공
       content:
