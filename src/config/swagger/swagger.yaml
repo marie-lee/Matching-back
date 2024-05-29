@@ -279,6 +279,19 @@ components:
                 type: string
                 description: 스택 이름
                 example: JavaScript
+        ROLES:
+          type: array
+          items:
+            type: object
+            properties:
+              PART:
+                type: string
+                description: 역할 이름
+                example: Frontend
+              TOTAL_CNT:
+                type: integer
+                description: 총 인원 수
+                example: 5
     project:
       type: object
       properties:
