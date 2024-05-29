@@ -34,7 +34,8 @@ class projectService {
         WANTED,
         PJT_DETAIL,
         PJT_STTS,
-        STACKS
+        STACKS,
+        ROLES
       } = project;
 
       // 필수 필드 확인
@@ -78,6 +79,16 @@ class projectService {
           ST_SN: st.ST_SN
         });
       }
+      // 팀원
+      for (const role of ROLES) {
+        await db.TB_PJT_ROLE.create({
+          PJT_SN: newProject.PJT_SN,
+          PART: role.PART,
+          TOTAL_CNT: role.TOTAL_CNT,
+          CNT: 0 // 현재 참여자 수를 기본값 0으로 설정
+        });
+      }
+
 
     } catch (error) {
       logger.error('프로젝트 등록 중 오류 발생:', error);
