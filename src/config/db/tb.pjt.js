@@ -43,7 +43,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(255),
       },
       PJT_DETAIL: {
-        type: DataTypes.BLOB,
+        type: DataTypes.TEXT,
       },
       PJT_STTS: {
         type: DataTypes.STRING(45),
