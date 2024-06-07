@@ -1,7 +1,7 @@
 const { spawn } = require('child_process');
 
 const runPythonScript = (data1, callback) => {
-    const pythonProcess = spawn('python', ['./src/utils/matching/hello.py', data1],{ env: { PYTHONIOENCODING: 'utf-8' } });
+    const pythonProcess = spawn('python', ['./src/utils/matching/matching.py', data1],{ env: { PYTHONIOENCODING: 'utf-8' } });
 
     let result = '';
 

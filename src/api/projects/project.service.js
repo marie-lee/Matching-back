@@ -18,9 +18,7 @@ class projectService {
                             GROUP BY pjr.PJT_SN;`;
     try {
 
-      const project = await db.query(query, {type:QueryTypes.SELECT});
-      console.log(project)
-      return project;
+      return await db.query(query, {type: QueryTypes.SELECT});
     } catch (error){
       throw error;
     }

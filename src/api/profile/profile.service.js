@@ -65,8 +65,7 @@ class profileService {
                                     INNER JOIN VIEW_PFOL vpl ON vpl.PFOL_SN = pfPl.PFOL_SN
                                 GROUP BY pf.PF_SN, usr.USER_SN, usr.USER_NM;`;
         try {
-            const pfPfol = await db.query(query, {type: QueryTypes.SELECT});
-            return pfPfol;
+            return await db.query(query, {type: QueryTypes.SELECT});
         } catch (error){
             throw error;
         }
