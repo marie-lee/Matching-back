@@ -24,31 +24,40 @@ class profileService {
         }
     }
 
-    async pfPfolSelectAll(){
-        const query = `SELECT pf.PF_SN, usr.USER_SN, usr.USER_NM
+    async pfPfolSelectAll(snList = []){
+
+        let whereClause = '';
+        let orderByClause = '';
+        // keys 배열이 비어있지 않다면 WHERE 조건을 추가
+        if (snList.length > 0) {
+            const pfSnList = snList.join(','); // 배열을 문자열로 변환
+            whereClause = `WHERE pf.PF_SN IN (${pfSnList})`;
+            orderByClause = `ORDER BY FIELD(pf.PF_SN, ${pfSnList})`
+        }
+        const query = `SELECT pf.PF_SN as pfSn, usr.USER_SN as userSn, usr.USER_NM as userNm
                                     , JSON_OBJECT(
                                         "introduction", pf.PF_INTRO,
                                         "img", usr.USER_IMG,
                                         "career", JSON_ARRAYAGG( DISTINCT JSON_OBJECT(
-                                            "company_name", cr.CAREER_NM, 
-                                            "entering_dt", cr.ENTERING_DT,
-                                            "quit_dt", cr.QUIT_DT
+                                            "careerNm", cr.CAREER_NM, 
+                                            "enteringDt", cr.ENTERING_DT,
+                                            "quitDt", cr.QUIT_DT
                                         )),
-                                        "skill", GROUP_CONCAT(DISTINCT st.ST_NM),
+                                        "stack", GROUP_CONCAT(DISTINCT st.ST_NM),
                                         "interests", GROUP_CONCAT(DISTINCT intrst.INTRST_NM),
                                         "url", GROUP_CONCAT(DISTINCT url.URL)
                                     ) as profile
                                     , JSON_ARRAYAGG( DISTINCT JSON_OBJECT(
                                         "name", vpl.PFOL_NM,
-                                        "start_dt", vpl.START_DT,
-                                        "end_dt", vpl.END_DT,
+                                        "startDt", vpl.START_DT,
+                                        "endDt", vpl.END_DT,
                                         "period", vpl.PERIOD,
                                         "introduction", vpl.INTRO,
-                                        "mem_cnt", vpl.MEM_CNT,
+                                        "memCnt", vpl.MEM_CNT,
                                         "contribution", vpl.CONTRIBUTION,
                                         "stack", vpl.STACK,
                                         "role", vpl.\`ROLE\`,
-                                        "service_stts", vpl.SERVICE_STTS,
+                                        "serviceStts", vpl.SERVICE_STTS,
                                         "url", vpl.URL,
                                         "media", vpl.MEDIA
                                     )) AS portfolio
@@ -63,7 +72,9 @@ class profileService {
                                     INNER JOIN TB_URL url ON pfU.URL_SN = url.URL_SN
                                     INNER JOIN TB_PF_PFOL pfPl ON pfPl.PF_SN = pf.PF_SN
                                     INNER JOIN VIEW_PFOL vpl ON vpl.PFOL_SN = pfPl.PFOL_SN
-                                GROUP BY pf.PF_SN, usr.USER_SN, usr.USER_NM;`;
+                                ${whereClause}
+                                GROUP BY pf.PF_SN, usr.USER_SN, usr.USER_NM
+                                ${orderByClause};`;
         try {
             return await db.query(query, {type: QueryTypes.SELECT});
         } catch (error){
@@ -77,7 +88,6 @@ class profileService {
         try {
             // 프로필 조회
             const profile = await this.profileSelect(userSn);
-            console.log(profile)
             // 포트폴리오정보 조회
             const portfolioInfo = await this.portfolioInfoSelect(profile[0].PF_SN);
 
@@ -127,8 +137,7 @@ class profileService {
                                     LEFT JOIN TB_URL u ON pu.URL_SN = u.URL_SN AND u.DEL_YN = 'N'
                                 WHERE pf.DEL_YN = 'N' AND usr.USER_SN = ${userSn}`;
         try{
-            const profile = await db.query(query, {type: QueryTypes.SELECT});
-            return profile;
+            return await db.query(query, {type: QueryTypes.SELECT});
         }
         catch (error) {
             throw error;
