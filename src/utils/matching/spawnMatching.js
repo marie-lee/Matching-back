@@ -1,5 +1,5 @@
 const { spawn } = require('child_process');
-<<<<<<< HEAD
+
 // 서버에서 파이썬 실행 시
 require('dotenv').config();
 
