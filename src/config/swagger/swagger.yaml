@@ -64,11 +64,29 @@ paths:
     get:
       tags:
         - project
-      summary: 내 프로젝트 조회
-      description: 내 프로젝트 조회
+      summary: 내 프로젝트 리스트 조회
+      description: 내 프로젝트 리스트 조회
       responses:
         '200':
           $ref: '#/components/responses/myProjects200'
+      security:
+        - JWT: []
+  /project/{pjtSn}:
+    get:
+      tags:
+        - project
+      summary: 내 프로젝트 조회
+      description: 내 프로젝트 조회
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/myProject200'
       security:
         - JWT: []
   /project/add:
@@ -110,7 +128,26 @@ paths:
           $ref: '#/components/responses/status200'
       security:
         - JWT: [ ]
-
+  /recommendation/project/{pjtSn}:
+    get:
+      tags:
+        - recommendation
+      summary: 프로젝트 추천 회원 리스트 조회
+      description: 프로젝트 추천 회원 리스트 조회
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/recommendation200'
+        '400':
+          $ref: '#/components/responses/recommendation400'
+      security:
+        - JWT: []
 components:
   schemas:
     loginReq:
@@ -474,7 +511,7 @@ components:
                     - ST_NM: REACT
                   IMG: http://218.232.137.30:20090/matching/portfolio/portfolio.png
     myProjects200:
-      description: 내 프로젝트 조회 성공
+      description: 내 프로젝트 리스트 조회 성공
       content:
         application/json:
           schema:
@@ -525,6 +562,79 @@ components:
               PERIOD: 5
               CREATED_USER_SN: 1
               PJT_STTS: PROGRESS
+    myProject200:
+      description: 내 프로젝트 조회 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              pjtSn:
+                type: integer
+                description: 프로젝트 일련번호
+                example: 1
+              pjtNm:
+                type: string
+                description: 프로젝트명
+                example: '프로젝트 관리 플랫폼'
+              pjtImg:
+                type: string
+                description: 프로젝트 이미지 url
+                example: 'https://example.com/project_management_platform.png'
+              pjtIntro:
+                type: string
+                description: 프로젝트 소개
+                example: '프로젝트 소개...'
+              pjtDetail:
+                type: string
+                description: 프로젝트 상세 설명
+                example: '프로젝트 상세 설명...'
+              stack:
+                type: string
+                description: 사용 기술 스택
+                example: 'Java, Node.Js'
+              role:
+                type: array
+                description: 프로젝트 역할 및 인원
+                items:
+                  type: object
+                  properties:
+                    part:
+                      type: string
+                      description: 역할 파트
+                      example: '프런트엔드'
+                    totalCnt:
+                      type: integer
+                      description: 총 인원 수
+                      example: 5
+                    cnt:
+                      type: integer
+                      description: 현재 참여 인원 수
+                      example: 1
+              experience:
+                type: array
+                description: 요구 경험
+                items:
+                  type: string
+                  example: '앱, 웹'
+          example:
+            pjtSn: 1
+            pjtNm: '프로젝트 관리 플랫폼'
+            pjtImg: 'https://example.com/project_management_platform.png'
+            pjtIntro: '사용자들이 프로젝트를 효과적으로 관리할 수 있는 웹 플랫폼을 개발하는 프로젝트입니다.'
+            pjtDetail: '이 프로젝트는 사용자들이 프로젝트를 효과적으로 관리할 수 있는 웹 플랫폼을 개발하는 것입니다. 프로젝트 생성 및 편집 기능, 일정 관리, 업무 할당, 팀원 협업 기능 등이 필요합니다.'
+            stack: 'JavaScript,NODE.JS,REACT'
+            role:
+              - part: '프런트엔드'
+                totalCnt: 5
+                cnt: 4
+              - part: '백엔드'
+                totalCnt: 4
+                cnt: 0
+            experience:
+              - '웹 앱 개발 경험자'
+              - '프로젝트 관리 앱 경험자'
+              - '사용자 친화적인 UI/UX 디자인 능력'
     status200:
       description: 현황 조회 성공
       content:
@@ -648,3 +758,169 @@ components:
                       PF_INTRO: 프로필 설명 4
                       PART: 디자인
                       REQ_STTS: AGREE
+    recommendation200:
+      description: 프로젝트와 유사도가 높은 회원 정보 반환
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                pfSn:
+                  type: integer
+                  description: 프로필 일련번호
+                userSn:
+                  type: integer
+                  description: 회원 일련번호
+                userNm:
+                  type: string
+                  description: 회원 이름
+                profile:
+                  type: object
+                  description: 회원 프로필 정보
+                  properties:
+                    introduction:
+                      type: string
+                      description: 회원 소개
+                    img:
+                      type: string
+                      description: 프로필 이미지 URL
+                    career:
+                      type: array
+                      items:
+                        type: object
+                        description: 경력
+                        properties:
+                          careerNm:
+                            type: string
+                            description: 회사 이름
+                          enteringDt:
+                            type: string
+                            format: date
+                            description: 입사 날짜
+                          quitDt:
+                            type: string
+                            format: date
+                            description: 퇴사 날짜 (null이면 현재 재직중)
+                    stack:
+                      type: string
+                      description: 보유 기술
+                    interests:
+                      type: string
+                      description: 관심 기술
+                    url:
+                      type: string
+                      description: 외부 링크
+                portfolio:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: 포트폴리오 이름
+                      startDt:
+                        type: string
+                        format: date
+                        description: 시작 날짜
+                      endDt:
+                        type: string
+                        format: date
+                        description: 종료 날짜
+                      period:
+                        type: integer
+                        description: 기간 (일)
+                      introduction:
+                        type: string
+                        description: 포트폴리오 설명
+                      memCnt:
+                        type: integer
+                        description: 팀원 수
+                      contribution:
+                        type: integer
+                        description: 기여도 (%)
+                      stack:
+                        type: string
+                        description: 기술 스택
+                      role:
+                        type: string
+                        description: 역할
+                      serviceStts:
+                        type: string
+                        description: 서비스 상태
+                      url:
+                        type: string
+                        description: 포트폴리오 링크
+                      media:
+                        type: string
+                        description: 미디어 링크
+                similarityScore:
+                  type: number
+                  description: 유사도 점수
+          example:
+            - pfSn: 14
+              userSn: 13
+              userNm: 박철수
+              profile:
+                introduction: 프런트엔드 개발에 열정을 품고 있습니다.
+                img: http://218.232.137.30:20090/matching/profile/img.jpg
+                career:
+                  - careerNm: 모빌리티솔루션즈
+                    enteringDt: "2023-03-10"
+                    quitDt: "2024-01-15"
+                  - careerNm: 웹웍스
+                    enteringDt: "2021-05-15"
+                    quitDt: "2022-11-30"
+                stack: REACT, REACT NATIVE
+                interests: iOS Development, MOBILE, WEB
+                url: http://www.github.com/CHS1, https://www.CHSBLOG.com
+              portfolio:
+                - name: 온라인 음악 스트리밍 웹 앱
+                  startDt: "2023-01-01"
+                  endDt: "2023-08-31"
+                  period: 183
+                  introduction: 사용자들에게 고품질의 음악 스트리밍 서비스를 제공하는 웹 애플리케이션입니다.
+                  memCnt: 6
+                  contribution: 30
+                  stack: NODE.JS, REACT NATIVE
+                  role: 기획, 프론트엔드
+                  serviceStts: ACTIVE
+                  url: www.musicstreamingwebapp.com
+                  media: http://218.232.137.30:20090/matching/portfolio/portfolio.png
+              similarityScore: 0.9800220131874084
+            - pfSn: 5
+              userSn: 5
+              userNm: 김안녕
+              profile:
+                introduction: 안드로이드 개발자 입니다! 다양한 어플을 만들어 출시하는게 꿈입니다.
+                img: http://218.232.137.30:20090/matching/profile/4.jpg
+                career:
+                  - careerNm: 삼성
+                    enteringDt: "2020-01-01"
+                    quitDt: null
+                stack: C, JAVA
+                interests: JAVA, WEB
+                url: http://github.com/hi
+                portfolio:
+                  - name: Weather Forecast App
+                    startDt: "2024-01-01"
+                    endDt: "2024-05-01"
+                    period: 121
+                    introduction: Weather Forecast App은 실시간으로 날씨 정보를 제공하는 앱입니다.
+                    memCnt: 5
+                    contribution: 20
+                    stack: NODE.JS, REACT-NATIVE
+                    role: FRONTEND, 기획
+                    serviceStts: ACTIVE
+                    url: http://github.com
+                    media: http://218.232.137.30:20090/matching/portfolio/img.png
+                similarityScore: 0.9797859787940979
+    recommendation400:
+      description: 매칭된 회원 프로필/포트폴리오 조회 실패
+      content:
+        text/plain:
+          schema:
+            type: string
+            example:
+              매칭 - 추천 회원 프로필/포트폴리오 조회 실패: { 에러 메시지 }
