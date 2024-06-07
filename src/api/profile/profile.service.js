@@ -24,6 +24,54 @@ class profileService {
         }
     }
 
+    async pfPfolSelectAll(){
+        const query = `SELECT pf.PF_SN, usr.USER_SN, usr.USER_NM
+                                    , JSON_OBJECT(
+                                        "introduction", pf.PF_INTRO,
+                                        "img", usr.USER_IMG,
+                                        "career", JSON_ARRAYAGG( DISTINCT JSON_OBJECT(
+                                            "company_name", cr.CAREER_NM, 
+                                            "entering_dt", cr.ENTERING_DT,
+                                            "quit_dt", cr.QUIT_DT
+                                        )),
+                                        "skill", GROUP_CONCAT(DISTINCT st.ST_NM),
+                                        "interests", GROUP_CONCAT(DISTINCT intrst.INTRST_NM),
+                                        "url", GROUP_CONCAT(DISTINCT url.URL)
+                                    ) as profile
+                                    , JSON_ARRAYAGG( DISTINCT JSON_OBJECT(
+                                        "name", vpl.PFOL_NM,
+                                        "start_dt", vpl.START_DT,
+                                        "end_dt", vpl.END_DT,
+                                        "period", vpl.PERIOD,
+                                        "introduction", vpl.INTRO,
+                                        "mem_cnt", vpl.MEM_CNT,
+                                        "contribution", vpl.CONTRIBUTION,
+                                        "stack", vpl.STACK,
+                                        "role", vpl.\`ROLE\`,
+                                        "service_stts", vpl.SERVICE_STTS,
+                                        "url", vpl.URL,
+                                        "media", vpl.MEDIA
+                                    )) AS portfolio
+                                FROM TB_PF pf
+                                    INNER JOIN TB_USER usr ON usr.USER_SN = pf.USER_SN
+                                    INNER JOIN TB_CAREER cr ON cr.PF_SN = pf.PF_SN
+                                    INNER JOIN TB_PF_ST pfSt ON pfSt.PF_SN = pf.PF_SN 
+                                    INNER JOIN TB_ST st ON st.ST_SN = pfSt.ST_SN 
+                                    INNER JOIN TB_PF_INTRST pfI ON pfI.PF_SN = pf.PF_SN
+                                    INNER JOIN TB_INTRST intrst ON intrst.INTRST_SN = pfI.INTRST_SN
+                                    INNER JOIN TB_PF_URL pfU ON pfU.PF_SN = pf.PF_SN 
+                                    INNER JOIN TB_URL url ON pfU.URL_SN = url.URL_SN
+                                    INNER JOIN TB_PF_PFOL pfPl ON pfPl.PF_SN = pf.PF_SN
+                                    INNER JOIN VIEW_PFOL vpl ON vpl.PFOL_SN = pfPl.PFOL_SN
+                                GROUP BY pf.PF_SN, usr.USER_SN, usr.USER_NM;`;
+        try {
+            const pfPfol = await db.query(query, {type: QueryTypes.SELECT});
+            return pfPfol;
+        } catch (error){
+            throw error;
+        }
+    }
+
     async pfPfolSelect(req, res){
         const userSn = req.userSn.USER_SN;
 

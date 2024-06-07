@@ -3,6 +3,28 @@ const { logger } = require('../../utils/logger');
 const { QueryTypes } = require("sequelize");
 
 class projectService {
+
+
+  async myProject(userSn, pjtSn){
+    const query = `SELECT pj.PJT_NM, pj.PJT_IMG, pj.PJT_INTRO, pj.PJT_DETAIL
+                                , GROUP_CONCAT(DISTINCT st.ST_NM) AS STACK, GROUP_CONCAT(DISTINCT pjr.PART) AS ROLE
+                                , pj.WANTED as experience
+                            FROM TB_PJT pj
+                               INNER JOIN TB_USER tu ON tu.USER_SN = pj.CREATED_USER_SN
+                               INNER JOIN TB_PJT_SKILL pjSk ON pjSk.PJT_SN = pj.PJT_SN
+                               INNER JOIN TB_ST st ON st.ST_SN = pjSk.ST_SN
+                               INNER JOIN TB_PJT_ROLE pjr ON pjr.PJT_SN = pj.PJT_SN
+                            WHERE pj.PJT_SN = ${pjtSn} AND tu.USER_SN = ${userSn}
+                            GROUP BY pjr.PJT_SN;`;
+    try {
+
+      const project = await db.query(query, {type:QueryTypes.SELECT});
+      console.log(project)
+      return project;
+    } catch (error){
+      throw error;
+    }
+  }
   async myProjects(req, res) {
     const userSn = req.userSn.USER_SN;
     const query = `SELECT pj.PJT_SN, pj.PJT_NM, pj.PJT_INTRO, pj.START_DT, pj.PERIOD, pj.CREATED_USER_SN, pj.PJT_STTS

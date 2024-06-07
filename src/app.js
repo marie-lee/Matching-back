@@ -20,6 +20,7 @@ const memberCtrl = require('./api/member/member.ctrl');
 const profileCtrl = require('./api/profile/profile.ctrl');
 const projectCtrl = require('./api/projects/project.ctrl');
 const statusCtrl = require('./api/status/status.ctrl');
+const matchingCtrl = require('./api/matching/matching.ctrl');
 
 const app = express();
 app.use(express.json());
@@ -52,6 +53,7 @@ app.use("/api/member", memberCtrl);
 app.use("/api/member", profileCtrl);
 app.use("/api", projectCtrl);
 app.use("/api", statusCtrl);
+app.use("/api", matchingCtrl);
 
 app.listen(process.env.PORT, () => {
   logger.info('Server is running on port 8080');
