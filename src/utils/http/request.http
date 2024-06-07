@@ -1,0 +1,8 @@
+### 매칭 유저 추천 리스트
+GET http://localhost:8080/api/matching/member/1
+Content-Type: application/json
+
+### 유저 프로필 포트폴리오 전체
+GET localhost:8080/api/matching/memberData
+Content-Type: application/json
+

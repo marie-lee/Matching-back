@@ -43,10 +43,10 @@ def process_description(description):
 
 # 프로필 데이터를 텍스트로 변환
 def profile_to_text(profile):
-    text = f"{profile['introduction']} {' '.join(profile['skill'])} {' '.join(profile['interests'])}"
+    text = f"{process_description(profile['introduction'])}, {profile['skill']}, {profile['interests']}"
     if profile.get("career"):
         for exp in profile["career"]:
-            text += f" {exp['company_name']} {exp['entering_dt']} {exp.get('quit_dt', '')}"
+            text += f", {exp['company_name']}, {exp['entering_dt']}, {exp.get('quit_dt', '')}"
     return text
 
 # 프로필 벡터 계산
@@ -59,19 +59,19 @@ def profile_to_vector(pf_sn, profile):
 def portfolio_to_text(portfolio):
     processed_texts = []
     for project in portfolio:
-        project_texts = [
-            project['introduction'][:50],  # 프로젝트 소개의 처음 50자
-            ', '.join(project['stack'][:50]),  # 스택 정보의 처음 50자
-            ', '.join(project['role'][:50]),  # 역할 정보의 처음 50자
-            f"Achievements: {project['contribution']}"[:50]  # 기여도 정보의 처음 50자만 가져옴
-        ]
+        project_texts = []
+        project_texts.append(process_description(project['introduction'])) # 프로젝트 소개의 처음 50자
+        project_texts.append(process_description(project['stack'])) # 스택 정보의 처음 50자
+        project_texts.append(process_description(project['role'])) # 역할 정보의 처음 50자
+        project_texts.append(f"Achievements: {project['contribution']}") # 기여도 정보의 처음 50자만 가져옴
         processed_texts.append(project_texts)
     return processed_texts
 
 # 포트폴리오 벡터 계산
 def portfolio_to_vector(portfolio):
     portfolio_text = portfolio_to_text(portfolio)
-    portfolio_vector = get_average_embedding(portfolio_text).squeeze()
+    project_vectors =  [get_average_embedding(project).squeeze()  for project in portfolio_text]
+    portfolio_vector = np.mean(project_vectors, axis=0)
     return portfolio_vector
 
 # 코사인 유사도 계산 함수
@@ -80,9 +80,8 @@ def cosine_similarity(a, b):
 
 #  프로젝트 데이터 매개변수에서 가져오기
 project_data = json.loads(sys.argv[1])
-
 #  회원 프로필 포트폴리오 데이터
-url = "http://localhost:8080/api/matching/memberData"
+url = "http://localhost:3000/api/matching/memberData"
 response = requests.get(url)
 
 if response.status_code == 200:
@@ -98,12 +97,9 @@ project_texts = []
 
 project_texts.append(project_data['PJT_INTRO']) # 프로젝트 간단 정보
 project_texts.extend(process_description(project_data['PJT_DETAIL']))
-roles = ", ".join(project_data['ROLE'])
-project_texts.append(f"{roles}")
-technologies =  ", ".join(project_data['STACK'])
-project_texts.append(f"{technologies}")
-experience = ",".join(project_data['experience'])
-project_texts.append(f"{experience}")
+project_texts.append(project_data['ROLE'])
+project_texts.append(project_data['STACK'])
+project_texts.append(project_data['experience'])
 project_name = project_data['PJT_NM']
 
 # 프로젝트 벡터 계산
@@ -115,20 +111,20 @@ for member in profile_data:
     profile = member['profile']
     profile_vector, profile_sn = profile_to_vector(pf_sn, profile)  # 프로필 벡터화
     portfolio_vector = portfolio_to_vector(member['portfolio'])        # 포트폴리오 벡터화
-    print("Profile vector shape:", profile_vector.shape)
-    print("Portfolio vector shape:", portfolio_vector.shape)
 
-#     member_vector = np.mean([profile_vector, portfolio_vector], axis=0) # 프로필과 포트폴리오 벡터의 평균
-#     similarity = cosine_similarity(member_vector, project_vector)
-#
-#     if similarity >= 0.7:
-#         similar_profiles.append((pf_sn, similarity))
+    member_vector = np.mean([profile_vector, portfolio_vector], axis=0) # 프로필과 포트폴리오 벡터 연결
+    similarity = cosine_similarity(member_vector, project_vector)
+
+    if similarity >= 0.6:
+        similar_profiles.append((pf_sn, similarity))
 
 # # 유사도가 높은 순서대로 정렬
-# similar_profiles.sort(key=lambda x: x[1], reverse=True)
-#
-# # 상위 50개 프로필 출력
-# top_similar_profiles = similar_profiles[:50]
-# for pf_sn, similarity in top_similar_profiles:
-#     print(f"Profile PF_SN: {pf_sn}, Similarity: {similarity:.4f}")
+similar_profiles.sort(key=lambda x: x[1], reverse=True)
 
+# 유사도가 높은 프로필 정보를 JSON 형식으로 저장하여 노드 파일로 전달
+similar_profiles_info = [{'pf_sn': pf_sn, 'similarity': similarity} for pf_sn, similarity in similar_profiles]
+json_data = json.dumps(similar_profiles_info)
+
+# 노드 파일로 JSON 데이터를 전달할 수 있도록 설정
+sys.stdout.write(json_data)
+sys.stdout.flush()

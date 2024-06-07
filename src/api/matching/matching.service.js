@@ -3,7 +3,7 @@ const { logger } = require('../../utils/logger');
 const { QueryTypes } = require("sequelize");
 const projectService = require('../projects/project.service');
 const profileService = require('../profile/profile.service');
-const {runPythonScript} = require("../../utils/matching/matching");
+const {runPythonScript} = require("../../utils/matching/spawnMatching");
 
 class matchingService {
 
@@ -37,7 +37,7 @@ class matchingService {
                     throw error;
                 }
                 // 결과 처리
-                // console.log(result);
+                console.log(result);
             });
             // return res.status(200).send(pjtLists);
         } catch (error) {
