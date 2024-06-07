@@ -81,12 +81,11 @@ def cosine_similarity(a, b):
 #  프로젝트 데이터 매개변수에서 가져오기
 project_data = json.loads(sys.argv[1])
 #  회원 프로필 포트폴리오 데이터
-url = "http://localhost:3000/api/matching/memberData"
+url = "http://localhost:8080/api/matching/memberData"
 response = requests.get(url)
 
 if response.status_code == 200:
     data = response.json()  # JSON 형식의 응답 데이터를 가져옴
-    print("프로필 포트폴리오 데이터 API 성공")
     profile_data = data
 else:
     print("API 호출 중 에러 발생:", response.status_code)
@@ -121,9 +120,11 @@ for member in profile_data:
 # # 유사도가 높은 순서대로 정렬
 similar_profiles.sort(key=lambda x: x[1], reverse=True)
 
+
 # 유사도가 높은 프로필 정보를 JSON 형식으로 저장하여 노드 파일로 전달
-similar_profiles_info = [{'pf_sn': pf_sn, 'similarity': similarity} for pf_sn, similarity in similar_profiles]
-json_data = json.dumps(similar_profiles_info)
+converted_similar_profiles_info = {key: float(value) for key, value in similar_profiles}
+
+json_data = json.dumps(converted_similar_profiles_info)
 
 # 노드 파일로 JSON 데이터를 전달할 수 있도록 설정
 sys.stdout.write(json_data)

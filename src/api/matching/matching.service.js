@@ -37,7 +37,12 @@ class matchingService {
                     throw error;
                 }
                 // 결과 처리
-                console.log(result);
+                const matchingData = result;
+                const dataJson = JSON.parse(JSON.stringify(matchingData));
+                // const jsonObj = JSON.parse(jsonString);
+
+                console.log(dataJson);
+
             });
             // return res.status(200).send(pjtLists);
         } catch (error) {
