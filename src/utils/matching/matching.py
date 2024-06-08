@@ -7,12 +7,15 @@ import torch
 from transformers import CLIPProcessor, CLIPModel
 import numpy as np
 
+
 # CLIP 모델 로드
 model_name = "openai/clip-vit-base-patch32"
 model = CLIPModel.from_pretrained(model_name)
 processor = CLIPProcessor.from_pretrained(model_name)
 
-# # 최대 시퀀스 길이 설정
+
+
+# 최대 시퀀스 길이 설정
 MAX_LENGTH = 77
 
 # 텍스트 임베딩 함수
@@ -84,13 +87,17 @@ def main():
         #  프로젝트 데이터 매개변수에서 가져오기
         project_data = json.loads(sys.argv[1])
         #  회원 프로필 포트폴리오 데이터
-#         url = "http://localhost:8080/api/recommendation/memberData"
-        url = "http://218.232.137.30:8080/api/recommendation/memberData"
+        # url = "http://localhost:8080/api/recommendation/memberData"
+        url = "http://218.232.137.30:20080/api/recommendation/memberData"
         response = requests.get(url)
 
+
         if response.status_code == 200:
-            data = response.json()  # JSON 형식의 응답 데이터를 가져옴
-            profile_data = data
+            try:
+                data = response.json()  # JSON 형식의 응답 데이터를 가져옴
+                profile_data = data
+            except json.JSONDecodeError as e:
+                raise Exception(f"json 디코딩 호출 중 에러 발생:{response.text}")
         else:
             raise Exception(f"API 호출 중 에러 발생: {response.status_code}, 에러 내용: {response.text}")
 
@@ -122,7 +129,7 @@ def main():
             if similarity >= 0.6:
                 similar_profiles.append((pf_sn, similarity))
 
-        # # 유사도가 높은 순서대로 정렬
+        # 유사도가 높은 순서대로 정렬
         similar_profiles.sort(key=lambda x: x[1], reverse=True)
 
 
@@ -134,6 +141,7 @@ def main():
         # 노드 파일로 JSON 데이터를 전달할 수 있도록 설정
         sys.stdout.write(json_data)
         sys.stdout.flush()
+
     except Exception as e:
         error_message = json.dumps({"error": str(e)})
         sys.stderr.write(error_message)
@@ -141,3 +149,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
