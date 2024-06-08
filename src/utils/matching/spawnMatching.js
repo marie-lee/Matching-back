@@ -1,13 +1,11 @@
 const { spawn } = require('child_process');
-
 // 서버에서 파이썬 실행 시
 require('dotenv').config();
 
-// 서버에서 파이썬 실행 시
-require('dotenv').config();
 
-const runPythonScript = (data1) => {
+const runPythonScript = (data1) => {4
     return new Promise((resolve, reject) => {
+
         // 서버
         const pythonProcess = spawn(process.env.PYTHON_PATH, ['/home/dldudgus/Matching-back/src/utils/matching/matching.py', data1], {env: {PYTHONIOENCODING: 'utf-8'}});
 
