@@ -10,7 +10,7 @@ class projectService {
     const userSn = req.userSn.USER_SN;
     const pjtSn = req.params.pjtSn;
 
-    const query = `SELECT pj.PJT_SN as pjtSn, pj.PJT_NM as pjtNm, pj.PJT_IMG as pjtImg, pj.PJT_INTRO as pjtIntro, pj.PJT_DETAIL as pjtDetail
+    const query = `SELECT pj.PJT_SN as pjtSn, pj.PJT_NM as pjtNm, pj.PJT_IMG as pjtImg, pj.START_DT as startDt, pj.END_DT as endDt, pj.PERIOD as period, pj.DURATION_UNIT as durationUnit, pj.PJT_INTRO as pjtIntro, pj.PJT_DETAIL as pjtDetail
                                 , GROUP_CONCAT(DISTINCT st.ST_NM) AS stack
                                 , SUM( DISTINCT pjr.TOTAL_CNT ) AS PO
                                 , sum( DISTINCT pjr.CNT) AS \`TO\`
@@ -36,7 +36,7 @@ class projectService {
 
   async myProjects(req, res) {
     const userSn = req.userSn.USER_SN;
-    const query = `SELECT pj.PJT_SN, pj.PJT_NM, pj.PJT_INTRO, pj.START_DT, pj.PERIOD, pj.CREATED_USER_SN, pj.PJT_STTS
+    const query = `SELECT pj.PJT_SN, pj.PJT_NM, pj.PJT_INTRO, pj.START_DT, pj.END_DT, pj.PERIOD, pj.DURATION_UNIT, pj.CREATED_USER_SN, pj.PJT_STTS
                    FROM TB_USER usr
                           LEFT JOIN TB_PJT_M pjm ON usr.USER_SN = pjm.USER_SN AND pjm.DEL_YN = FALSE
                           LEFT JOIN TB_PJT pj ON pjm.PJT_SN = pj.PJT_SN AND pj.DEL_YN = FALSE
@@ -63,6 +63,7 @@ class projectService {
         SELECTED_DT_YN,
         START_DT,
         PERIOD,
+        DURATION_UNIT,
         WANTED,
         PJT_DETAIL,
         PJT_STTS,
@@ -94,6 +95,7 @@ class projectService {
         SELECTED_DT_YN: SELECTED_DT_YN === 'Y', // Boolean 변환
         START_DT: SELECTED_DT_YN === 'Y' ? START_DT : null,
         PERIOD,
+        DURATION_UNIT,
         WANTED: JSON.stringify(WANTED), // 배열을 JSON 문자열로 변환하여 저장
         PJT_DETAIL,
         PJT_STTS

@@ -293,6 +293,10 @@ components:
           type: string
           description: 프로젝트 기간
           example: 6
+        DURATION_UNIT:
+          type: string
+          description: 프로젝트 기간 (일/월)
+          example: DAY
         WANTED:
           type: array
           items:
@@ -535,10 +539,18 @@ components:
                   type: string
                   description: 프로젝트 시작 날짜
                   example: 2024-05-01
+                END_DT:
+                  type: string
+                  description: 프로젝트 종료 날짜
+                  example: 2024-06-01
                 PERIOD:
                   type: integer
                   description: 프로젝트 기간
-                  example: 6
+                  example: 1
+                DURATION_UNIT:
+                  type: string
+                  description: 프로젝트 기간 (일/월)
+                  example: MONTH
                 CREATED_USER_SN:
                   type: integer
                   description: 프로젝트 생성자 SN
@@ -552,14 +564,18 @@ components:
               PJT_NM: project1
               PJT_INTRO: 설명1
               START_DT: null
-              PERIOD: null
+              END_DET: null
+              PERIOD: 5
+              DURATION_UNIT: MONTH
               CREATED_USER_SN: 1
               PJT_STTS: RECUIT
             - PJT_SN: 2
               PJT_NM: project2
               PJT_INTRO: 설명2
               START_DT: 2024-05-01
+              END_DT: null
               PERIOD: 5
+              DURATION_UNIT: MONTH
               CREATED_USER_SN: 1
               PJT_STTS: PROGRESS
     myProject200:
@@ -581,6 +597,22 @@ components:
                 type: string
                 description: 프로젝트 이미지 url
                 example: 'https://example.com/project_management_platform.png'
+              startDt:
+                type: string
+                description: 프로젝트 시작일
+                example: 2024-07-20
+              endDt:
+                type: string
+                description: 프로젝트 종료일
+                example: 2024-09-20
+              period:
+                type: integer
+                description: 프로젝트 기간
+                example: 3
+              durationUnit:
+                type: string
+                description: 프로젝트 기간(일/월)
+                example: MONTH
               pjtIntro:
                 type: string
                 description: 프로젝트 소개
@@ -629,6 +661,10 @@ components:
             pjtSn: 1
             pjtNm: '프로젝트 관리 플랫폼'
             pjtImg: 'https://example.com/project_management_platform.png'
+            startDt: 2024-07-20
+            endDt: null
+            period: 3
+            durationUnit: MONTH
             pjtIntro: '사용자들이 프로젝트를 효과적으로 관리할 수 있는 웹 플랫폼을 개발하는 프로젝트입니다.'
             pjtDetail: '이 프로젝트는 사용자들이 프로젝트를 효과적으로 관리할 수 있는 웹 플랫폼을 개발하는 것입니다. 프로젝트 생성 및 편집 기능, 일정 관리, 업무 할당, 팀원 협업 기능 등이 필요합니다.'
             stack: 'JavaScript,NODE.JS,REACT'
