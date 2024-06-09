@@ -50,8 +50,8 @@ class projectService {
 
   // 프로젝트 등록
   async registerProject(project, user) {
+    const transaction = await db.transaction();
     try {
-      const transaction = await db.transaction();
       const {
         PJT_NM,
         PJT_IMG,
@@ -130,9 +130,10 @@ class projectService {
         }, {transaction});
       }
 
-
+      await transaction.commit();
     } catch (error) {
       logger.error('프로젝트 등록 중 오류 발생:', error);
+      await transaction.rollback();
       throw error;
     }
   }
