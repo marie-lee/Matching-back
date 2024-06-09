@@ -12,6 +12,8 @@ class projectService {
 
     const query = `SELECT pj.PJT_SN as pjtSn, pj.PJT_NM as pjtNm, pj.PJT_IMG as pjtImg, pj.PJT_INTRO as pjtIntro, pj.PJT_DETAIL as pjtDetail
                                 , GROUP_CONCAT(DISTINCT st.ST_NM) AS stack
+                                , SUM( DISTINCT pjr.TOTAL_CNT ) AS PO
+                                , sum( DISTINCT pjr.CNT) AS \`TO\`
                                 , JSON_ARRAYAGG( DISTINCT JSON_OBJECT( "part", pjr.PART, "totalCnt", pjr.TOTAL_CNT, "cnt", pjr.CNT)) AS role
                                 , pj.WANTED as experience
                             FROM TB_PJT pj

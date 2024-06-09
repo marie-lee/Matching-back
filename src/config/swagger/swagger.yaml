@@ -593,6 +593,14 @@ components:
                 type: string
                 description: 사용 기술 스택
                 example: 'Java, Node.Js'
+              PO:
+                type: integer
+                description: 모집 인원
+                example: 10
+              TO:
+                type: integer
+                description: 현재 인원
+                example: 3
               role:
                 type: array
                 description: 프로젝트 역할 및 인원
@@ -624,6 +632,8 @@ components:
             pjtIntro: '사용자들이 프로젝트를 효과적으로 관리할 수 있는 웹 플랫폼을 개발하는 프로젝트입니다.'
             pjtDetail: '이 프로젝트는 사용자들이 프로젝트를 효과적으로 관리할 수 있는 웹 플랫폼을 개발하는 것입니다. 프로젝트 생성 및 편집 기능, 일정 관리, 업무 할당, 팀원 협업 기능 등이 필요합니다.'
             stack: 'JavaScript,NODE.JS,REACT'
+            PO: 10
+            TO: 3
             role:
               - part: '프런트엔드'
                 totalCnt: 5
