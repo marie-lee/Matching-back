@@ -5,22 +5,41 @@ const {QueryTypes} = require("sequelize");
 
 class profileService {
     async profileUpload(req, res){
+        const data = req.body;
         const t = await db.transaction(); // 트랜잭션 시작
         try{
-            // 프로필 입력
-            const pf = await this.profileInsert(req.body.profile, req.userSn.USER_SN, t);
-            if(pf){
-                // 포트폴리오 입력
-                for (const portfolio of req.body.portfolios) {
-                    await this.portfolioInsert(portfolio, pf, t);
+            if(!data.profile && !data.portfolios){
+                return res.status(400).send('프로필과 포트폴리오 데이터가 없습니다.')
+            }
+            else if(data.profile && !data.portfolios){
+                // 프로필 입력
+                const pf = await this.profileInsert(req.body.profile, req.userSn.USER_SN, t);
+                if(pf){
+                    await t.commit(); // 모든 작업이 성공하면 트랜잭션 커밋
+                    res.status(200).send('프로필 입력 완료');
                 }
-                await t.commit(); // 모든 작업이 성공하면 트랜잭션 커밋
-                res.status(200).send('프로필 포트폴리오 입력 완료');
+                else{
+                    await t.rollback();
+                    res.status(304).send('이미 등록된 프로필 입니다.');
+                }
             }
-            else{
-                await t.rollback();
-                res.status(304).send('이미 등록된 프로필 입니다.');
+            else if(data.profile && data.portfolios){
+                // 프로필 입력
+                const pf = await this.profileInsert(req.body.profile, req.userSn.USER_SN, t);
+                if(pf){
+                    // 포트폴리오 입력
+                    for (const portfolio of req.body.portfolios) {
+                        await this.portfolioInsert(portfolio, pf, t);
+                    }
+                    await t.commit(); // 모든 작업이 성공하면 트랜잭션 커밋
+                    res.status(200).send('프로필 포트폴리오 입력 완료');
+                }
+                else{
+                    await t.rollback();
+                    res.status(304).send('이미 등록된 프로필 입니다.');
+                }
             }
+
         }
         catch (error){
             await this.deleteFileFromMinio(req.body.profile, req.body.portfolios);
@@ -194,42 +213,54 @@ class profileService {
                     transaction: transaction
                 });
 
-                // 경력 입력
-                for (const career of profile.CAREER) {
-                    await db.TB_CAREER.create({
-                        CAREER_NM: career.CAREER_NM,
-                        ENTERING_DT: career.ENTERING_DT,
-                        QUIT_DT: career.QUIT_DT,
-                        PF_SN: pf.PF_SN
-                    }, {transaction});
+                if(profile.CAREER){
+                    // 경력 입력
+                    for (const career of profile.CAREER) {
+                        await db.TB_CAREER.create({
+                            CAREER_NM: career.CAREER_NM,
+                            ENTERING_DT: career.ENTERING_DT,
+                            QUIT_DT: career.QUIT_DT,
+                            PF_SN: pf.PF_SN
+                        }, {transaction});
+                    }
                 }
 
-                // 스택 입력
-                for (const stack of profile.STACK) {
-                    const [st, created] = await db.TB_ST.findOrCreate({
-                        where: {ST_NM: stack.ST_NM},
-                        defaults: {ST_NM: stack.ST_NM},
-                        transaction: transaction
-                    });
+                if(profile.STACK){
+                    // 스택 입력
+                    for (const stack of profile.STACK) {
+                        const [st, created] = await db.TB_ST.findOrCreate({
+                            where: {ST_NM: stack.ST_NM},
+                            defaults: {ST_NM: stack.ST_NM},
+                            transaction: transaction
+                        });
 
-                    await db.TB_PF_ST.create({PF_SN: pf.PF_SN, ST_SN: st.ST_SN, ST_LEVEL: stack.LEVEL}, {transaction});
+                        await db.TB_PF_ST.create({
+                            PF_SN: pf.PF_SN,
+                            ST_SN: st.ST_SN,
+                            ST_LEVEL: stack.LEVEL
+                        }, {transaction});
+                    }
                 }
 
-                // 관심사 입력
-                for (const intrst of profile.INTRST) {
-                    const [intr, created] = await db.TB_INTRST.findOrCreate({
-                        where: {INTRST_NM: intrst},
-                        defaults: {INTRST_NM: intrst},
-                        transaction: transaction
-                    });
+                if(profile.INTRST){
+                    // 관심사 입력
+                    for (const intrst of profile.INTRST) {
+                        const [intr, created] = await db.TB_INTRST.findOrCreate({
+                            where: {INTRST_NM: intrst},
+                            defaults: {INTRST_NM: intrst},
+                            transaction: transaction
+                        });
 
-                    await db.TB_PF_INTRST.create({PF_SN: pf.PF_SN, INTRST_SN: intr.INTRST_SN}, {transaction});
+                        await db.TB_PF_INTRST.create({PF_SN: pf.PF_SN, INTRST_SN: intr.INTRST_SN}, {transaction});
+                    }
                 }
 
-                // URL 입력
-                for (const url of profile.URL) {
-                    const u = await db.TB_URL.create({URL: url.URL, URL_INTRO: url.URL_INTRO}, {transaction});
-                    await db.TB_PF_URL.create({PF_SN: pf.PF_SN, URL_SN: u.URL_SN}, {transaction});
+                if(profile.URL){
+                    // URL 입력
+                    for (const url of profile.URL) {
+                        const u = await db.TB_URL.create({URL: url.URL, URL_INTRO: url.URL_INTRO}, {transaction});
+                        await db.TB_PF_URL.create({PF_SN: pf.PF_SN, URL_SN: u.URL_SN}, {transaction});
+                    }
                 }
 
                 return pf;
@@ -258,37 +289,54 @@ class profileService {
             // 포트폴리오 - 프로필 연결
             await db.TB_PF_PFOL.create({PF_SN:pf.PF_SN, PFOL_SN:pfol.PFOL_SN}, { transaction });
 
-            // 스택 입력
-            for (const stack of portfolio.STACK) {
-                const [st, created] = await db.TB_ST.findOrCreate({
-                    where: { ST_NM: stack.ST_NM },
-                    defaults: { ST_NM: stack.ST_NM },
-                    transaction: transaction
-                });
+            if(portfolio.STACK){
+                // 스택 입력
+                for (const stack of portfolio.STACK) {
+                    const [st, created] = await db.TB_ST.findOrCreate({
+                        where: {ST_NM: stack.ST_NM},
+                        defaults: {ST_NM: stack.ST_NM},
+                        transaction: transaction
+                    });
 
-                await db.TB_PFOL_ST.create({ PFOL_SN: pfol.PFOL_SN, ST_SN: st.ST_SN }, { transaction });
+                    await db.TB_PFOL_ST.create({PFOL_SN: pfol.PFOL_SN, ST_SN: st.ST_SN}, {transaction});
+                }
             }
 
-            // 역할 입력
-            for (const role of portfolio.ROLE) {
-                const [r, created] = await db.TB_ROLE.findOrCreate({
-                    where: { ROLE_NM: role },
-                    defaults: { ROLE_NM: role },
-                    transaction: transaction
-                });
+            if(portfolio.ROLE){
+                // 역할 입력
+                for (const role of portfolio.ROLE) {
+                    const [r, created] = await db.TB_ROLE.findOrCreate({
+                        where: {ROLE_NM: role},
+                        defaults: {ROLE_NM: role},
+                        transaction: transaction
+                    });
 
-                await db.TB_PFOL_ROLE.create({ PFOL_SN: pfol.PFOL_SN, ROLE_SN: r.ROLE_SN }, { transaction });
+                    await db.TB_PFOL_ROLE.create({PFOL_SN: pfol.PFOL_SN, ROLE_SN: r.ROLE_SN}, {transaction});
+                }
             }
 
-            // URL 입력
-            for (const url of portfolio.URL) {
-                const u = await db.TB_URL.create({ URL: url.URL, URL_INTRO: url.URL_INTRO }, { transaction });
-                await db.TB_PFOL_URL.create({ PFOL_SN: pfol.PFOL_SN, URL_SN: u.URL_SN, RELEASE_YN: url.RELEASE_YN, OS: url.OS }, { transaction });
+            if(portfolio.URL){
+                // URL 입력
+                for (const url of portfolio.URL) {
+                    const u = await db.TB_URL.create({URL: url.URL, URL_INTRO: url.URL_INTRO}, {transaction});
+                    await db.TB_PFOL_URL.create({
+                        PFOL_SN: pfol.PFOL_SN,
+                        URL_SN: u.URL_SN,
+                        RELEASE_YN: url.RELEASE_YN,
+                        OS: url.OS
+                    }, {transaction});
+                }
             }
 
-            // 포트폴리오 미디어 입력
-            for (const media of portfolio.MEDIA){
-                await db.TB_PFOL_MEDIA.create({PFOL_SN: pfol.PFOL_SN, URL: media.URL, MAIN_YN: media.MAIN_YN}, {transaction});
+            if(portfolio.MEDIA){
+                // 포트폴리오 미디어 입력
+                for (const media of portfolio.MEDIA) {
+                    await db.TB_PFOL_MEDIA.create({
+                        PFOL_SN: pfol.PFOL_SN,
+                        URL: media.URL,
+                        MAIN_YN: media.MAIN_YN
+                    }, {transaction});
+                }
             }
 
             return pfol;
