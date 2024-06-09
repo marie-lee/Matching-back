@@ -50,6 +50,7 @@ class projectService {
 
   // 프로젝트 등록
   async registerProject(project, user) {
+    const transaction = await db.transaction();
     try {
       const {
         PJT_NM,
@@ -94,19 +95,20 @@ class projectService {
         WANTED: JSON.stringify(WANTED), // 배열을 JSON 문자열로 변환하여 저장
         PJT_DETAIL,
         PJT_STTS
-      });
+      }, {transaction});
 
       // 스택 처리
       for (const stack of STACKS) {
         const [st, created] = await db.TB_ST.findOrCreate({
           where: { ST_NM: stack.ST_NM },
-          defaults: { ST_NM: stack.ST_NM }
+          defaults: { ST_NM: stack.ST_NM },
+          transaction: transaction
         });
 
         await db.TB_PJT_SKILL.create({
           PJT_SN: newProject.PJT_SN,
           ST_SN: st.ST_SN
-        });
+        }, {transaction});
       }
       // 팀원
       for (const role of ROLES) {
@@ -115,12 +117,23 @@ class projectService {
           PART: role.PART,
           TOTAL_CNT: role.TOTAL_CNT,
           CNT: 0 // 현재 참여자 수를 기본값 0으로 설정
-        });
+        }, {transaction});
       }
 
+      // 생성자 멤버추가
+      const constructorRole = await db.TB_PJT_ROLE.findOne({where: {PJT_SN: newProject.PJT_SN, PART: CONSTRUCTOR_ROLE}});
+      if(constructorRole) {
+        await db.TB_PJT_M.create({
+          PJT_SN: newProject.PJT_SN,
+          USER_SN: user.USER_SN,
+          PJT_ROLE_SN: constructorRole.PJT_ROLE_SN
+        }, {transaction});
+      }
 
+      await transaction.commit();
     } catch (error) {
       logger.error('프로젝트 등록 중 오류 발생:', error);
+      await transaction.rollback();
       throw error;
     }
   }
