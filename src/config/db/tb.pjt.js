@@ -36,8 +36,14 @@ module.exports = (sequelize, DataTypes) => {
       START_DT: {
         type: DataTypes.DATE,
       },
+      END_DT: {
+        type: DataTypes.DATE,
+      },
       PERIOD: {
         type: DataTypes.STRING(45),
+      },
+      DURATION_UNIT: {
+        type: DataTypes.STRING(5),
       },
       WANTED: {
         type: DataTypes.STRING(255),
