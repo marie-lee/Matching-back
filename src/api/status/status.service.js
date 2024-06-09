@@ -55,7 +55,7 @@ class statusService{
                                 LEFT JOIN TB_PJT pj ON req.PJT_SN = pj.PJT_SN AND pj.DEL_YN = FALSE
                                 LEFT JOIN TB_PJT_ROLE pjr ON pj.PJT_SN = pjr.PJT_SN
                                 LEFT JOIN TB_PJT_ROLE pjrr ON req.PJT_ROLE_SN = pjrr.PJT_ROLE_SN
-                                WHERE usr.USER_SN = 1
+                                WHERE usr.USER_SN = ${userSn}
                                 GROUP BY req.REQ_SN;`;
         try{
             return await db.query(query, {type: QueryTypes.SELECT});
