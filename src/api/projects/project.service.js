@@ -121,14 +121,12 @@ class projectService {
       }
 
       // 생성자 멤버추가
-      const constructorRole = await db.TB_PJT_ROLE.findOne({where: {PJT_SN: newProject.PJT_SN, PART: CONSTRUCTOR_ROLE}});
-      if(constructorRole) {
-        await db.TB_PJT_M.create({
-          PJT_SN: newProject.PJT_SN,
-          USER_SN: user.USER_SN,
-          PJT_ROLE_SN: constructorRole.PJT_ROLE_SN
-        }, {transaction});
-      }
+      const constructorRole = await db.TB_PJT_ROLE.create({PJT_SN: newProject.PJT_SN, PART: CONSTRUCTOR_ROLE, TOTAL_CNT: 1, CNT: 1},{transaction});
+      await db.TB_PJT_M.create({
+        PJT_SN: newProject.PJT_SN,
+        USER_SN: user.USER_SN,
+        PJT_ROLE_SN: constructorRole.PJT_ROLE_SN
+      }, {transaction});
 
       await transaction.commit();
     } catch (error) {
