@@ -25,6 +25,9 @@ class projectService {
                             GROUP BY pjr.PJT_SN;`;
     try {
       const result = await db.query(query, {type: QueryTypes.SELECT});
+      if(result[0] == null){
+        throw new Error("해당 프로젝트가 없거나 권한이 없습니다.")
+      }
       if (result.length > 0) {
         result[0].experience = JSON.parse(result[0].experience);
       }
