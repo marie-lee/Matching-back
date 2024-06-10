@@ -18,9 +18,9 @@ class projectService {
                                 , pj.WANTED as experience
                             FROM TB_PJT pj
                               INNER JOIN TB_USER tu ON tu.USER_SN = pj.CREATED_USER_SN
-                              INNER JOIN TB_PJT_SKILL pjSk ON pjSk.PJT_SN = pj.PJT_SN
-                              INNER JOIN TB_ST st ON st.ST_SN = pjSk.ST_SN
-                              INNER JOIN TB_PJT_ROLE pjr ON pjr.PJT_SN = pj.PJT_SN
+                              LEFT JOIN TB_PJT_SKILL pjSk ON pjSk.PJT_SN = pj.PJT_SN
+                              LEFT JOIN TB_ST st ON st.ST_SN = pjSk.ST_SN
+                              LEFT JOIN TB_PJT_ROLE pjr ON pjr.PJT_SN = pj.PJT_SN
                             WHERE pj.PJT_SN = ${pjtSn} AND tu.USER_SN = ${userSn}
                             GROUP BY pjr.PJT_SN;`;
     try {
