@@ -16,7 +16,7 @@ router.get('/project', jwt.authenticateToken, async (req, res)=>{
 router.get('/project/:pjtSn', jwt.authenticateToken, async (req, res)=>{
     try{
         const pjtData = await projectService.myProject(req, res);
-        return res.status(200).send(pjtData);
+        return res.status(200).send(pjtData[0]);
     }catch (error) {
         logger.error(`내 프로젝트 조회 실패: ${error}`);
         return res.status(400).send(`내 프로젝트 조회 실패 :  ${error}`);
