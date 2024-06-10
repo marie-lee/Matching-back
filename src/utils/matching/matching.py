@@ -93,7 +93,7 @@ def main():
         #  프로젝트 데이터 매개변수에서 가져오기
         project_data = json.loads(sys.argv[1])
         #  회원 프로필 포트폴리오 데이터
-        # url = "http://localhost:8000/api/recommendation/memberData"
+        # url = "http://localhost:8080/api/recommendation/memberData"
         url = "http://218.232.137.30:20080/api/recommendation/memberData"
         response = requests.get(url)
 
