@@ -1,0 +1,972 @@
+openapi: 3.0.0
+info:
+  title: Matching Back API
+  version: 1.0.0
+servers:
+  - url: http://218.232.137.30:20080/api
+  - url: http://localhost:8080/api
+tags:
+  - name: member
+    description: 멤버 관련
+  - name: project
+    description: 프로젝트 관련
+  - name: status
+    description: 현황 관련
+paths:
+  /member/login:
+    post:
+      tags:
+        - member
+      summary: login
+      description: login
+      requestBody:
+        description: login
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/loginReq'
+        required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/loginRes200'
+        '400':
+          $ref: '#/components/responses/loginRes400'
+        '401':
+          $ref: '#/components/responses/loginRes401'
+  /member/profile:
+    post:
+      tags:
+        - member
+      summary: 프로필, 포트폴리오 입력
+      description: |
+        프로필, 포트폴리오 입력
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/profileUpload'
+      responses:
+        '200':
+          $ref: '#/components/responses/profileUpload200'
+      security:
+        - JWT: []
+    get:
+      tags:
+        - member
+      summary: 프로필, 포트폴리오 조회
+      description: 프로필, 포트폴리오 조회
+      responses:
+        '200':
+          $ref: '#/components/responses/myProfile200'
+      security:
+        - JWT: []
+  /project:
+    get:
+      tags:
+        - project
+      summary: 내 프로젝트 리스트 조회
+      description: 내 프로젝트 리스트 조회
+      responses:
+        '200':
+          $ref: '#/components/responses/myProjects200'
+      security:
+        - JWT: []
+  /project/{pjtSn}:
+    get:
+      tags:
+        - project
+      summary: 내 프로젝트 조회
+      description: 내 프로젝트 조회
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/myProject200'
+      security:
+        - JWT: []
+  /project/add:
+    post:
+      tags:
+        - project
+      summary: 프로젝트 등록
+      description: 새로운 프로젝트를 등록합니다.
+      requestBody:
+        description: 프로젝트 등록 정보
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/registerProject'
+        required: true
+      responses:
+        '200':
+          description: 프로젝트 등록 성공
+          content:
+            text:
+              example: 프로젝트 등록 성공
+        '400':
+          description: 잘못된 요청
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '프로젝트 등록 중 에러 발생 에러내용: {에러메시지}'
+      security:
+        - JWT: [ ]
+  /status:
+    get:
+      tags:
+        - status
+      summary: 현황 조회 (나의 현황, 내가 생성한 프로젝트 현황)
+      description: 현황 조회 (나의 현황, 내가 생성한 프로젝트 현황)
+      responses:
+        '200':
+          $ref: '#/components/responses/status200'
+      security:
+        - JWT: [ ]
+  /recommendation/project/{pjtSn}:
+    get:
+      tags:
+        - recommendation
+      summary: 프로젝트 추천 회원 리스트 조회
+      description: 프로젝트 추천 회원 리스트 조회
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/recommendation200'
+        '400':
+          $ref: '#/components/responses/recommendation400'
+      security:
+        - JWT: []
+components:
+  schemas:
+    loginReq:
+      description: login request
+      type: object
+      properties:
+        email:
+          type: string
+          description: 유저 이메일
+          example: example@gmail.com
+        password:
+          type: string
+          description: 유저 패스워드
+          example: 1234
+      required:
+        - email
+        - password
+    profileUpload:
+      type: object
+      properties:
+        profile:
+          $ref: '#/components/schemas/profileUpload'
+        portfolios:
+          type: array
+          items:
+            $ref: '#/components/schemas/profileUpload'
+      example: # 여기에 JSON 예시를 추가합니다.
+        profile:
+          PF_INTRO: 설명
+          USER_IMG: http://218.232.137.30:20090/matching/profile/img.jpg
+          CAREER:
+            - CAREER_NM: 회사
+              ENTERING_DT: "2021-01-01"
+              QUIT_DT: "2022-12-31"
+            - CAREER_NM: 회사2
+              ENTERING_DT: "2023-01-01"
+              QUIT_DT: "2024-01-31"
+          STACK:
+            - ST_NM: JAVA
+              LEVEL: LOW
+            - ST_NM: JS
+              LEVEL: LOW
+          INTRST:
+            - JAVA
+            - REACT
+          URL:
+            - URL: www.www.www
+              URL_INTRO: url 설명1
+            - URL: www.www.com
+              URL_INTRO: url 설명2
+        portfolios:
+          - PFOL_NM: 포트폴리오1
+            INTRO: 설명
+            PERIOD: "5"
+            START_DT: "2021-01-01"
+            END_DT: "2022-01-01"
+            MEM_CNT: "5"
+            CONTRIBUTION: "20"
+            SERVICE_STTS: ACTIVE
+            RESULT: 만족
+            STACK:
+              - ST_NM: JAVA
+              - ST_NM: STRING
+            ROLE:
+              - 기획
+              - 백엔드
+            URL:
+              - URL: www.url.com
+                URL_INTRO: url1 설명
+                RELEASE_YN: "1"
+                OS: WINDOWS
+              - URL: www.url2.com
+                URL_INTRO: url2 설명
+                RELEASE_YN: "0"
+                OS: MAC OS
+            MEDIA:
+              - URL: http://218.232.137.30:20090/matching/portfolio/img.png
+                MAIN_YN: "1"
+              - URL: http://218.232.137.30:20090/matching/portfolio/video.mp4
+                MAIN_YN: "0"
+          - PFOL_NM: 포트폴리오2
+            INTRO: 설명
+            PERIOD: "3"
+            START_DT: "2021-01-01"
+            END_DT: "2022-01-01"
+            MEM_CNT: "3"
+            CONTRIBUTION: "40"
+            SERVICE_STTS: STOP
+            RESULT: 아쉬움
+            STACK:
+              - ST_NM: REACT
+              - ST_NM: NEST.JS
+            ROLE:
+              - 디자인
+              - 프론트엔드
+            URL:
+              - URL: www.url4.com
+                URL_INTRO: url 설명
+                RELEASE_YN: "0"
+                OS: LINUX
+              - URL: www.url5.com
+                URL_INTRO: url 설명
+                RELEASE_YN: "1"
+                OS: IOS
+            MEDIA:
+              - URL: http://218.232.137.30:20090/matching/portfolio/portfolio.png
+                MAIN_YN: "0"
+              - URL: http://218.232.137.30:20090/matching/portfolio/media.mp4
+                MAIN_YN: "1"
+    registerProject:
+      type: object
+      properties:
+        PJT_NM:
+          type: string
+          description: 프로젝트 이름
+          example: Sample Project
+        PJT_IMG:
+          type: string
+          description: 프로젝트 이미지 URL
+          example: https://example.com/image.png
+        PJT_INTRO:
+          type: string
+          description: 프로젝트 소개
+          example: 이건 이런 프로젝트에요.
+        PJT_OPEN_YN:
+          type: string
+          description: 프로젝트 공개 여부
+          example: Y
+        CONSTRUCTOR_ROLE:
+          type: string
+          description: 생성자 역할
+          example: Developer
+        SELECTED_DT_YN:
+          type: string
+          description: 선택된 날짜 여부
+          example: Y
+        START_DT:
+          type: string
+          format: date
+          description: 프로젝트 시작 날짜
+          example: 2024-06-01
+        PERIOD:
+          type: string
+          description: 프로젝트 기간
+          example: 6
+        DURATION_UNIT:
+          type: string
+          description: 프로젝트 기간 (일/월)
+          example: DAY
+        WANTED:
+          type: array
+          items:
+            type: string
+          description: 원하는 기술/경험 목록
+          example: ["3년경력이상", "깔끔한코드", "협업경험"]
+        PJT_DETAIL:
+          type: string
+          description: 프로젝트 상세 정보
+          example: 이 프로젝트에 대한 자세한 소개입니다
+        PJT_STTS:
+          type: string
+          description: 프로젝트 상태
+          example: active
+        STACKS:
+          type: array
+          items:
+            type: object
+            properties:
+              ST_NM:
+                type: string
+                description: 스택 이름
+                example: JavaScript
+        ROLES:
+          type: array
+          items:
+            type: object
+            properties:
+              PART:
+                type: string
+                description: 역할 이름
+                example: Frontend
+              TOTAL_CNT:
+                type: integer
+                description: 총 인원 수
+                example: 5
+    project:
+      type: object
+      properties:
+        PJT_SN:
+          type: integer
+          description: 프로젝트 PK
+          example: 1
+        PJT_NM:
+          type: string
+          description: 프로젝트 이름
+          example: Sample Project
+        PJT_INTRO:
+          type: string
+          description: 프로젝트 설명
+          example: 이건 이런 프로젝트에요.
+        PJT_STTS:
+          type: string
+          description: 프로젝트 상태
+          example: active
+
+
+  securitySchemes:
+    JWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    loginRes200:
+      description: 로그인 성공
+      content:
+        application/json:
+          schema:
+            description: login response
+            type: object
+            properties:
+              accessToken:
+                type: string
+                description: access token
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVU0VSX1NOIjoxLCJpYXQiOjE3MTY2MzkxMjksImV4cCI6MTcxNjY0MDkyOX0.Q4tn2cP5qBM1OTIHohhxSSADtS_tgIQhdbJbibNot_U
+              refreshToken:
+                type: string
+                description: refresh token
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVU0VSX1NOIjoxLCJpYXQiOjE3MTY2MzkxMjksImV4cCI6MTcxNzI0MzkyOX0.aVv_TxAd1GRAWd9i6MjS47vw1NZb0gC3cKO29Y9pUyc
+              USER_NM:
+                type: string
+                description: 유저 이름
+                example: 이름
+    loginRes400:
+      description: Invalid input
+      content:
+        text:
+          example: error 메시지
+    loginRes401:
+      description: Validation exception
+      content:
+        text:
+          example: '로그인 실패 : 유저 정보를 찾지 못했습니다.'
+    profileUpload200:
+      description: 프로필 업로드 성공
+      content:
+        text:
+          example: 프로필, 포트폴리오 입력 완료
+    myProfile200:
+      description: 내 프트폴리오 조회 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              PF_SN:
+                type: integer
+                description: 프로필 PK
+                example: 1
+              USER_SN:
+                type: integer
+                description: 회원 PK
+                example: 1
+              USER_NM:
+                type: string
+                description: 회원명
+                example: 홍길동
+              USER_IMG:
+                type: string
+                description: 회원 이미지
+                example: www.www.com
+              CAREER_NM:
+                type: string
+                description: 회사명
+                example: 회사명
+              ENTERING_DT:
+                type: string
+                description: 입사일
+                example: 2023-01-01
+              QUIT_DT:
+                type: string
+                description: 퇴사일
+                example: 2023-12-31
+              ST_NM:
+                type: string
+                description: 보유 스택
+                example: REACT
+              ST_LEVEL:
+                type: string
+                description: 보유 스택 수준
+                example: HIGH
+              INTEREST_NM:
+                type: string
+                description: 관심분야
+                example: WEB
+              URL_ADDR:
+                type: string
+                description: URL 주소
+                example: http://github.com/user
+              URL_INTRO:
+                type: string
+                description: URL 설명
+                example: 깃허브
+              PFOL_SN:
+                type: integer
+                description: 포트폴리오 Pk
+                example: 1
+              PFOL_NM:
+                type: string
+                description: 프로젝트명
+                example: project1
+              START_DT:
+                type: string
+                description: 프로젝트 시작일
+                example: 2024-01-01
+              END_DT:
+                type: string
+                description: 프로젝트 종료일
+                example: 2024-05-01
+              PERIOD:
+                type: integer
+                description: 프로젝트 진행 기간
+                example: 121
+              IMG:
+                type: string
+                description: 프로젝트 메인 이미지
+                example: http://000.000.000/image1.jps
+            example:
+              profile:
+                - PF_SN: 1
+                  USER_SN: 1
+                  USER_NM: 홍길동
+                  USER_IMG: http://218.232.137.30:20090/matching/profile/img.jpg
+                  career:
+                    - CAREER_NM: 회사1
+                      ENTERING_DT: 2023-01-01
+                      QUIT_DT: 2023-10-31
+                    - CAREER_NM: 회사2
+                      ENTERING_DT: 2024-01-01
+                      QUIT_DT: NULL
+                  stack:
+                    - ST_NM: JAVA
+                      ST_LEVEL: HIGH
+                    - ST_NM: REACT
+                      ST_LEVEL: LOW
+                  interest:
+                    - INTEREST_NM: WEB
+                    - INTEREST_NM: JAVA
+                  url:
+                    - URL_ADDR: www.www.com
+                      URL_INTRO: 깃허브
+              portfolioInfo:
+                - PFOL_SN: 1
+                  PFOL_NM: 프로젝트1
+                  START_DT: 2023-01-01
+                  END_DT: 2023-05-01
+                  IMG: http://218.232.137.30:20090/matching/portfolio/portfolio.png
+                  PERIOD: 121
+                - PFOL_SN: 2
+                  PFOL_NM: 프로젝트2
+                  START_DT: 2024-07-01
+                  END_DT: 2023-07-31
+                  PERIOD: 31
+                  stack:
+                    - ST_NM: JAVA
+                    - ST_NM: REACT
+                  IMG: http://218.232.137.30:20090/matching/portfolio/portfolio.png
+    myProjects200:
+      description: 내 프로젝트 리스트 조회 성공
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                PJT_SN:
+                  type: integer
+                  description: 프로젝트 PK
+                  example: 1
+                PJT_NM:
+                  type: string
+                  description: 프로젝트 이름
+                  example: project 1
+                PJT_INTRO:
+                  type: string
+                  description: 프로젝트 설명
+                  example: 설명
+                START_DT:
+                  type: string
+                  description: 프로젝트 시작 날짜
+                  example: 2024-05-01
+                END_DT:
+                  type: string
+                  description: 프로젝트 종료 날짜
+                  example: 2024-06-01
+                PERIOD:
+                  type: integer
+                  description: 프로젝트 기간
+                  example: 1
+                DURATION_UNIT:
+                  type: string
+                  description: 프로젝트 기간 (일/월)
+                  example: MONTH
+                CREATED_USER_SN:
+                  type: integer
+                  description: 프로젝트 생성자 SN
+                  example: 2
+                PJT_STTS:
+                  type: string
+                  description: 프로젝트 상태
+                  example: PROGRESS
+          example:
+            - PJT_SN: 1
+              PJT_NM: project1
+              PJT_INTRO: 설명1
+              START_DT: null
+              END_DET: null
+              PERIOD: 5
+              DURATION_UNIT: MONTH
+              CREATED_USER_SN: 1
+              PJT_STTS: RECUIT
+            - PJT_SN: 2
+              PJT_NM: project2
+              PJT_INTRO: 설명2
+              START_DT: 2024-05-01
+              END_DT: null
+              PERIOD: 5
+              DURATION_UNIT: MONTH
+              CREATED_USER_SN: 1
+              PJT_STTS: PROGRESS
+    myProject200:
+      description: 내 프로젝트 조회 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              pjtSn:
+                type: integer
+                description: 프로젝트 일련번호
+                example: 1
+              pjtNm:
+                type: string
+                description: 프로젝트명
+                example: '프로젝트 관리 플랫폼'
+              pjtImg:
+                type: string
+                description: 프로젝트 이미지 url
+                example: 'https://example.com/project_management_platform.png'
+              startDt:
+                type: string
+                description: 프로젝트 시작일
+                example: 2024-07-20
+              endDt:
+                type: string
+                description: 프로젝트 종료일
+                example: 2024-09-20
+              period:
+                type: integer
+                description: 프로젝트 기간
+                example: 3
+              durationUnit:
+                type: string
+                description: 프로젝트 기간(일/월)
+                example: MONTH
+              pjtIntro:
+                type: string
+                description: 프로젝트 소개
+                example: '프로젝트 소개...'
+              pjtDetail:
+                type: string
+                description: 프로젝트 상세 설명
+                example: '프로젝트 상세 설명...'
+              stack:
+                type: string
+                description: 사용 기술 스택
+                example: 'Java, Node.Js'
+              PO:
+                type: integer
+                description: 모집 인원
+                example: 10
+              TO:
+                type: integer
+                description: 현재 인원
+                example: 3
+              role:
+                type: array
+                description: 프로젝트 역할 및 인원
+                items:
+                  type: object
+                  properties:
+                    part:
+                      type: string
+                      description: 역할 파트
+                      example: '프런트엔드'
+                    totalCnt:
+                      type: integer
+                      description: 총 인원 수
+                      example: 5
+                    cnt:
+                      type: integer
+                      description: 현재 참여 인원 수
+                      example: 1
+              experience:
+                type: array
+                description: 요구 경험
+                items:
+                  type: string
+                  example: '앱, 웹'
+          example:
+            pjtSn: 1
+            pjtNm: '프로젝트 관리 플랫폼'
+            pjtImg: 'https://example.com/project_management_platform.png'
+            startDt: 2024-07-20
+            endDt: null
+            period: 3
+            durationUnit: MONTH
+            pjtIntro: '사용자들이 프로젝트를 효과적으로 관리할 수 있는 웹 플랫폼을 개발하는 프로젝트입니다.'
+            pjtDetail: '이 프로젝트는 사용자들이 프로젝트를 효과적으로 관리할 수 있는 웹 플랫폼을 개발하는 것입니다. 프로젝트 생성 및 편집 기능, 일정 관리, 업무 할당, 팀원 협업 기능 등이 필요합니다.'
+            stack: 'JavaScript,NODE.JS,REACT'
+            PO: 10
+            TO: 3
+            role:
+              - part: '프런트엔드'
+                totalCnt: 5
+                cnt: 4
+              - part: '백엔드'
+                totalCnt: 4
+                cnt: 0
+            experience:
+              - '웹 앱 개발 경험자'
+              - '프로젝트 관리 앱 경험자'
+              - '사용자 친화적인 UI/UX 디자인 능력'
+    status200:
+      description: 현황 조회 성공
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                myReqList:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      REQ_SN:
+                        type: integer
+                        description: 요청 PK 값
+                      PJT_SN:
+                        type: integer
+                        description: 프로젝트 PK 값
+                      PJT_IMG:
+                        type: string
+                        description: 프로젝트 이미지
+                      PJT_NM:
+                        type: string
+                        description: 프로젝트 이름
+                      TOTAL_CNT:
+                        type: integer
+                        description: 총 모집 인원
+                      PART:
+                        type: string
+                        description: 요청된 모집 분야
+                      REQ_STTS:
+                        type: string
+                        description: 요청 상태코드
+                projectReqList:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      PJT_SN:
+                        type: integer
+                        description: 프로젝트 PK 값
+                      PJT_NM:
+                        type: string
+                        description: 프로젝트 이름
+                      REQ_LIST:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            REQ_SN:
+                              type: integer
+                              description: 요청 PK 값
+                            PF_SN:
+                              type: integer
+                              description: 프로필 PK 값
+                            USER_IMG:
+                              type: string
+                              description: 요청 대상 프로필 이미지
+                            USER_NM:
+                              type: string
+                              description: 요청 대상 이름
+                            PF_INTRO:
+                              type: string
+                              description: 요청 대상 프로필 설명
+                            PART:
+                              type: string
+                              description: 요청된 모집 분야
+                            REQ_STTS:
+                              type: string
+                              description: 요청 상태코드
+          example:
+            - myReqList:
+              - REQ_SN: 1
+                PJT_SN: 1
+                PJT_IMG: http://218.232.137.30:20090/matching/project/img.png
+                PJT_NM: project1
+                TOTAL_CNT: 11
+                PART: 프론트엔드
+                REQ_STTS: REQ
+              - REQ_SN: 2
+                PJT_SN: 2
+                PJT_IMG: http://218.232.137.30:20090/matching/project/img.png
+                PJT_NM: project2
+                TOTAL_CNT: 7
+                PART: 기획
+                REQ_STTS: AGREE
+            - projectReqList:
+                - PJT_SN: 3
+                  PJT_NM: project3
+                  REQ_LIST:
+                    - REQ_SN: 3
+                      PF_SN: 2
+                      USER_IMG: http://218.232.137.30:20090/matching/profile/img.png
+                      USER_NM: 홍길동
+                      PF_INTRO: 프로필 설명 1
+                      PART: 백엔드
+                      REQ_STTS: REJECTION
+                    - REQ_SN: 4
+                      PF_SN: 3
+                      USER_IMG: http://218.232.137.30:20090/matching/profile/img.png
+                      USER_NM: 김철수
+                      PF_INTRO: 프로필 설명 2
+                      PART: 디자인
+                      REQ_STTS: REQ
+                - PJT_SN: 4
+                  PJT_NM: project4
+                  REQ_LIST:
+                    - REQ_SN: 5
+                      PF_SN: 5
+                      USER_IMG: http://218.232.137.30:20090/matching/profile/img.png
+                      USER_NM: 김영희
+                      PF_INTRO: 프로필 설명 3
+                      PART: 프론트앤드
+                      REQ_STTS: REQ
+                    - REQ_SN: 6
+                      PF_SN: 6
+                      USER_IMG: http://218.232.137.30:20090/matching/profile/img.png
+                      USER_NM: 아무개
+                      PF_INTRO: 프로필 설명 4
+                      PART: 디자인
+                      REQ_STTS: AGREE
+    recommendation200:
+      description: 프로젝트와 유사도가 높은 회원 정보 반환
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                pfSn:
+                  type: integer
+                  description: 프로필 일련번호
+                userSn:
+                  type: integer
+                  description: 회원 일련번호
+                userNm:
+                  type: string
+                  description: 회원 이름
+                profile:
+                  type: object
+                  description: 회원 프로필 정보
+                  properties:
+                    introduction:
+                      type: string
+                      description: 회원 소개
+                    img:
+                      type: string
+                      description: 프로필 이미지 URL
+                    career:
+                      type: array
+                      items:
+                        type: object
+                        description: 경력
+                        properties:
+                          careerNm:
+                            type: string
+                            description: 회사 이름
+                          enteringDt:
+                            type: string
+                            format: date
+                            description: 입사 날짜
+                          quitDt:
+                            type: string
+                            format: date
+                            description: 퇴사 날짜 (null이면 현재 재직중)
+                    stack:
+                      type: string
+                      description: 보유 기술
+                    interests:
+                      type: string
+                      description: 관심 기술
+                    url:
+                      type: string
+                      description: 외부 링크
+                portfolio:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: 포트폴리오 이름
+                      startDt:
+                        type: string
+                        format: date
+                        description: 시작 날짜
+                      endDt:
+                        type: string
+                        format: date
+                        description: 종료 날짜
+                      period:
+                        type: integer
+                        description: 기간 (일)
+                      introduction:
+                        type: string
+                        description: 포트폴리오 설명
+                      memCnt:
+                        type: integer
+                        description: 팀원 수
+                      contribution:
+                        type: integer
+                        description: 기여도 (%)
+                      stack:
+                        type: string
+                        description: 기술 스택
+                      role:
+                        type: string
+                        description: 역할
+                      serviceStts:
+                        type: string
+                        description: 서비스 상태
+                      url:
+                        type: string
+                        description: 포트폴리오 링크
+                      media:
+                        type: string
+                        description: 미디어 링크
+                similarityScore:
+                  type: number
+                  description: 유사도 점수
+          example:
+            - pfSn: 14
+              userSn: 13
+              userNm: 박철수
+              profile:
+                introduction: 프런트엔드 개발에 열정을 품고 있습니다.
+                img: http://218.232.137.30:20090/matching/profile/img.jpg
+                career:
+                  - careerNm: 모빌리티솔루션즈
+                    enteringDt: "2023-03-10"
+                    quitDt: "2024-01-15"
+                  - careerNm: 웹웍스
+                    enteringDt: "2021-05-15"
+                    quitDt: "2022-11-30"
+                stack: REACT, REACT NATIVE
+                interests: iOS Development, MOBILE, WEB
+                url: http://www.github.com/CHS1, https://www.CHSBLOG.com
+              portfolio:
+                - name: 온라인 음악 스트리밍 웹 앱
+                  startDt: "2023-01-01"
+                  endDt: "2023-08-31"
+                  period: 183
+                  introduction: 사용자들에게 고품질의 음악 스트리밍 서비스를 제공하는 웹 애플리케이션입니다.
+                  memCnt: 6
+                  contribution: 30
+                  stack: NODE.JS, REACT NATIVE
+                  role: 기획, 프론트엔드
+                  serviceStts: ACTIVE
+                  url: www.musicstreamingwebapp.com
+                  media: http://218.232.137.30:20090/matching/portfolio/portfolio.png
+              similarityScore: 0.9800220131874084
+            - pfSn: 5
+              userSn: 5
+              userNm: 김안녕
+              profile:
+                introduction: 안드로이드 개발자 입니다! 다양한 어플을 만들어 출시하는게 꿈입니다.
+                img: http://218.232.137.30:20090/matching/profile/4.jpg
+                career:
+                  - careerNm: 삼성
+                    enteringDt: "2020-01-01"
+                    quitDt: null
+                stack: C, JAVA
+                interests: JAVA, WEB
+                url: http://github.com/hi
+                portfolio:
+                  - name: Weather Forecast App
+                    startDt: "2024-01-01"
+                    endDt: "2024-05-01"
+                    period: 121
+                    introduction: Weather Forecast App은 실시간으로 날씨 정보를 제공하는 앱입니다.
+                    memCnt: 5
+                    contribution: 20
+                    stack: NODE.JS, REACT-NATIVE
+                    role: FRONTEND, 기획
+                    serviceStts: ACTIVE
+                    url: http://github.com
+                    media: http://218.232.137.30:20090/matching/portfolio/img.png
+                similarityScore: 0.9797859787940979
+    recommendation400:
+      description: 매칭된 회원 프로필/포트폴리오 조회 실패
+      content:
+        text/plain:
+          schema:
+            type: string
+            example:
+              매칭 - 추천 회원 프로필/포트폴리오 조회 실패: { 에러 메시지 }

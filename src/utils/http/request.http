@@ -1,0 +1,13 @@
+### 매칭 유저 추천 리스트
+GET http://localhost:8080/api/recommendation/project/1
+Content-Type: application/json
+
+### 유저 프로필 포트폴리오 전체
+GET localhost:8080/api/recommendation/memberData
+Content-Type: application/json
+
+
+### 내 프로젝트 조회
+GET localhost:8080/api/project/13
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVU0VSX1NOIjoxMywiaWF0IjoxNzE3NzcyNDgyLCJleHAiOjE3MTc3NzQyODJ9.qekNDTK1dJneN0wM9CSZrSu0DrhyPkaT1WCfXCXvwNc
