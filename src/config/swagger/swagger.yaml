@@ -128,6 +128,24 @@ paths:
           $ref: '#/components/responses/status200'
       security:
         - JWT: [ ]
+  /status/{pjtSn}:
+    get:
+      tags:
+        - status
+      summary: 요청받은 프로젝트 정보
+      description: 요청받은 프로젝트 정보
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/myProject200'
+      security:
+        - JWT: [ ]
   /recommendation/project/{pjtSn}:
     get:
       tags:
