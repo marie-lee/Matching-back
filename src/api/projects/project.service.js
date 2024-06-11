@@ -1,14 +1,12 @@
 const db = require('../../config/db/db');
 const { logger } = require('../../utils/logger');
 const { QueryTypes } = require("sequelize");
+const {runPytonToVectorization, runPjtToVec} = require("../../utils/matching/spawnVectorization");
 
 class projectService {
 
 
-  async myProject(req,res) {
-
-    const userSn = req.userSn.USER_SN;
-    const pjtSn = req.params.pjtSn;
+  async myProject(userSn, pjtSn) {
 
     const query = `SELECT pj.PJT_SN as pjtSn, pj.PJT_NM as pjtNm, pj.PJT_IMG as pjtImg, pj.START_DT as startDt, pj.END_DT as endDt, pj.PERIOD as period, pj.DURATION_UNIT as durationUnit, pj.PJT_INTRO as pjtIntro, pj.PJT_DETAIL as pjtDetail
                                 , GROUP_CONCAT(DISTINCT st.ST_NM) AS stack
@@ -28,9 +26,7 @@ class projectService {
       if(result[0] == null){
         throw new Error("해당 프로젝트가 없거나 권한이 없습니다.")
       }
-      if (result.length > 0) {
-        result[0].experience = JSON.parse(result[0].experience);
-      }
+      result[0].experience = JSON.parse(result[0].experience);
       return result;
     } catch (error){
       throw error;
@@ -53,8 +49,35 @@ class projectService {
     }
   }
 
+  async allProject(req, res){
+    const query = `SELECT pj.PJT_SN as pjtSn, pj.PJT_NM as pjtNm, pj.PJT_IMG as pjtImg, pj.START_DT as startDt, pj.END_DT as endDt, pj.PERIOD as period, pj.DURATION_UNIT as durationUnit, pj.PJT_INTRO as pjtIntro, pj.PJT_DETAIL as pjtDetail
+                                , GROUP_CONCAT(DISTINCT st.ST_NM) AS stack
+                                , SUM( DISTINCT pjr.TOTAL_CNT ) AS PO
+                                , sum( DISTINCT pjr.CNT) AS \`TO\`
+                                , JSON_ARRAYAGG( DISTINCT JSON_OBJECT( "part", pjr.PART, "totalCnt", pjr.TOTAL_CNT, "cnt", pjr.CNT)) AS role
+                                , pj.WANTED as experience
+                            FROM TB_PJT pj
+                              INNER JOIN TB_USER tu ON tu.USER_SN = pj.CREATED_USER_SN
+                              LEFT JOIN TB_PJT_SKILL pjSk ON pjSk.PJT_SN = pj.PJT_SN
+                              LEFT JOIN TB_ST st ON st.ST_SN = pjSk.ST_SN
+                              LEFT JOIN TB_PJT_ROLE pjr ON pjr.PJT_SN = pj.PJT_SN
+                            GROUP BY pjr.PJT_SN
+                            ORDER BY pj.PJT_SN ASC;`;
+    try {
+      const result = await db.query(query, {type: QueryTypes.SELECT});
+      for(let i = 0; i <result.length; i++){
+        result[i].experience = JSON.parse(result[i].experience);
+      }
+      return result
+    } catch (error){
+      throw error;
+    }
+  }
+
   // 프로젝트 등록
-  async registerProject(project, user) {
+  async registerProject(req, res) {
+    const project = req.body;
+    const user = req.userSn
     const transaction = await db.transaction();
     try {
       const {
@@ -136,12 +159,28 @@ class projectService {
       }, {transaction});
 
       await transaction.commit();
+      res.status(200).send("프로젝트 등록 성공");
+      await this.toVectorPfPfol(user.USER_SN,newProject.PJT_SN)
+
     } catch (error) {
       logger.error('프로젝트 등록 중 오류 발생:', error);
       await transaction.rollback();
       throw error;
     }
   }
+
+  async toVectorPfPfol(userSn, pjtSn){
+    try{
+      const pjtData = await this.myProject(userSn, pjtSn);
+      const pjtJson = JSON.stringify(pjtData[0]);
+      await runPjtToVec(pjtJson)
+
+    } catch (error){
+      throw new Error("프로젝트 데이터 벡터화 처리 중 에러 발생: ", error);
+    }
+  }
 }
+
+
 
 module.exports = new projectService();

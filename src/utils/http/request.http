@@ -11,3 +11,7 @@ Content-Type: application/json
 GET localhost:8080/api/project/13
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVU0VSX1NOIjoxMywiaWF0IjoxNzE3NzcyNDgyLCJleHAiOjE3MTc3NzQyODJ9.qekNDTK1dJneN0wM9CSZrSu0DrhyPkaT1WCfXCXvwNc
+
+### 프로젝트 전체 조회
+GET localhost:8080/api/project/all
+Content-Type: application/json
