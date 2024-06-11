@@ -10,9 +10,9 @@ import numpy as np
 
 # json 파일 저장 위치
 # 서버
-VECTOR_FILE = "/home/dldudgus/Matching-back/src/utils/matching/vector_data/project_vectors.json"
+# VECTOR_FILE = "/home/dldudgus/Matching-back/src/utils/matching/vector_data/project_vectors.json"
 # 로컬
-# VECTOR_FILE = "./src/utils/matching/vector_data/project_vectors.json"
+VECTOR_FILE = "./src/utils/matching/vector_data/project_vectors.json"
 
 # 최대 시퀀스 길이 설정
 MAX_LENGTH = 77
