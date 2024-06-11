@@ -8,7 +8,6 @@ class MemberService {
         const t = await db.transaction();
         try{
             const user = await db.TB_USER.findOne({ where: { USER_EMAIL: req.body.email, USER_PW: req.body.password } });
-            console.log(user.USER_SN);
             if (!user) {
                 logger.error('로그인 실패 : 유저 정보를 찾지 못했습니다.')
                 return res.status(401).send('로그인 실패 : 유저 정보를 찾지 못했습니다.')

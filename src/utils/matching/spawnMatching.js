@@ -3,14 +3,14 @@ const { spawn } = require('child_process');
 require('dotenv').config();
 
 
-const runPythonScript = (data1) => {
+const runPythonScript = (pjtSn) => {
     return new Promise((resolve, reject) => {
-
+        console.log("파이썬 시작");
         // 서버
         const pythonProcess = spawn(process.env.PYTHON_PATH, ['/home/dldudgus/Matching-back/src/utils/matching/matching.py', data1], {env: {PYTHONIOENCODING: 'utf-8'}});
 
         // 로컬
-        // const pythonProcess = spawn('python', ['./src/utils/matching/matching.py', data1], {env: {PYTHONIOENCODING: 'utf-8'}});
+        // const pythonProcess = spawn('python', ['./src/utils/matching/matching.py', pjtSn], {env: {PYTHONIOENCODING: 'utf-8'}});
 
 
         let result = '';
@@ -19,6 +19,7 @@ const runPythonScript = (data1) => {
         // 파이썬 프로세스가 출력하는 데이터 처리
         pythonProcess.stdout.on('data', (data) => {
             result += data.toString();
+            console.log(result)
         });
 
         // 파이썬 프로세스에서 오류 발생 시 처리

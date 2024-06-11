@@ -19,16 +19,12 @@ class recommendationService {
 
     }
     async selectMatchingData(req, res) {
-        const userSn = req.userSn.USER_SN;
         const pjtSn = req.params.pjtSn;
 
-
         try {
-            const pjtData = await projectService.myProject(req, res);
-            const pjtJson = JSON.stringify(pjtData[0]);
 
             // 파이썬 실행
-            const pyResult = await runPythonScript(pjtJson);
+            const pyResult = await runPythonScript(pjtSn);
 
             const dataJson = JSON.parse(pyResult);
 

@@ -10,9 +10,9 @@ import numpy as np
 
 # json 파일 저장 위치
 # 서버
-VECTOR_FILE = "/home/dldudgus/Matching-back/src/utils/matching/vector_data/user_vectors.json"
+# VECTOR_FILE = "/home/dldudgus/Matching-back/src/utils/matching/vector_data/user_vectors.json"
 # 로컬
-# VECTOR_FILE = "./src/utils/matching/vector_data/user_vectors.json"
+VECTOR_FILE = "./src/utils/matching/vector_data/user_vectors.json"
 
 # 최대 시퀀스 길이 설정
 MAX_LENGTH = 77
@@ -21,7 +21,6 @@ MAX_LENGTH = 77
 def save_vector_to_file(vector_data):
     with open(VECTOR_FILE,"w") as file:
         json.dump(vector_data,file)
-    print("파일 저장")
 
 def load_vectors_from_file():
     if os.path.exists(VECTOR_FILE):
@@ -139,7 +138,6 @@ def main():
         else:
             # 수정 또는 입력된 프로필/포트폴리오 데이터 가가져오기
             member = json.loads(sys.argv[1])
-            print(member)
             vector_data = data_to_vector(member[0])
             update_vector_file(member[0]['pfSn'], vector_data)
 

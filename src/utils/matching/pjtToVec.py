@@ -21,7 +21,6 @@ MAX_LENGTH = 77
 def save_vector_to_file(vector_data):
     with open(VECTOR_FILE,"w") as file:
         json.dump(vector_data,file)
-    print("파일 저장")
 
 def load_vectors_from_file():
     if os.path.exists(VECTOR_FILE):
@@ -105,17 +104,17 @@ def main():
             else:
                 raise Exception(f"프로젝트 전체 데이터 API 호출 중 에러 발생: {response.status_code}, 에러 내용: {response.text}")
 
+            vector_data = {}
             for project in project_data:
                 pjtSn = project['pjtSn']
                 project_vector = project_to_vector(project)
                 vector_data[pjtSn] = project_vector.tolist()
-                print(project_vector.tolist())
             save_vector_to_file(vector_data)
         else:
             # 수정 또는 입력된 프로젝트 데이터 가가져오기
             project = json.loads(sys.argv[1])
-            vector_data = project_to_vector(member[0])
-            update_vector_file(project[0]['pjtSn'], vector_data)
+            vector_data = project_to_vector(project)
+            update_vector_file(project['pjtSn'], vector_data)
 
         # 벡터화 작업 종료 시 프로세스 종료
         sys.exit(0)
