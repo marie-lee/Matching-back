@@ -3,7 +3,7 @@ const { spawn } = require('child_process');
 require('dotenv').config();
 
 
-const runPythonScript = (data1) => {4
+const runPythonScript = (data1) => {
     return new Promise((resolve, reject) => {
 
         // 서버
