@@ -2,10 +2,12 @@ const db = require('../../config/db/db');
 const {logger} = require('../../utils/logger');
 const minio = require('../../middleware/minio/minio.service');
 const {QueryTypes} = require("sequelize");
+const {runPfPfolToVec} = require("../../utils/matching/spawnVectorization");
 
 class profileService {
     async profileUpload(req, res){
         const data = req.body;
+        const userSn = req.userSn.USER_SN
         const t = await db.transaction(); // 트랜잭션 시작
         try{
             if(!data.profile && !data.portfolios){
@@ -13,10 +15,11 @@ class profileService {
             }
             else if(data.profile && !data.portfolios){
                 // 프로필 입력
-                const pf = await this.profileInsert(req.body.profile, req.userSn.USER_SN, t);
+                const pf = await this.profileInsert(req.body.profile, userSn, t);
                 if(pf){
                     await t.commit(); // 모든 작업이 성공하면 트랜잭션 커밋
                     res.status(200).send('프로필 입력 완료');
+                    await this.toVectorPfPfol(userSn)
                 }
                 else{
                     await t.rollback();
@@ -25,7 +28,7 @@ class profileService {
             }
             else if(data.profile && data.portfolios){
                 // 프로필 입력
-                const pf = await this.profileInsert(req.body.profile, req.userSn.USER_SN, t);
+                const pf = await this.profileInsert(req.body.profile, userSn, t);
                 if(pf){
                     // 포트폴리오 입력
                     for (const portfolio of req.body.portfolios) {
@@ -33,6 +36,7 @@ class profileService {
                     }
                     await t.commit(); // 모든 작업이 성공하면 트랜잭션 커밋
                     res.status(200).send('프로필 포트폴리오 입력 완료');
+                    await this.toVectorPfPfol(userSn)
                 }
                 else{
                     await t.rollback();
@@ -164,6 +168,57 @@ class profileService {
             return await db.query(query, {type: QueryTypes.SELECT});
         }
         catch (error) {
+            throw new Error("프로필/포트폴리오 벡터화 중 오류 발생: ", error);
+        }
+    }
+
+    async toVectorPfPfol(userSn){
+        console.log("실행")
+        const query = `SELECT pf.PF_SN as pfSn, usr.USER_SN as userSn, usr.USER_NM as userNm
+                                    , JSON_OBJECT(
+                                        "introduction", pf.PF_INTRO,
+                                        "img", usr.USER_IMG,
+                                        "career", JSON_ARRAYAGG( DISTINCT JSON_OBJECT(
+                                            "careerNm", cr.CAREER_NM, 
+                                            "enteringDt", cr.ENTERING_DT,
+                                            "quitDt", cr.QUIT_DT
+                                        )),
+                                        "stack", GROUP_CONCAT(DISTINCT st.ST_NM),
+                                        "interests", GROUP_CONCAT(DISTINCT intrst.INTRST_NM),
+                                        "url", GROUP_CONCAT(DISTINCT url.URL)
+                                    ) as profile
+                                    , JSON_ARRAYAGG( DISTINCT JSON_OBJECT(
+                                        "name", vpl.PFOL_NM,
+                                        "startDt", vpl.START_DT,
+                                        "endDt", vpl.END_DT,
+                                        "period", vpl.PERIOD,
+                                        "introduction", vpl.INTRO,
+                                        "memCnt", vpl.MEM_CNT,
+                                        "contribution", vpl.CONTRIBUTION,
+                                        "stack", vpl.STACK,
+                                        "role", vpl.\`ROLE\`,
+                                        "serviceStts", vpl.SERVICE_STTS,
+                                        "url", vpl.URL,
+                                        "media", vpl.MEDIA
+                                    )) AS portfolio
+                                FROM TB_PF pf
+                                    INNER JOIN TB_USER usr ON usr.USER_SN = pf.USER_SN
+                                    INNER JOIN TB_CAREER cr ON cr.PF_SN = pf.PF_SN
+                                    INNER JOIN TB_PF_ST pfSt ON pfSt.PF_SN = pf.PF_SN 
+                                    INNER JOIN TB_ST st ON st.ST_SN = pfSt.ST_SN 
+                                    INNER JOIN TB_PF_INTRST pfI ON pfI.PF_SN = pf.PF_SN
+                                    INNER JOIN TB_INTRST intrst ON intrst.INTRST_SN = pfI.INTRST_SN
+                                    INNER JOIN TB_PF_URL pfU ON pfU.PF_SN = pf.PF_SN 
+                                    INNER JOIN TB_URL url ON pfU.URL_SN = url.URL_SN
+                                    INNER JOIN TB_PF_PFOL pfPl ON pfPl.PF_SN = pf.PF_SN
+                                    INNER JOIN VIEW_PFOL vpl ON vpl.PFOL_SN = pfPl.PFOL_SN
+                                WHERE usr.USER_SN = ${userSn}
+                                GROUP BY pf.PF_SN, usr.USER_SN, usr.USER_NM;`;
+        try {
+            const pfPfolData = await db.query(query, {type: QueryTypes.SELECT});
+            const pfPfolJson = JSON.stringify(pfPfolData);
+            await runPfPfolToVec(pfPfolJson);
+        } catch (error){
             throw error;
         }
     }
