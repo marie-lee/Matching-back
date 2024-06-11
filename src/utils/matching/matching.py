@@ -20,11 +20,11 @@ MAX_LENGTH = 77
 
 # 프로필/포트폴리오 벡터 데이터 파일 경로
 # 서버
-#VECTOR_FILE = "/home/dldudgus/Matching-back/src/utils/matching/vector_data/user_vectors.json"
-#PROJECT_FILE = "/home/dldudgus/Matching-back/src/utils/matching/vector_data/project_vectors.json"
+VECTOR_FILE = "/home/dldudgus/Matching-back/src/utils/matching/vector_data/user_vectors.json"
+PROJECT_FILE = "/home/dldudgus/Matching-back/src/utils/matching/vector_data/project_vectors.json"
 # 로컬
-VECTOR_FILE = './src/utils/matching/vector_data/user_vectors.json'
-PROJECT_FILE = './src/utils/matching/vector_data/project_vectors.json'
+# VECTOR_FILE = './src/utils/matching/vector_data/user_vectors.json'
+# PROJECT_FILE = './src/utils/matching/vector_data/project_vectors.json'
 
 
 # 텍스트 임베딩 함수

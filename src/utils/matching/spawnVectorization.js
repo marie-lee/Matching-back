@@ -6,10 +6,10 @@ require('dotenv').config();
 const runPfPfolToVec = (data1) => {
     return new Promise((resolve, reject) => {
         // 서버
-        // const pythonProcess = spawn(process.env.PYTHON_PATH, ['/home/dldudgus/Matching-back/src/utils/matching/pfPfolToVec.py', data1], {env: {PYTHONIOENCODING: 'utf-8'}});
+        const pythonProcess = spawn(process.env.PYTHON_PATH, ['/home/dldudgus/Matching-back/src/utils/matching/pfPfolToVec.py', data1], {env: {PYTHONIOENCODING: 'utf-8'}});
 
         // 로컬
-        const pythonProcess = spawn('python', ['./src/utils/matching/pfPfolToVec.py', data1], {env: {PYTHONIOENCODING: 'utf-8'}});
+        // const pythonProcess = spawn('python', ['./src/utils/matching/pfPfolToVec.py', data1], {env: {PYTHONIOENCODING: 'utf-8'}});
 
 
         let result = '';
@@ -40,10 +40,10 @@ const runPfPfolToVec = (data1) => {
 const runPjtToVec = (data1) => {
     return new Promise((resolve, reject) => {
         // 서버
-        //const pythonProcess = spawn(process.env.PYTHON_PATH, ['/home/dldudgus/Matching-back/src/utils/matching/pjtToVec.py', data1], {env: {PYTHONIOENCODING: 'utf-8'}});
+        const pythonProcess = spawn(process.env.PYTHON_PATH, ['/home/dldudgus/Matching-back/src/utils/matching/pjtToVec.py', data1], {env: {PYTHONIOENCODING: 'utf-8'}});
 
         // 로컬
-        const pythonProcess = spawn('python', ['./src/utils/matching/pjtToVec.py', data1], {env: {PYTHONIOENCODING: 'utf-8'}});
+        // const pythonProcess = spawn('python', ['./src/utils/matching/pjtToVec.py', data1], {env: {PYTHONIOENCODING: 'utf-8'}});
 
 
         let result = '';

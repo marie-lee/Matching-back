@@ -4,7 +4,7 @@ const { QueryTypes } = require("sequelize");
 const projectService = require('../projects/project.service');
 const profileService = require('../profile/profile.service');
 const {runPythonScript} = require("../../utils/matching/spawnMatching");
-const mutex = require('../../utils/matching/Mutex');
+const mutex = require('../../utils/Matching/Mutex');
 class recommendationService {
 
     async selectMemberData(req,res){
