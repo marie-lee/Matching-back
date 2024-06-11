@@ -4,7 +4,7 @@ const { QueryTypes } = require("sequelize");
 const projectService = require('../projects/project.service');
 const profileService = require('../profile/profile.service');
 const {runPythonScript} = require("../../utils/matching/spawnMatching");
-
+const mutex = require('../../utils/Matching/Mutex');
 class recommendationService {
 
     async selectMemberData(req,res){
@@ -22,7 +22,7 @@ class recommendationService {
         const pjtSn = req.params.pjtSn;
 
         try {
-
+            await mutex.lock();
             // 파이썬 실행
             const pyResult = await runPythonScript(pjtSn);
 
@@ -43,8 +43,10 @@ class recommendationService {
                 };
             });
 
+            mutex.unlock(); // Mutex 해제
             return res.status(200).send(matchingResult);
         } catch (error) {
+            mutex.unlock(); // Mutex 해제
             throw error;
         }
     }

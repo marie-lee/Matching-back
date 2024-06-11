@@ -2,7 +2,7 @@ const db = require('../../config/db/db');
 const { logger } = require('../../utils/logger');
 const { QueryTypes } = require("sequelize");
 const {runPytonToVectorization, runPjtToVec} = require("../../utils/matching/spawnVectorization");
-
+const mutex = require('../../utils/matching/Mutex');
 class projectService {
 
 
@@ -171,16 +171,19 @@ class projectService {
 
   async toVectorPfPfol(userSn, pjtSn){
     try{
+
+      await mutex.lock()
       const pjtData = await this.myProject(userSn, pjtSn);
       const pjtJson = JSON.stringify(pjtData[0]);
-      await runPjtToVec(pjtJson)
 
+      await runPjtToVec(pjtJson)
+      mutex.unlock(); // Mutex 해제
     } catch (error){
+      mutex.unlock(); // Mutex 해제
       throw new Error("프로젝트 데이터 벡터화 처리 중 에러 발생: ", error);
     }
   }
 }
-
 
 
 module.exports = new projectService();
