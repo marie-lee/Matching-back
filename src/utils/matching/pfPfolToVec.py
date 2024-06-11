@@ -130,6 +130,7 @@ def main():
             else:
                 raise Exception(f"프로필/포트폴리오 전체 데이터 API 호출 중 에러 발생: {response.status_code}, 에러 내용: {response.text}")
 
+            vector_data = {}
             for member in profile_data:
                 pfSn = member['pfSn']
                 member_vector = data_to_vector(member)
