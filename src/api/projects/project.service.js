@@ -6,6 +6,36 @@ const mutex = require('../../utils/matching/Mutex');
 class projectService {
 
 
+
+
+  async reqProject(userSn, pjtSn) {
+
+    const query = `SELECT pj.PJT_SN as pjtSn, pj.PJT_NM as pjtNm, pj.PJT_IMG as pjtImg, pj.START_DT as startDt, pj.END_DT as endDt, pj.PERIOD as period, pj.DURATION_UNIT as durationUnit, pj.PJT_INTRO as pjtIntro, pj.PJT_DETAIL as pjtDetail
+                                , GROUP_CONCAT(DISTINCT st.ST_NM) AS stack
+                                , SUM( DISTINCT pjr.TOTAL_CNT ) AS PO
+                                , sum( DISTINCT pjr.CNT) AS \`TO\`
+                                , JSON_ARRAYAGG( DISTINCT JSON_OBJECT( "part", pjr.PART, "totalCnt", pjr.TOTAL_CNT, "cnt", pjr.CNT)) AS role
+                                , pj.WANTED as experience
+                            FROM TB_PJT pj
+                              INNER JOIN TB_REQ r ON r.PJT_SN = pj.PJT_SN AND r.REQ_STTS in ('REQ','AGREE','CONFIRM')
+                              INNER JOIN TB_USER tu ON r.USER_SN = tu.USER_SN
+                              LEFT JOIN TB_PJT_SKILL pjSk ON pjSk.PJT_SN = pj.PJT_SN
+                              LEFT JOIN TB_ST st ON st.ST_SN = pjSk.ST_SN
+                              LEFT JOIN TB_PJT_ROLE pjr ON pjr.PJT_SN = pj.PJT_SN
+                            WHERE pj.PJT_SN = ${pjtSn} AND tu.USER_SN = ${userSn}
+                            GROUP BY pjr.PJT_SN;`;
+    try {
+      const result = await db.query(query, {type: QueryTypes.SELECT});
+      if(result[0] == null){
+        throw new Error("해당 프로젝트가 없거나 권한이 없습니다.")
+      }
+      result[0].experience = JSON.parse(result[0].experience);
+      return result;
+    } catch (error){
+      throw error;
+    }
+  }
+
   async myProject(userSn, pjtSn) {
 
     const query = `SELECT pj.PJT_SN as pjtSn, pj.PJT_NM as pjtNm, pj.PJT_IMG as pjtImg, pj.START_DT as startDt, pj.END_DT as endDt, pj.PERIOD as period, pj.DURATION_UNIT as durationUnit, pj.PJT_INTRO as pjtIntro, pj.PJT_DETAIL as pjtDetail
