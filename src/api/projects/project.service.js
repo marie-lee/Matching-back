@@ -15,7 +15,8 @@ class projectService {
                                 , JSON_ARRAYAGG( DISTINCT JSON_OBJECT( "part", pjr.PART, "totalCnt", pjr.TOTAL_CNT, "cnt", pjr.CNT)) AS role
                                 , pj.WANTED as experience
                             FROM TB_PJT pj
-                              INNER JOIN TB_USER tu ON tu.USER_SN = pj.CREATED_USER_SN
+                              INNER JOIN TB_PJT_M pm ON pm.PJT_SN = pj.PJT_SN
+                              INNER JOIN TB_USER tu ON pm.USER_SN = tu.USER_SN
                               LEFT JOIN TB_PJT_SKILL pjSk ON pjSk.PJT_SN = pj.PJT_SN
                               LEFT JOIN TB_ST st ON st.ST_SN = pjSk.ST_SN
                               LEFT JOIN TB_PJT_ROLE pjr ON pjr.PJT_SN = pj.PJT_SN
