@@ -52,7 +52,6 @@ const runPjtToVec = (data1) => {
         // 파이썬 프로세스가 출력하는 데이터 처리
         pythonProcess.stdout.on('data', (data) => {
             result += data.toString();
-            console.log(result)
         });
 
         // 파이썬 프로세스에서 오류 발생 시 처리

@@ -173,7 +173,6 @@ class profileService {
     }
 
     async toVectorPfPfol(userSn){
-        console.log("실행")
         const query = `SELECT pf.PF_SN as pfSn, usr.USER_SN as userSn, usr.USER_NM as userNm
                                     , JSON_OBJECT(
                                         "introduction", pf.PF_INTRO,
