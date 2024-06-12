@@ -788,6 +788,9 @@ components:
                             PF_SN:
                               type: integer
                               description: 프로필 PK 값
+                            USER_SN:
+                              type: integer
+                              description: 요청 대상 회원 일련번호
                             USER_IMG:
                               type: string
                               description: 요청 대상 프로필 이미지
@@ -825,6 +828,7 @@ components:
                   REQ_LIST:
                     - REQ_SN: 3
                       PF_SN: 2
+                      USER_SN: 1
                       USER_IMG: http://218.232.137.30:20090/matching/profile/img.png
                       USER_NM: 홍길동
                       PF_INTRO: 프로필 설명 1
@@ -832,6 +836,7 @@ components:
                       REQ_STTS: REJECTION
                     - REQ_SN: 4
                       PF_SN: 3
+                      USER_SN: 2
                       USER_IMG: http://218.232.137.30:20090/matching/profile/img.png
                       USER_NM: 김철수
                       PF_INTRO: 프로필 설명 2
@@ -842,6 +847,7 @@ components:
                   REQ_LIST:
                     - REQ_SN: 5
                       PF_SN: 5
+                      USER_SN: 5
                       USER_IMG: http://218.232.137.30:20090/matching/profile/img.png
                       USER_NM: 김영희
                       PF_INTRO: 프로필 설명 3
@@ -849,6 +855,7 @@ components:
                       REQ_STTS: REQ
                     - REQ_SN: 6
                       PF_SN: 6
+                      USER_SN: 6
                       USER_IMG: http://218.232.137.30:20090/matching/profile/img.png
                       USER_NM: 아무개
                       PF_INTRO: 프로필 설명 4

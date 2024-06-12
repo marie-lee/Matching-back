@@ -25,7 +25,7 @@ class statusService{
 
     async projectReqList(pjt){
         let REQ = {};
-        const query = `SELECT req.REQ_SN, pf.PF_SN, usr.USER_IMG, usr.USER_NM, pf.PF_INTRO,
+        const query = `SELECT req.REQ_SN, pf.PF_SN, usr.USER_SN, usr.USER_IMG, usr.USER_NM, pf.PF_INTRO,
                                 pjrr.PART, req.REQ_STTS
                                 FROM TB_PJT pj
                                 LEFT JOIN TB_REQ req ON pj.PJT_SN = req.PJT_SN
