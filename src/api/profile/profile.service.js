@@ -106,12 +106,12 @@ class profileService {
         try {
             return await db.query(query, {type: QueryTypes.SELECT});
         } catch (error){
+            logger.error("프로필 및 포트폴리오 전체 조회 실패", error)
             throw error;
         }
     }
 
-    async pfPfolSelect(req, res){
-        const userSn = req.userSn.USER_SN;
+    async pfPfolSelect(userSn, res){
 
         try {
             // 프로필 조회
@@ -123,6 +123,7 @@ class profileService {
 
             return res.status(200).send(pfPfol);
         } catch (error){
+            logger.error("프로필 및 포트폴리오 조회 중 오류 발생: ", error);
             throw error;
         }
     }
@@ -154,21 +155,22 @@ class profileService {
                                             ,'URL_INTRO', u.URL_INTRO
                                         )
                                     ) AS url
-                                                                FROM TB_PF pf
+                                FROM TB_PF pf
                                     LEFT JOIN TB_USER usr ON usr.USER_SN = pf.USER_SN 
-                                    LEFT JOIN TB_CAREER cr ON cr.PF_SN = pf.PF_SN AND cr.DEL_YN = 'N'
+                                    LEFT JOIN TB_CAREER cr ON cr.PF_SN = pf.PF_SN AND cr.DEL_YN = FALSE
                                     LEFT JOIN TB_PF_ST ps ON pf.PF_SN = ps.PF_SN
                                     LEFT JOIN TB_ST st ON ps.ST_SN = st.ST_SN
                                     LEFT JOIN TB_PF_INTRST pi ON pf.PF_SN = pi.PF_SN
                                     LEFT JOIN TB_INTRST i ON pi.INTRST_SN = i.INTRST_SN
                                     LEFT JOIN TB_PF_URL pu ON pf.PF_SN = pu.PF_SN
-                                    LEFT JOIN TB_URL u ON pu.URL_SN = u.URL_SN AND u.DEL_YN = 'N'
-                                WHERE pf.DEL_YN = 'N' AND usr.USER_SN = ${userSn}`;
+                                    LEFT JOIN TB_URL u ON pu.URL_SN = u.URL_SN AND u.DEL_YN = FALSE
+                                WHERE pf.DEL_YN = FALSE AND usr.USER_SN = ${userSn}`;
         try{
             return await db.query(query, {type: QueryTypes.SELECT});
         }
         catch (error) {
-            throw new Error("프로필/포트폴리오 벡터화 중 오류 발생: ", error);
+            logger.error("프로필 조회 중 오류 발생: ", error);
+            throw error;
         }
     }
 
@@ -211,7 +213,7 @@ class profileService {
                                     INNER JOIN TB_URL url ON pfU.URL_SN = url.URL_SN
                                     INNER JOIN TB_PF_PFOL pfPl ON pfPl.PF_SN = pf.PF_SN
                                     INNER JOIN VIEW_PFOL vpl ON vpl.PFOL_SN = pfPl.PFOL_SN
-                                WHERE usr.USER_SN = ${userSn}
+                                WHERE usr.USER_SN = ${userSn} AND usr.DEL_YN = 'N'
                                 GROUP BY pf.PF_SN, usr.USER_SN, usr.USER_NM;`;
         try {
             await mutex.lock();
@@ -242,7 +244,7 @@ class profileService {
                                 LEFT JOIN TB_PFOL_ST ps ON ps.PFOL_SN = pp.PFOL_SN
                                 LEFT JOIN TB_ST st ON st.ST_SN = ps.ST_SN
                                 LEFT JOIN TB_PFOL_MEDIA pm ON pl.PFOL_SN = pm.PFOL_SN AND pm.MAIN_YN = 1
-                                WHERE pp.PF_SN = ${pfSn}
+                                WHERE pp.PF_SN = ${pfSn} AND pl.DEL_YN = 'N'
                                 GROUP BY pl.PFOL_SN
                                 ORDER BY pl.START_DT ASC`;
         try{
@@ -250,6 +252,7 @@ class profileService {
             return portfolioInfo;
         }
         catch (error) {
+            logger.error("포트폴리오 조회 중 오류 발생: ", error);
             throw error;
         }
     }

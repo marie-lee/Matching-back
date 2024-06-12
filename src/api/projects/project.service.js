@@ -17,21 +17,23 @@ class projectService {
                                 , JSON_ARRAYAGG( DISTINCT JSON_OBJECT( "part", pjr.PART, "totalCnt", pjr.TOTAL_CNT, "cnt", pjr.CNT)) AS role
                                 , pj.WANTED as experience
                             FROM TB_PJT pj
-                              INNER JOIN TB_REQ r ON r.PJT_SN = pj.PJT_SN AND r.REQ_STTS in ('REQ','AGREE','CONFIRM')
-                              INNER JOIN TB_USER tu ON r.USER_SN = tu.USER_SN
+                              INNER JOIN TB_REQ r ON r.PJT_SN = pj.PJT_SN AND r.REQ_STTS in ('REQ','AGREE','CONFIRM') AND r.DEL_YN = FALSE
+                              INNER JOIN TB_USER tu ON r.USER_SN = tu.USER_SN AND tu.DEL_YN= FALSE
                               LEFT JOIN TB_PJT_SKILL pjSk ON pjSk.PJT_SN = pj.PJT_SN
                               LEFT JOIN TB_ST st ON st.ST_SN = pjSk.ST_SN
                               LEFT JOIN TB_PJT_ROLE pjr ON pjr.PJT_SN = pj.PJT_SN
-                            WHERE pj.PJT_SN = ${pjtSn} AND tu.USER_SN = ${userSn}
+                            WHERE pj.PJT_SN = ${pjtSn} AND tu.USER_SN = ${userSn} AND pj.DEL_YN = FALSE
                             GROUP BY pjr.PJT_SN;`;
     try {
       const result = await db.query(query, {type: QueryTypes.SELECT});
       if(result[0] == null){
-        throw new Error("해당 프로젝트가 없거나 권한이 없습니다.")
+        logger.error("요청받은 포르젝트 조회 실패 - 프로젝트가 없거나 권한이 없음")
+        throw new Error("해당 프로젝트가 존재하지 않거나 권한이 없습니다.")
       }
       result[0].experience = JSON.parse(result[0].experience);
       return result;
     } catch (error){
+      logger.error("요청받은 포르젝트 조회 실패", error)
       throw error;
     }
   }
@@ -45,21 +47,22 @@ class projectService {
                                 , JSON_ARRAYAGG( DISTINCT JSON_OBJECT( "part", pjr.PART, "totalCnt", pjr.TOTAL_CNT, "cnt", pjr.CNT)) AS role
                                 , pj.WANTED as experience
                             FROM TB_PJT pj
-                              INNER JOIN TB_PJT_M pm ON pm.PJT_SN = pj.PJT_SN
-                              INNER JOIN TB_USER tu ON pm.USER_SN = tu.USER_SN
+                              INNER JOIN TB_USER tu ON pj.CREATED_USER_SN = tu.USER_SN
                               LEFT JOIN TB_PJT_SKILL pjSk ON pjSk.PJT_SN = pj.PJT_SN
                               LEFT JOIN TB_ST st ON st.ST_SN = pjSk.ST_SN
                               LEFT JOIN TB_PJT_ROLE pjr ON pjr.PJT_SN = pj.PJT_SN
-                            WHERE pj.PJT_SN = ${pjtSn} AND tu.USER_SN = ${userSn}
+                            WHERE pj.PJT_SN = ${pjtSn} AND tu.USER_SN = ${userSn} AND pj.DEL_YN = FALSE
                             GROUP BY pjr.PJT_SN;`;
     try {
       const result = await db.query(query, {type: QueryTypes.SELECT});
       if(result[0] == null){
-        throw new Error("해당 프로젝트가 없거나 권한이 없습니다.")
+        logger.error("내 단일 포르젝트 조회 실패 - 프로젝트가 없거나 권한이 없음")
+        throw new Error("해당 프로젝트가 존재하지 않거나 권한이 없습니다.")
       }
       result[0].experience = JSON.parse(result[0].experience);
       return result;
     } catch (error){
+      logger.error("내 단일 포르젝트 조회 실패", error)
       throw error;
     }
   }
@@ -92,6 +95,7 @@ class projectService {
                               LEFT JOIN TB_PJT_SKILL pjSk ON pjSk.PJT_SN = pj.PJT_SN
                               LEFT JOIN TB_ST st ON st.ST_SN = pjSk.ST_SN
                               LEFT JOIN TB_PJT_ROLE pjr ON pjr.PJT_SN = pj.PJT_SN
+                            WHERE pj.DEL_YN = FALSE
                             GROUP BY pjr.PJT_SN
                             ORDER BY pj.PJT_SN ASC;`;
     try {
