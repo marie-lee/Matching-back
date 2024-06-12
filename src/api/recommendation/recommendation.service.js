@@ -32,7 +32,7 @@ class recommendationService {
             // 정렬된 키-값 쌍 배열에서 키(key)만 가져와서 배열로 만듦
             const sortedKeys = sortedEntries.map(entry => parseInt(entry[0], 10));
 
-            const userPfPfol = await profileService.pfPfolSelectAll(sortedKeys);
+            const userPfPfol = await profileService.pfPfolSelectAll(sortedKeys, req.userSn.USER_SN);
 
             const matchingResult = userPfPfol.map(profile => {
                 const pfSn = profile.pfSn;
