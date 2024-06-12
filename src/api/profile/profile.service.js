@@ -52,13 +52,17 @@ class profileService {
         }
     }
 
-    async pfPfolSelectAll(snList = []){
+    async pfPfolSelectAll(snList = [], userSn = null){
 
         let whereClause = '';
         let orderByClause = '';
+        
         // keys 배열이 비어있지 않다면 WHERE 조건을 추가
         if (snList.length > 0) {
-            const pfSnList = snList.join(','); // 배열을 문자열로 변환
+            // 본인 프로필 제거
+            const filteredSnList = snList.filter(sn => sn !== userSn);
+
+            const pfSnList = filteredSnList.join(','); // 배열을 문자열로 변환
             whereClause = `WHERE pf.PF_SN IN (${pfSnList})`;
             orderByClause = `ORDER BY FIELD(pf.PF_SN, ${pfSnList})`
         }
