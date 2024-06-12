@@ -144,6 +144,38 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/myProject200'
+        '400':
+          description: 잘못된 요청
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '요청된 프로젝트 조회 실패 - 해당 프로젝트가 없거나 권한이 없습니다: {에러메시지}'
+      security:
+        - JWT: [ ]
+  /status/user/{userSn}:
+    get:
+      tags:
+        - status
+      summary: 요청중인 개발자 정보
+      description: 요청중인 개발자 정보
+      parameters:
+        - in: path
+          name: userSn
+          required: true
+          description: 회원 일련번호
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/selectPfPfol200'
+        '400':
+          description: 잘못된 요청
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '프로필 및 포트폴리오 조회 실패: {에러메시지}'
       security:
         - JWT: [ ]
   /recommendation/project/{pjtSn}:
@@ -822,6 +854,132 @@ components:
                       PF_INTRO: 프로필 설명 4
                       PART: 디자인
                       REQ_STTS: AGREE
+    selectPfPfol200:
+      description: 유저의 프로필 및 포트폴리오 조회
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              pfSn:
+                type: integer
+                description: 프로필 일련번호
+              userSn:
+                type: integer
+                description: 회원 일련번호
+              userNm:
+                type: string
+                description: 회원 이름
+              profile:
+                type: object
+                description: 회원 프로필 정보
+                properties:
+                  introduction:
+                    type: string
+                    description: 회원 소개
+                  img:
+                    type: string
+                    description: 프로필 이미지 URL
+                  career:
+                    type: array
+                    items:
+                      type: object
+                      description: 경력
+                      properties:
+                        careerNm:
+                          type: string
+                          description: 회사 이름
+                        enteringDt:
+                          type: string
+                          format: date
+                          description: 입사 날짜
+                        quitDt:
+                          type: string
+                          format: date
+                          description: 퇴사 날짜 (null이면 현재 재직중)
+                  stack:
+                    type: string
+                    description: 보유 기술
+                  interests:
+                    type: string
+                    description: 관심 기술
+                  url:
+                    type: string
+                    description: 외부 링크
+              portfolio:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: 포트폴리오 이름
+                    startDt:
+                      type: string
+                      format: date
+                      description: 시작 날짜
+                    endDt:
+                      type: string
+                      format: date
+                      description: 종료 날짜
+                    period:
+                      type: integer
+                      description: 기간 (일)
+                    introduction:
+                      type: string
+                      description: 포트폴리오 설명
+                    memCnt:
+                      type: integer
+                      description: 팀원 수
+                    contribution:
+                      type: integer
+                      description: 기여도 (%)
+                    stack:
+                      type: string
+                      description: 기술 스택
+                    role:
+                      type: string
+                      description: 역할
+                    serviceStts:
+                      type: string
+                      description: 서비스 상태
+                    url:
+                      type: string
+                      description: 포트폴리오 링크
+                    media:
+                      type: string
+                      description: 미디어 링크
+
+          example:
+            pfSn: 14
+            userSn: 13
+            userNm: 박철수
+            profile:
+            introduction: 프런트엔드 개발에 열정을 품고 있습니다.
+            img: http://218.232.137.30:20090/matching/profile/img.jpg
+            career:
+            - careerNm: 모빌리티솔루션즈
+              enteringDt: "2023-03-10"
+              quitDt: "2024-01-15"
+            - careerNm: 웹웍스
+              enteringDt: "2021-05-15"
+              quitDt: "2022-11-30"
+              stack: REACT, REACT NATIVE
+              interests: iOS Development, MOBILE, WEB
+              url: http://www.github.com/CHS1, https://www.CHSBLOG.com
+            portfolio:
+            - name: 온라인 음악 스트리밍 웹 앱
+              startDt: "2023-01-01"
+              endDt: "2023-08-31"
+              period: 183
+              introduction: 사용자들에게 고품질의 음악 스트리밍 서비스를 제공하는 웹 애플리케이션입니다.
+              memCnt: 6
+              contribution: 30
+              stack: NODE.JS, REACT NATIVE
+              role: 기획, 프론트엔드
+              serviceStts: ACTIVE
+              url: www.musicstreamingwebapp.com
+              media: http://218.232.137.30:20090/matching/portfolio/portfolio.png
     recommendation200:
       description: 프로젝트와 유사도가 높은 회원 정보 반환
       content:
