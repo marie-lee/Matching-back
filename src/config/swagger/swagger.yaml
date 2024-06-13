@@ -701,6 +701,9 @@ components:
                       type: integer
                       description: 현재 참여 인원 수
                       example: 1
+                    mem:
+                      type: string
+                      description: 참여 멤버
               experience:
                 type: array
                 description: 요구 경험
@@ -724,9 +727,11 @@ components:
               - part: '프런트엔드'
                 totalCnt: 5
                 cnt: 4
+                mem: "홍길동"
               - part: '백엔드'
                 totalCnt: 4
                 cnt: 0
+                mem: "김신사, 박준"
             experience:
               - '웹 앱 개발 경험자'
               - '프로젝트 관리 앱 경험자'

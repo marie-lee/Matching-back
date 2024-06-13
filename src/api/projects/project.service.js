@@ -44,7 +44,17 @@ class projectService {
                                 , GROUP_CONCAT(DISTINCT st.ST_NM) AS stack
                                 , SUM( DISTINCT pjr.TOTAL_CNT ) AS PO
                                 , sum( DISTINCT pjr.CNT) AS \`TO\`
-                                , JSON_ARRAYAGG( DISTINCT JSON_OBJECT( "part", pjr.PART, "totalCnt", pjr.TOTAL_CNT, "cnt", pjr.CNT)) AS role
+                                , JSON_ARRAYAGG( DISTINCT JSON_OBJECT( 
+                                    "part", pjr.PART, 
+                                    "totalCnt", pjr.TOTAL_CNT, 
+                                    "cnt", pjr.CNT,
+                                    "mem", (
+                                      SELECT GROUP_CONCAT(um.USER_NM)
+                                      FROM TB_PJT_M pm 
+                                      INNER JOIN TB_USER um ON pm.USER_SN = um.USER_SN 
+                                      WHERE pm.PJT_SN = pj.PJT_SN AND pjr.PJT_ROLE_SN = pm.PJT_ROLE_SN AND pm.DEL_YN = FALSE
+                                    )
+                                  )) AS role
                                 , pj.WANTED as experience
                             FROM TB_PJT pj
                               INNER JOIN TB_USER tu ON pj.CREATED_USER_SN = tu.USER_SN
