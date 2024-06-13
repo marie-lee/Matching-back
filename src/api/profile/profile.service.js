@@ -137,6 +137,7 @@ class profileService {
                                     , usr.USER_SN
                                     , usr.USER_NM
                                     , usr.USER_IMG
+                                    , pf.PF_INTRO
                                     , JSON_ARRAYAGG( DISTINCT
                                         JSON_OBJECT(
                                             'CARRER_NM', cr.CAREER_NM
