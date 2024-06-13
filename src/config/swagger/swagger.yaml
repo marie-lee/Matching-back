@@ -468,6 +468,10 @@ components:
                 type: string
                 description: 회원 이미지
                 example: www.www.com
+              PF_INTRO:
+                type: string
+                description: 프로필 소개
+                example: "OO의 프로필입니다."
               CAREER_NM:
                 type: string
                 description: 회사명
