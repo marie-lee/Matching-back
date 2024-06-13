@@ -647,6 +647,9 @@ components:
                 type: string
                 description: 프로젝트명
                 example: '프로젝트 관리 플랫폼'
+              teamLeader:
+                description: 팀리더
+                example: "김동당"
               pjtImg:
                 type: string
                 description: 프로젝트 이미지 url
@@ -717,6 +720,7 @@ components:
           example:
             pjtSn: 1
             pjtNm: '프로젝트 관리 플랫폼'
+            teamLeader: "이세진"
             pjtImg: 'https://example.com/project_management_platform.png'
             startDt: 2024-07-20
             endDt: null
