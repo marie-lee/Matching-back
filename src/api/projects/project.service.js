@@ -40,7 +40,7 @@ class projectService {
 
   async myProject(userSn, pjtSn) {
 
-    const query = `SELECT pj.PJT_SN as pjtSn, pj.PJT_NM as pjtNm, pj.PJT_IMG as pjtImg, pj.START_DT as startDt, pj.END_DT as endDt, pj.PERIOD as period, pj.DURATION_UNIT as durationUnit, pj.PJT_INTRO as pjtIntro, pj.PJT_DETAIL as pjtDetail
+    const query = `SELECT pj.PJT_SN as pjtSn, pj.PJT_NM as pjtNm, tu.USER_NM as teamLeader, pj.PJT_IMG as pjtImg, pj.START_DT as startDt, pj.END_DT as endDt, pj.PERIOD as period, pj.DURATION_UNIT as durationUnit, pj.PJT_INTRO as pjtIntro, pj.PJT_DETAIL as pjtDetail
                                 , GROUP_CONCAT(DISTINCT st.ST_NM) AS stack
                                 , SUM( DISTINCT pjr.TOTAL_CNT ) AS PO
                                 , sum( DISTINCT pjr.CNT) AS \`TO\`
