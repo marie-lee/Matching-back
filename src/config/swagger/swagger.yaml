@@ -4,7 +4,7 @@ info:
   version: 1.0.0
 servers:
   - url: http://218.232.137.30:20080/api
-  - url: http://localhost:8080/api
+  - url: http://localhost:3000/api
 tags:
   - name: member
     description: 멤버 관련
@@ -323,22 +323,22 @@ components:
           description: 프로젝트 소개
           example: 이건 이런 프로젝트에요.
         PJT_OPEN_YN:
-          type: string
+          type: boolean
           description: 프로젝트 공개 여부
-          example: Y
+          example: false
         CONSTRUCTOR_ROLE:
           type: string
           description: 생성자 역할
-          example: Developer
+          example: 기획
         SELECTED_DT_YN:
-          type: string
+          type: boolean
           description: 선택된 날짜 여부
-          example: Y
+          example: false
         START_DT:
           type: string
           format: date
           description: 프로젝트 시작 날짜
-          example: 2024-06-01
+          example: 2024-09-01
         PERIOD:
           type: string
           description: 프로젝트 기간
@@ -346,7 +346,7 @@ components:
         DURATION_UNIT:
           type: string
           description: 프로젝트 기간 (일/월)
-          example: DAY
+          example: MONTH
         WANTED:
           type: array
           items:
@@ -357,10 +357,6 @@ components:
           type: string
           description: 프로젝트 상세 정보
           example: 이 프로젝트에 대한 자세한 소개입니다
-        PJT_STTS:
-          type: string
-          description: 프로젝트 상태
-          example: active
         STACKS:
           type: array
           items:
@@ -821,20 +817,20 @@ components:
                               description: 요청 상태코드
           example:
             - myReqList:
-              - REQ_SN: 1
-                PJT_SN: 1
-                PJT_IMG: http://218.232.137.30:20090/matching/project/img.png
-                PJT_NM: project1
-                TOTAL_CNT: 11
-                PART: 프론트엔드
-                REQ_STTS: REQ
-              - REQ_SN: 2
-                PJT_SN: 2
-                PJT_IMG: http://218.232.137.30:20090/matching/project/img.png
-                PJT_NM: project2
-                TOTAL_CNT: 7
-                PART: 기획
-                REQ_STTS: AGREE
+                - REQ_SN: 1
+                  PJT_SN: 1
+                  PJT_IMG: http://218.232.137.30:20090/matching/project/img.png
+                  PJT_NM: project1
+                  TOTAL_CNT: 11
+                  PART: 프론트엔드
+                  REQ_STTS: REQ
+                - REQ_SN: 2
+                  PJT_SN: 2
+                  PJT_IMG: http://218.232.137.30:20090/matching/project/img.png
+                  PJT_NM: project2
+                  TOTAL_CNT: 7
+                  PART: 기획
+                  REQ_STTS: AGREE
             - projectReqList:
                 - PJT_SN: 3
                   PJT_NM: project3
@@ -978,28 +974,28 @@ components:
             introduction: 프런트엔드 개발에 열정을 품고 있습니다.
             img: http://218.232.137.30:20090/matching/profile/img.jpg
             career:
-            - careerNm: 모빌리티솔루션즈
-              enteringDt: "2023-03-10"
-              quitDt: "2024-01-15"
-            - careerNm: 웹웍스
-              enteringDt: "2021-05-15"
-              quitDt: "2022-11-30"
-              stack: REACT, REACT NATIVE
-              interests: iOS Development, MOBILE, WEB
-              url: http://www.github.com/CHS1, https://www.CHSBLOG.com
+              - careerNm: 모빌리티솔루션즈
+                enteringDt: "2023-03-10"
+                quitDt: "2024-01-15"
+              - careerNm: 웹웍스
+                enteringDt: "2021-05-15"
+                quitDt: "2022-11-30"
+                stack: REACT, REACT NATIVE
+                interests: iOS Development, MOBILE, WEB
+                url: http://www.github.com/CHS1, https://www.CHSBLOG.com
             portfolio:
-            - name: 온라인 음악 스트리밍 웹 앱
-              startDt: "2023-01-01"
-              endDt: "2023-08-31"
-              period: 183
-              introduction: 사용자들에게 고품질의 음악 스트리밍 서비스를 제공하는 웹 애플리케이션입니다.
-              memCnt: 6
-              contribution: 30
-              stack: NODE.JS, REACT NATIVE
-              role: 기획, 프론트엔드
-              serviceStts: ACTIVE
-              url: www.musicstreamingwebapp.com
-              media: http://218.232.137.30:20090/matching/portfolio/portfolio.png
+              - name: 온라인 음악 스트리밍 웹 앱
+                startDt: "2023-01-01"
+                endDt: "2023-08-31"
+                period: 183
+                introduction: 사용자들에게 고품질의 음악 스트리밍 서비스를 제공하는 웹 애플리케이션입니다.
+                memCnt: 6
+                contribution: 30
+                stack: NODE.JS, REACT NATIVE
+                role: 기획, 프론트엔드
+                serviceStts: ACTIVE
+                url: www.musicstreamingwebapp.com
+                media: http://218.232.137.30:20090/matching/portfolio/portfolio.png
     recommendation200:
       description: 프로젝트와 유사도가 높은 회원 정보 반환
       content:
