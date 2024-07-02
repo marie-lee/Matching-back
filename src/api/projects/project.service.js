@@ -3,10 +3,8 @@ const { logger } = require('../../utils/logger');
 const { QueryTypes } = require("sequelize");
 const {runPytonToVectorization, runPjtToVec} = require("../../utils/matching/spawnVectorization");
 const mutex = require('../../utils/matching/Mutex');
+const {throwError} = require("../../utils/errors");
 class projectService {
-
-
-
 
   async reqProject(userSn, pjtSn) {
 
@@ -122,7 +120,7 @@ class projectService {
   // 프로젝트 등록
   async registerProject(req, res) {
     const project = req.body;
-    const user = req.userSn
+    const user = req.userSn.USER_SN;
     const transaction = await db.transaction();
     try {
       const {
@@ -135,49 +133,53 @@ class projectService {
         START_DT,
         PERIOD,
         DURATION_UNIT,
+        STACKS,
         WANTED,
         PJT_DETAIL,
-        PJT_STTS,
-        STACKS,
         ROLES
       } = project;
 
       // 필수 필드 확인
-      if (!PJT_NM || !PJT_INTRO || !PJT_STTS || !SELECTED_DT_YN) {
-        logger.error('필수 필드를 입력하세요.');
+      const requiredFields = {
+        PJT_NM: '프로젝트명이 입력되지 않았습니다.',
+        PJT_INTRO: '프로젝트명 간단 설명이 입력되지 않았습니다.',
+        PJT_OPEN_YN: '프로젝트 상세 공개 여부가 선택되지 않았습니다.',
+        CONSTRUCTOR_ROLE: '프로젝트명 등록자 역할이 입력되지 않았습니다.',
+        ROLES: '프로젝트 참여 인원 및 분야가 입력되지 않았습니다.',
+        SELECTED_DT_YN: '프로젝트 기간 선택 여부가 입력되지 않았습니다..',
+        user: '사용자 정보를 찾을 수 없습니다.',
       }
-
-      if (SELECTED_DT_YN === 'Y' && !START_DT) {
-        logger.error('START_DT는 SELECTED_DT_YN이 Y인 경우 필수입니다.');
+      for (const [field, message] of Object.entries(requiredFields)) {
+        if (!project[field]) {
+          throwError(message);
+        }
       }
-
-      if (!user || !user.USER_SN) {
-        logger.error('사용자 정보를 찾을 수 없습니다.');
-      }
+      if(SELECTED_DT_YN && !START_DT){ throwError('시작날짜가 입력되지 않았습니다.'); }
+      if(!DURATION_UNIT || !PERIOD){ throwError('프로젝트 예상 기간을 입력하세요.'); }
 
       // 프로젝트 생성
       const newProject = await db.TB_PJT.create({
         PJT_NM,
         PJT_IMG,
         PJT_INTRO,
-        PJT_OPEN_YN: PJT_OPEN_YN === 'Y', // Boolean 변환
-        CREATED_USER_SN: user.USER_SN,
+        PJT_OPEN_YN,
+        CREATED_USER_SN: user,
         CONSTRUCTOR_ROLE,
-        SELECTED_DT_YN: SELECTED_DT_YN === 'Y', // Boolean 변환
-        START_DT: SELECTED_DT_YN === 'Y' ? START_DT : null,
+        SELECTED_DT_YN,
+        START_DT,
         PERIOD,
         DURATION_UNIT,
         WANTED: JSON.stringify(WANTED), // 배열을 JSON 문자열로 변환하여 저장
         PJT_DETAIL,
-        PJT_STTS
+        PJT_STTS: "RECRUIT"
       }, {transaction});
 
       // 스택 처리
       for (const stack of STACKS) {
-        const [st, created] = await db.TB_ST.findOrCreate({
-          where: { ST_NM: stack.ST_NM },
-          defaults: { ST_NM: stack.ST_NM },
-          transaction: transaction
+        const [st] = await db.TB_ST.findOrCreate({
+          where: { ST_NM: stack.ST_NM.toLowerCase() },
+          defaults: { ST_NM: stack.ST_NM.toLowerCase() },
+          transaction
         });
 
         await db.TB_PJT_SKILL.create({
@@ -185,28 +187,42 @@ class projectService {
           ST_SN: st.ST_SN
         }, {transaction});
       }
+
       // 팀원
       for (const role of ROLES) {
         await db.TB_PJT_ROLE.create({
           PJT_SN: newProject.PJT_SN,
-          PART: role.PART,
+          PART: role.PART.toLowerCase(),
           TOTAL_CNT: role.TOTAL_CNT,
           CNT: 0 // 현재 참여자 수를 기본값 0으로 설정
         }, {transaction});
       }
 
       // 생성자 멤버추가
-      const constructorRole = await db.TB_PJT_ROLE.create({PJT_SN: newProject.PJT_SN, PART: CONSTRUCTOR_ROLE, TOTAL_CNT: 1, CNT: 1},{transaction});
+      const [constructorRole, created] = await db.TB_PJT_ROLE.findOrCreate({
+        where: {PJT_SN: newProject.PJT_SN, PART: CONSTRUCTOR_ROLE.toLowerCase()},
+        defaults: {
+          PJT_SN: newProject.PJT_SN,
+          PART: CONSTRUCTOR_ROLE,
+          TOTAL_CNT: 1,
+          CNT: 1
+        },
+        transaction
+      });
+      if(!created){
+        constructorRole.TOTAL_CNT += 1;
+        constructorRole.CNT += 1;
+        await constructorRole.save({transaction});
+      }
       await db.TB_PJT_M.create({
         PJT_SN: newProject.PJT_SN,
-        USER_SN: user.USER_SN,
+        USER_SN: user,
         PJT_ROLE_SN: constructorRole.PJT_ROLE_SN
       }, {transaction});
 
       await transaction.commit();
       res.status(200).send("프로젝트 등록 성공");
-      await this.toVectorPfPfol(user.USER_SN,newProject.PJT_SN)
-
+      await this.toVectorPfPfol(user,newProject.PJT_SN)
     } catch (error) {
       logger.error('프로젝트 등록 중 오류 발생:', error);
       await transaction.rollback();
@@ -216,7 +232,6 @@ class projectService {
 
   async toVectorPfPfol(userSn, pjtSn){
     try{
-
       await mutex.lock()
       const pjtData = await this.myProject(userSn, pjtSn);
       const pjtJson = JSON.stringify(pjtData[0]);
@@ -229,6 +244,5 @@ class projectService {
     }
   }
 }
-
 
 module.exports = new projectService();
