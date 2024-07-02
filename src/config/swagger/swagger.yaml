@@ -4,7 +4,7 @@ info:
   version: 1.0.0
 servers:
   - url: http://218.232.137.30:20080/api
-  - url: http://localhost:8080/api
+  - url: http://localhost:3000/api
 tags:
   - name: member
     description: 멤버 관련
@@ -336,6 +336,7 @@ components:
           example: false
         START_DT:
           type: string
+          format: date
           description: 프로젝트 시작 날짜
           example: 2024-09-01
         PERIOD:
