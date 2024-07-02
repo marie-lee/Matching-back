@@ -3,6 +3,7 @@ const { logger } = require('../../utils/logger');
 const { QueryTypes } = require("sequelize");
 const {runPytonToVectorization, runPjtToVec} = require("../../utils/matching/spawnVectorization");
 const mutex = require('../../utils/matching/Mutex');
+const {throwError} = require("../../utils/errors");
 class projectService {
 
 
@@ -142,16 +143,22 @@ class projectService {
       } = project;
 
       // 필수 필드 확인
-      if (!PJT_NM) {logger.error('프로젝트명을 입력하세요.');}
-      if (!PJT_INTRO) {logger.error('프로젝트 간단 설명을 입력하세요.');}
-      if (PJT_OPEN_YN === null) {logger.error('프로젝트 상세 공개 여부를 선택하세요.');}
-      if (!CONSTRUCTOR_ROLE) {logger.error('프로젝트 등록자 역할을 입력하세요.');}
-      if (!ROLES) {logger.error('프로젝트 참여인원 및 분야를 입력하세요.');}
-      if (SELECTED_DT_YN === null) {logger.error('프로젝트 기간 선택 여부를 입력하세요.');}
-
-      if (SELECTED_DT_YN === true && !START_DT) {logger.error('시작 날짜를 입력하세요.');}
-      if(!DURATION_UNIT || !PERIOD) {logger.error('프로젝트 예상 기간을 입력하세요.');}
-      if (!user) {logger.error('사용자 정보를 찾을 수 없습니다.');}
+      const requiredFields = [
+        {value: PJT_NM, message: '프로젝트명이 입력되지 않았습니다.'},
+        {value: PJT_INTRO, message: '프로젝트명 간단 설명이 입력되지 않았습니다.'},
+        {value: PJT_OPEN_YN, message: '프로젝트 상세 공개 여부가 선택되지 않았습니다.'},
+        {value: CONSTRUCTOR_ROLE, message: '프로젝트명 등록자 역할이 입력되지 않았습니다.'},
+        {value: ROLES, message: '프로젝트 참여 인원 및 분야가 입력되지 않았습니다.'},
+        {value: SELECTED_DT_YN, message: '프로젝트 기간 선택 여부가 입력되지 않았습니다..'},
+        {value: user, message: '사용자 정보를 찾을 수 없습니다.'},
+      ]
+      for(const field of requiredFields){
+        if(field.value === undefined || field.value === null){
+          throwError(field.message);
+        }
+      }
+      if(SELECTED_DT_YN && !START_DT){ throwError('시작날짜가 입력되지 않았습니다.'); }
+      if(!DURATION_UNIT || !PERIOD){ throwError('프로젝트 예상 기간을 입력하세요.'); }
 
       // 프로젝트 생성
       const newProject = await db.TB_PJT.create({
@@ -172,10 +179,10 @@ class projectService {
 
       // 스택 처리
       for (const stack of STACKS) {
-        const [st, created] = await db.TB_ST.findOrCreate({
+        const [st] = await db.TB_ST.findOrCreate({
           where: { ST_NM: stack.ST_NM.toLowerCase() },
           defaults: { ST_NM: stack.ST_NM.toLowerCase() },
-          transaction: transaction
+          transaction
         });
 
         await db.TB_PJT_SKILL.create({
@@ -183,6 +190,7 @@ class projectService {
           ST_SN: st.ST_SN
         }, {transaction});
       }
+
       // 팀원
       for (const role of ROLES) {
         await db.TB_PJT_ROLE.create({
@@ -202,7 +210,7 @@ class projectService {
           TOTAL_CNT: 1,
           CNT: 1
         },
-        transaction: transaction
+        transaction
       });
       if(!created){
         constructorRole.TOTAL_CNT += 1;
@@ -240,6 +248,5 @@ class projectService {
     }
   }
 }
-
 
 module.exports = new projectService();
