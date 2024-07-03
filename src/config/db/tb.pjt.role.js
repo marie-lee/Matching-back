@@ -21,7 +21,12 @@ module.exports = (sequelize, DataTypes) => {
       CNT: {
         type: DataTypes.INTEGER,
         allowNull: false
-      }
+      },
+      DEL_YN: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+      },
     }, {
       tableName: 'TB_PJT_ROLE',
       timestamps: false

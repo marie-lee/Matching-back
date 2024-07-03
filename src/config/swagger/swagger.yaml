@@ -89,6 +89,31 @@ paths:
           $ref: '#/components/responses/myProject200'
       security:
         - JWT: []
+  /project/member/{pjtSn}:
+    get:
+      tags:
+        - project
+      summary: 프로젝트 참여 멤버 조회
+      description: 프로젝트 참여 멤버 조회
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/memberList200'
+        '400':
+          description: 잘못된 요청
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '프로젝트 멤버 리스트 조회 실패: {에러메시지}'
+      security:
+        - JWT: [ ]
   /project/add:
     post:
       tags:
@@ -307,6 +332,7 @@ components:
                 MAIN_YN: "0"
               - URL: http://218.232.137.30:20090/matching/portfolio/media.mp4
                 MAIN_YN: "1"
+
     registerProject:
       type: object
       properties:
@@ -753,6 +779,62 @@ components:
                 cnt: 0
                 mem: "김신사, 박준"
             wanted: '웹 앱 개발 경험자, 프로젝트 관리 앱 경험자, 사용자 친화적인 UI/UX 디자인 능력'
+    memberList200:
+      description: 프로젝트 멤버 리스트 조회 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              pjtMemSn:
+                type: integer
+                description: 프로젝트 멤버 일련번호
+              userSn:
+                type: integer
+                description: 회원 일련번호
+              userNm:
+                type: string
+                description: 회원명
+              pjtRoleSn:
+                type: integer
+                description: 프로젝트 파트 일련번호
+              part:
+                type: string
+                description: 파트명
+              firstDt:
+                type: string
+                description: 참가일자
+              endDt:
+                type: string
+                description: 종료일자
+              delYn:
+                type: boolean
+                description: 참여여부
+          example:
+            - pjtMemSn: 1
+              userSn: 1
+              userNm: 김기기
+              pjtRoleSn: 1
+              part: front
+              firstDt: 2024-05-01
+              endDt: null
+              delYn: 0
+            - pjtMemSn: 2
+              userSn: 2
+              userNm: 박기이
+              pjtRoleSn: 1
+              part: front
+              firstDt: 2024-05-01
+              endDt: null
+              delYn: 0
+            - pjtMemSn: 3
+              userSn: 3
+              userNm: 이아앙
+              pjtRoleSn: 2
+              part: end
+              firstDt: 2024-05-01
+              endDt: null
+              delYn: 0
     status200:
       description: 현황 조회 성공
       content:
