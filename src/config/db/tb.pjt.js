@@ -40,7 +40,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATE,
       },
       PERIOD: {
-        type: DataTypes.STRING(45),
+        type: DataTypes.INTEGER,
       },
       DURATION_UNIT: {
         type: DataTypes.STRING(5),
@@ -82,9 +82,9 @@ module.exports = (sequelize, DataTypes) => {
     });
   
     TB_PJT.associate = models => {
-      TB_PJT.belongsTo(models.TB_USER, { foreignKey: 'CREATED_USER_SN' });
+      TB_PJT.belongsTo(models.TB_USER, { as: 'tu', foreignKey: 'CREATED_USER_SN' });
       TB_PJT.hasMany(models.TB_PJT_SKILL, { foreignKey: 'PJT_SN' });
-      TB_PJT.hasMany(models.TB_PJT_ROLE, { foreignKey: 'PJT_SN' });
+      TB_PJT.hasMany(models.TB_PJT_ROLE, {as:'tpr', foreignKey: 'PJT_SN' });
       TB_PJT.hasMany(models.TB_REQ, { foreignKey: 'PJT_SN' });
       TB_PJT.hasMany(models.TB_PJT_M, { foreignKey: 'PJT_SN' });
     };

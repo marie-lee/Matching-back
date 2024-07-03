@@ -12,7 +12,7 @@ import numpy as np
 # 서버
 VECTOR_FILE = "/home/dldudgus/Matching-back/src/utils/matching/vector_data/project_vectors.json"
 # 로컬
-# VECTOR_FILE = "./src/utils/matching/vector_data/project_vectors.json"
+#VECTOR_FILE = "./src/utils/matching/vector_data/project_vectors.json"
 
 # 최대 시퀀스 길이 설정
 MAX_LENGTH = 77
@@ -77,7 +77,7 @@ def project_to_text(project):
     project_texts.append(process_description(project['pjtDetail']) if project.get('pjtDetail') else '') # 프로젝트 상세 정보
     project_texts.append(', '.join([role['part'] for role in project['role'] if role.get('part')]) if project.get('role') else '') # 모집 파트
     project_texts.append(process_description(project['stack']) if project.get('stack') else '') # 프로젝트 스택
-    project_texts.append(', '.join(project.get('experience', '')) if project.get('experience') else '') # 원하는 경험상
+    project_texts.append(process_description(project['wanted']) if project.get('wanted') else '') # 원하는 경험상
     return project_texts
 
 def project_to_vector(project):

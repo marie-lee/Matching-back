@@ -1,19 +1,19 @@
 module.exports = (sequelize, DataTypes) => {
     const TB_CMMN_CD = sequelize.define('TB_CMMN_CD', {
-      CMMD_CD_SN: {
+      CMMN_CD_SN: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
         allowNull: false
       },
-      CMMD_CD: {
+      CMMN_CD: {
         type: DataTypes.STRING(45),
         allowNull: false
       },
-      CMMD_CD_TYPE: {
+      CMMN_CD_TYPE: {
         type: DataTypes.STRING(45),
       },
-      CMMD_CD_VAL: {
+      CMMN_CD_VAL: {
         type: DataTypes.STRING(45),
         allowNull: false
       },

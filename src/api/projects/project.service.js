@@ -38,37 +38,90 @@ class projectService {
 
   async myProject(userSn, pjtSn) {
 
-    const query = `SELECT pj.PJT_SN as pjtSn, pj.PJT_NM as pjtNm, tu.USER_NM as teamLeader, pj.PJT_IMG as pjtImg, pj.START_DT as startDt, pj.END_DT as endDt, pj.PERIOD as period, pj.DURATION_UNIT as durationUnit, pj.PJT_INTRO as pjtIntro, pj.PJT_DETAIL as pjtDetail
-                                , GROUP_CONCAT(DISTINCT st.ST_NM) AS stack
-                                , SUM( DISTINCT pjr.TOTAL_CNT ) AS PO
-                                , sum( DISTINCT pjr.CNT) AS \`TO\`
-                                , JSON_ARRAYAGG( DISTINCT JSON_OBJECT( 
-                                    "part", pjr.PART, 
-                                    "totalCnt", pjr.TOTAL_CNT, 
-                                    "cnt", pjr.CNT,
-                                    "mem", (
-                                      SELECT GROUP_CONCAT(um.USER_NM)
-                                      FROM TB_PJT_M pm 
-                                      INNER JOIN TB_USER um ON pm.USER_SN = um.USER_SN 
-                                      WHERE pm.PJT_SN = pj.PJT_SN AND pjr.PJT_ROLE_SN = pm.PJT_ROLE_SN AND pm.DEL_YN = FALSE
-                                    )
-                                  )) AS role
-                                , pj.WANTED as experience
-                            FROM TB_PJT pj
-                              INNER JOIN TB_USER tu ON pj.CREATED_USER_SN = tu.USER_SN
-                              LEFT JOIN TB_PJT_SKILL pjSk ON pjSk.PJT_SN = pj.PJT_SN
-                              LEFT JOIN TB_ST st ON st.ST_SN = pjSk.ST_SN
-                              LEFT JOIN TB_PJT_ROLE pjr ON pjr.PJT_SN = pj.PJT_SN
-                            WHERE pj.PJT_SN = ${pjtSn} AND tu.USER_SN = ${userSn} AND pj.DEL_YN = FALSE
-                            GROUP BY pjr.PJT_SN;`;
     try {
-      const result = await db.query(query, {type: QueryTypes.SELECT});
-      if(result[0] == null){
-        logger.error("내 단일 포르젝트 조회 실패 - 프로젝트가 없거나 권한이 없음")
-        throw new Error("해당 프로젝트가 존재하지 않거나 권한이 없습니다.")
+      const project = await db.TB_PJT.findOne({
+        where: {
+          PJT_SN: pjtSn,
+          DEL_YN: false
+        },
+        attributes:[
+          ['PJT_SN', 'pjtSn'],
+          ['PJT_NM', 'pjtNm'],
+          ['CREATED_USER_SN','createdUerSn'],
+          [db.Sequelize.col('tu.USER_NM'), 'teamLeader'],
+          ['PJT_IMG','pjtImg'],
+          ['PJT_STTS','pjtStts'],
+          ['START_DT','startDt'],
+          ['END_DT', 'endDt'],
+          ['PERIOD', 'period'],
+          ['DURATION_UNIT', 'durationUnit'],
+          ['PJT_INTRO', 'pjtIntro'],
+          ['PJT_DETAIL','pjtDetail'],
+          [db.Sequelize.literal('GROUP_CONCAT(DISTINCT ST_NM)'), 'stack'],
+          [db.Sequelize.fn('SUM', db.Sequelize.literal('TOTAL_CNT')), 'PO'],
+          [db.Sequelize.fn('SUM', db.Sequelize.literal('CNT')), 'TO'],
+          [db.Sequelize.literal(
+              `JSON_ARRAYAGG(DISTINCT JSON_OBJECT(
+                    "pjtRoleSn", tpr.PJT_ROLE_SN,
+                    "part", tpr.PART,
+                    "totalCnt", tpr.TOTAL_CNT,
+                    "cnt", tpr.CNT,
+                    "mem", (
+                      SELECT GROUP_CONCAT(um.USER_NM)
+                      FROM TB_PJT_M pm
+                      INNER JOIN TB_USER um ON pm.USER_SN = um.USER_SN
+                      WHERE pm.PJT_SN = ${pjtSn} AND pm.PJT_ROLE_SN = tpr.PJT_ROLE_SN AND pm.DEL_YN = FALSE
+                      GROUP BY pm.PJT_ROLE_SN
+                    )
+                  ))`
+          ), 'role'],
+          ['WANTED','wanted'],
+        ],
+        include:[
+          {
+            model: db.TB_USER,
+            as: 'tu',
+            attributes: [],
+          },
+          {
+            model: db.TB_PJT_SKILL,
+            required: false,
+            attributes: [],
+            include: [
+              {
+                model: db.TB_ST,
+                attributes: ['ST_NM'],
+              }
+            ],
+          },
+          {
+            model: db.TB_PJT_ROLE,
+            as: 'tpr',
+            attributes: [],
+          },
+          {
+            model: db.TB_PJT_M,
+            attributes: [],
+            where: {USER_SN: userSn}
+          },
+        ],
+        group: ['PJT_SN']
+      });
+
+
+      if(!project){
+        throwError('해당 프로젝트가 존재하지 않거나 권한이 없습니다.');
       }
-      result[0].experience = JSON.parse(result[0].experience);
-      return result;
+      const pjtStts = await db.TB_CMMN_CD.findOne({
+        attributes: ['CMMN_CD_VAL'],
+        where: {
+          CMMN_CD_TYPE: 'PJT_STTS',
+          CMMN_CD: project.dataValues.pjtStts
+        }
+      })
+      project.dataValues.pjtStts = pjtStts.dataValues.CMMN_CD_VAL;
+      return project;
+
     } catch (error){
       logger.error("내 단일 포르젝트 조회 실패", error)
       throw error;
@@ -146,17 +199,15 @@ class projectService {
         PJT_OPEN_YN: '프로젝트 상세 공개 여부가 선택되지 않았습니다.',
         CONSTRUCTOR_ROLE: '프로젝트명 등록자 역할이 입력되지 않았습니다.',
         ROLES: '프로젝트 참여 인원 및 분야가 입력되지 않았습니다.',
-        SELECTED_DT_YN: '프로젝트 기간 선택 여부가 입력되지 않았습니다..',
-        user: '사용자 정보를 찾을 수 없습니다.',
+        SELECTED_DT_YN: '프로젝트 기간 선택 여부가 입력되지 않았습니다.',
       }
       for (const [field, message] of Object.entries(requiredFields)) {
-        if (!project[field]) {
+        if (project[field] === '' || project[field] === null) {
           throwError(message);
         }
       }
       if(SELECTED_DT_YN && !START_DT){ throwError('시작날짜가 입력되지 않았습니다.'); }
       if(!DURATION_UNIT || !PERIOD){ throwError('프로젝트 예상 기간을 입력하세요.'); }
-
       // 프로젝트 생성
       const newProject = await db.TB_PJT.create({
         PJT_NM,
@@ -169,7 +220,7 @@ class projectService {
         START_DT,
         PERIOD,
         DURATION_UNIT,
-        WANTED: JSON.stringify(WANTED), // 배열을 JSON 문자열로 변환하여 저장
+        WANTED: WANTED.join(','), // 배열을 JSON 문자열로 변환하여 저장
         PJT_DETAIL,
         PJT_STTS: "RECRUIT"
       }, {transaction});
@@ -222,7 +273,7 @@ class projectService {
 
       await transaction.commit();
       res.status(200).send("프로젝트 등록 성공");
-      await this.toVectorPfPfol(user,newProject.PJT_SN)
+      await this.toVectorPjt(user,newProject.PJT_SN)
     } catch (error) {
       logger.error('프로젝트 등록 중 오류 발생:', error);
       await transaction.rollback();
@@ -230,13 +281,14 @@ class projectService {
     }
   }
 
-  async toVectorPfPfol(userSn, pjtSn){
+  async toVectorPjt(userSn, pjtSn){
     try{
       await mutex.lock()
       const pjtData = await this.myProject(userSn, pjtSn);
-      const pjtJson = JSON.stringify(pjtData[0]);
-
-      await runPjtToVec(pjtJson)
+      const pjtJson = JSON.stringify(pjtData.dataValues);
+      await runPjtToVec(pjtJson).then(()=>{
+          console.log("프로젝트 벡터화 완료")
+      })
       mutex.unlock(); // Mutex 해제
     } catch (error){
       mutex.unlock(); // Mutex 해제

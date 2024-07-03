@@ -325,7 +325,7 @@ components:
         PJT_OPEN_YN:
           type: string
           description: 프로젝트 공개 여부
-          example: Y
+          example: false
         CONSTRUCTOR_ROLE:
           type: string
           description: 생성자 역할
@@ -333,7 +333,7 @@ components:
         SELECTED_DT_YN:
           type: string
           description: 선택된 날짜 여부
-          example: Y
+          example: true
         START_DT:
           type: string
           format: date
@@ -647,6 +647,9 @@ components:
                 type: string
                 description: 프로젝트명
                 example: '프로젝트 관리 플랫폼'
+              createdUserSn:
+                description: 팀리더 회원 일련번호
+                example: 3
               teamLeader:
                 description: 팀리더
                 example: "김동당"
@@ -654,6 +657,10 @@ components:
                 type: string
                 description: 프로젝트 이미지 url
                 example: 'https://example.com/project_management_platform.png'
+              pjtStts:
+                type: string
+                description: 프로젝트 진행상태
+                example: 모집중
               startDt:
                 type: string
                 description: 프로젝트 시작일
@@ -696,6 +703,10 @@ components:
                 items:
                   type: object
                   properties:
+                    pjtRoleSn:
+                      type: integer
+                      description: 프로젝트 역할파트 일련번호
+                      example: 2
                     part:
                       type: string
                       description: 역할 파트
@@ -711,7 +722,8 @@ components:
                     mem:
                       type: string
                       description: 참여 멤버
-              experience:
+                      example: '김기, 박기'
+              wanted:
                 type: array
                 description: 요구 경험
                 items:
@@ -720,8 +732,10 @@ components:
           example:
             pjtSn: 1
             pjtNm: '프로젝트 관리 플랫폼'
+            createdUserSn: 10
             teamLeader: "이세진"
             pjtImg: 'https://example.com/project_management_platform.png'
+            pjtStts: '모집중'
             startDt: 2024-07-20
             endDt: null
             period: 3
@@ -732,18 +746,17 @@ components:
             PO: 10
             TO: 3
             role:
-              - part: '프런트엔드'
+              - pjtRoleSn: 3
+                part: '프런트엔드'
                 totalCnt: 5
                 cnt: 4
                 mem: "홍길동"
-              - part: '백엔드'
+              - pjtRoleSn: 4
+                part: '백엔드'
                 totalCnt: 4
                 cnt: 0
                 mem: "김신사, 박준"
-            experience:
-              - '웹 앱 개발 경험자'
-              - '프로젝트 관리 앱 경험자'
-              - '사용자 친화적인 UI/UX 디자인 능력'
+            wanted: '웹 앱 개발 경험자, 프로젝트 관리 앱 경험자, 사용자 친화적인 UI/UX 디자인 능력'
     status200:
       description: 현황 조회 성공
       content:

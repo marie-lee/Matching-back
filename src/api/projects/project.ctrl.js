@@ -7,8 +7,7 @@ const {logger} = require('../../utils/logger');
 router.get('/project/all', async (req, res)=>{
     try{
         const pjt = await projectService.allProject(req, res);
-        const pjtJson = JSON.stringify(pjt);
-        return res.status(200).send(pjtJson);
+        return res.status(200).send(pjt);
 
     }catch (error) {
         logger.error('프로젝트 리스트 전체 조회 실패', error);
@@ -30,7 +29,7 @@ router.get('/project/:pjtSn', jwt.authenticateToken, async (req, res)=>{
         const userSn = req.userSn.USER_SN;
         const pjtSn = req.params.pjtSn;
         const pjtData = await projectService.myProject(userSn, pjtSn);
-        return res.status(200).send(pjtData[0]);
+        return res.status(200).send(pjtData);
     }catch (error) {
         logger.error(`내 프로젝트 조회 실패: ${error}`);
         return res.status(400).send(`내 프로젝트 조회 실패 :  ${error}`);
