@@ -46,5 +46,14 @@ router.post('/project/add', jwt.authenticateToken, async (req, res) => {
   }
 });
 
+router.get('/project/member/:pjtSn', jwt.authenticateToken, async (req, res) => {
+    try{
+        const memberList = await projectService.getProjectMember(req, res);
+        return res.status(200).send(memberList);
+    } catch (error){
+        logger.error('프로젝트 멤버 리스트 조회 실패: ', error);
+        return res.status(400).send('프로젝트 멤버 리스트 조회 실패: ' + error.message)
+    }
+})
 
 module.exports = router;

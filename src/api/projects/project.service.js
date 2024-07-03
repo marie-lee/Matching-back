@@ -144,6 +144,47 @@ class projectService {
     }
   }
 
+  async getProjectMember(req,res){
+    const user = req.userSn.USER_SN;
+    const pjt = req.params.pjtSn;
+    console.log(pjt);
+    try{
+      const memList = await db.TB_PJT_M.findAll({
+        where: {PJT_SN: pjt, DEL_YN: false},
+        attributes: [
+          ['PJT_MEM_SN','pjtMemSn'],
+          ['USER_SN','userSn'],
+          [db.Sequelize.col('TB_USER.USER_NM'), 'userNm'],
+          ['PJT_ROLE_SN','pjtRoleSn'],
+          [db.Sequelize.col('TB_PJT_ROLE.PART'), 'part'],
+          ['FIRST_DT','firstDt'],
+          ['END_DT','endDt'],
+          ['DEL_YN','delYn'],
+        ],
+        include: [
+          {
+            model: db.TB_USER,
+            attributes: [],
+          },
+          {
+            model: db.TB_PJT_ROLE,
+            attributes: [],
+            where: { DEL_YN:false},
+          }
+        ],
+        having: db.Sequelize.literal(`
+          EXISTS( SELECT 1 FROM TB_PJT_M pm WHERE pm.PJT_SN = ${pjt} AND pm.USER_SN = ${user})
+        `)
+      });
+      if(!memList || memList.length === 0){
+        throwError('해당 프로젝트이 존재하지 않거나 권한이 없습니다.');
+      }
+      return memList;
+    } catch (error){
+      throw error;
+    }
+  }
+
   async allProject(req, res){
     const query = `SELECT pj.PJT_SN as pjtSn, pj.PJT_NM as pjtNm, pj.PJT_IMG as pjtImg, pj.START_DT as startDt, pj.END_DT as endDt, pj.PERIOD as period, pj.DURATION_UNIT as durationUnit, pj.PJT_INTRO as pjtIntro, pj.PJT_DETAIL as pjtDetail
                                 , GROUP_CONCAT(DISTINCT st.ST_NM) AS stack
