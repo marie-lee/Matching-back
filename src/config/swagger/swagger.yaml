@@ -357,10 +357,6 @@ components:
           type: string
           description: 프로젝트 상세 정보
           example: 이 프로젝트에 대한 자세한 소개입니다
-        PJT_STTS:
-          type: string
-          description: 프로젝트 상태
-          example: active
         STACKS:
           type: array
           items:
