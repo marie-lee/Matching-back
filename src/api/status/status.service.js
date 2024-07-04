@@ -24,33 +24,33 @@ class statusService {
         }
     }
 
-    // async pjtStatus(req,res){
-    //     const pjtSn = req.params.pjtSn;
-    //     const transaction = await db.transaction();
-    //
-    //     try{
-    //         const pjtStatus = await db.TB_REQ.findOne({
-    //             attributes:[
-    //                 ['REQ_SN', 'reqSn'],
-    //                 ['USER_SN', 'userSn'],
-    //                 [db.Sequelize.col('TB_USER.USER_NM'), 'userNm'],
-    //                 ['PJT_ROLE_SN', 'pjtRoleSn'],
-    //                 [db.Sequelize.col('TB_PJT_ROLE.PART'), 'part'],
-    //                 ['UPDATED_DT', 'updatedDt'],
-    //                 ['FINISHED', 'finishedDt'],
-    //                 ['DEL_YN', 'delYn'],
-    //             ],
-    //             where: {PJT_SN: pjtSn},
-    //             include: [
-    //                 { model: db.TB_USER, attributes: [] },
-    //                 { model: db.TB_PJT_ROLE, attributes: [] },
-    //             ]
-    //         })
-    //     } catch (error) {
-    //         logger.error(error.message);
-    //         throw error;
-    //     }
-    // }
+    async pjtStatus(req,res){
+        const pjtSn = req.params.pjtSn;
+        const transaction = await db.transaction();
+
+        try{
+            const pjtStatus = await db.TB_REQ.findOne({
+                attributes:[
+                    ['REQ_SN', 'reqSn'],
+                    ['USER_SN', 'userSn'],
+                    [db.Sequelize.col('TB_USER.USER_NM'), 'userNm'],
+                    ['PJT_ROLE_SN', 'pjtRoleSn'],
+                    [db.Sequelize.col('TB_PJT_ROLE.PART'), 'part'],
+                    ['UPDATED_DT', 'updatedDt'],
+                    ['FINISHED', 'finishedDt'],
+                    ['DEL_YN', 'delYn'],
+                ],
+                where: {PJT_SN: pjtSn},
+                include: [
+                    { model: db.TB_USER, attributes: [] },
+                    { model: db.TB_PJT_ROLE, attributes: [] },
+                ]
+            })
+        } catch (error) {
+            logger.error(error.message);
+            throw error;
+        }
+    }
 
     async reqUser(req, res) {
         const transaction = await db.transaction();
@@ -101,8 +101,9 @@ class statusService {
             let mem = await db.TB_PJT_M.findOne({ where: {PJT_SN: pjtSn, USER_SN: reqMem.USER_SN, PJT_ROLE_SN: reqMem.PJT_ROLE_SN}, transaction });
             if(mem) { throwError('이미 프로젝트에 참가 중 입니다.')}
 
-            if(reqStts === 'CONFIRM' || reqStts === 'CANCEL' || reqStts === 'REJECT') {reqMem.FINISHIED_DT = new Date(); reqMem.DEL_YN = true;}
+            if(reqStts === 'CONFIRM' || reqStts === 'CANCEL' || reqStts === 'REJECT') {reqMem.FINISHIED_DT = new Date();}
             reqMem.REQ_STTS = reqStts;
+            reqMem.DEL_YN = true;
             await reqMem.save(transaction);
 
             if(reqMem.REQ_STTS === 'CONFIRM'){
