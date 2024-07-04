@@ -25,7 +25,7 @@ class projectService {
     try {
       const result = await db.query(query, {type: QueryTypes.SELECT});
       if(result[0] == null){
-        logger.error("요청받은 포르젝트 조회 실패 - 프로젝트가 없거나 권한이 없음")
+        logger.error("요청받은 프르젝트 조회 실패 - 프로젝트가 없거나 권한이 없음")
         throw new Error("해당 프로젝트가 존재하지 않거나 권한이 없습니다.")
       }
       result[0].experience = JSON.parse(result[0].experience);
