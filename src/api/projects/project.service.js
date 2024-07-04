@@ -313,8 +313,7 @@ class projectService {
       }, {transaction});
 
       await transaction.commit();
-      res.status(200).send("프로젝트 등록 성공");
-      await this.toVectorPjt(user,newProject.PJT_SN)
+      return newProject.PJT_SN;
     } catch (error) {
       logger.error('프로젝트 등록 중 오류 발생:', error);
       await transaction.rollback();
