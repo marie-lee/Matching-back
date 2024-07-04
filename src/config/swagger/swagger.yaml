@@ -203,6 +203,85 @@ paths:
                 example: '프로필 및 포트폴리오 조회 실패: {에러메시지}'
       security:
         - JWT: [ ]
+  /status/{pjtSn}/req:
+    post:
+      tags:
+        - status
+      summary: 개발자에게 참여 요청 전송
+      description: 개발자에게 참여 요청 전송
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+      requestBody:
+        description: 회원 참여 요청 정보
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/reqUser'
+      responses:
+        '200':
+          description: 프로젝트 참여 요청 성공
+          content:
+            text:
+              example: 프로젝트 참여 요청 성공
+        '400':
+          description: 잘못된 요청
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '프로젝트 참여 요청 전송 중 에러 발생: {에러메세지}'
+      security:
+        - JWT: [ ]
+  /status/{pjtSn}/req/{reqSn}:
+    put:
+      tags:
+        - status
+      summary: 개발자에게 참여 요청 상태 수정
+      description: 개발자에게 참여 요청 수정
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+        - in: path
+          name: reqSn
+          required: true
+          description: 요청 일련번호
+          schema:
+            type: integer
+      requestBody:
+        description: 회원 참여 요청 정보
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reqStts:
+                  type: string
+                  description: 수정될 요청 상태
+                  example: 'FINAL_REQ'
+      responses:
+        '201':
+          description: 프로젝트 참여 상태 수정 성공
+          content:
+            text:
+              example: 프로젝트 참여 상태 수정 성공
+        '400':
+          description: 잘못된 요청
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '프로젝트 참여 요청 수정 중 에러 발생: {에러메세지}'
+      security:
+        - JWT: [ ]
   /recommendation/project/{pjtSn}:
     get:
       tags:
@@ -424,7 +503,17 @@ components:
           type: string
           description: 프로젝트 상태
           example: active
-
+    reqUser:
+      type: object
+      properties:
+        userSn:
+          type: integer
+          description: 회원 일련번호
+          example: 1
+        pjtRoleSn:
+          type: integer
+          description: 프로젝트 파트 일련번호
+          example: 1
 
   securitySchemes:
     JWT:
