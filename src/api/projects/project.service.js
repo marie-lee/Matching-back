@@ -1,9 +1,10 @@
 const db = require('../../config/db/db');
-const { logger } = require('../../utils/logger');
-const { QueryTypes } = require("sequelize");
+const {logger} = require('../../utils/logger');
+const {QueryTypes} = require("sequelize");
 const {runPytonToVectorization, runPjtToVec} = require("../../utils/matching/spawnVectorization");
 const mutex = require('../../utils/matching/Mutex');
 const {throwError} = require("../../utils/errors");
+
 class projectService {
 
   async reqProject(userSn, pjtSn) {
@@ -24,105 +25,96 @@ class projectService {
                             GROUP BY pjr.PJT_SN;`;
     try {
       const result = await db.query(query, {type: QueryTypes.SELECT});
-      if(result[0] == null){
+      if (result[0] == null) {
         logger.error("요청받은 프르젝트 조회 실패 - 프로젝트가 없거나 권한이 없음")
         throw new Error("해당 프로젝트가 존재하지 않거나 권한이 없습니다.")
       }
       result[0].experience = JSON.parse(result[0].experience);
       return result;
-    } catch (error){
+    } catch (error) {
       logger.error("요청받은 포르젝트 조회 실패", error)
       throw error;
     }
   }
 
-  async myProject(userSn, pjtSn) {
-
+  async getProjectIntro(pjtSn) {
     try {
-      const project = await db.TB_PJT.findOne({
+      return await db.TB_PJT.findOne({
         where: {
-          PJT_SN: pjtSn,
-          DEL_YN: false
+          PJT_SN: pjtSn, DEL_YN: false
         },
-        attributes:[
+        attributes: [
           ['PJT_SN', 'pjtSn'],
           ['PJT_NM', 'pjtNm'],
-          ['CREATED_USER_SN','createdUerSn'],
+          ['CREATED_USER_SN', 'createdUerSn'],
           [db.Sequelize.col('tu.USER_NM'), 'teamLeader'],
-          ['PJT_IMG','pjtImg'],
-          ['PJT_STTS','pjtStts'],
-          ['START_DT','startDt'],
+          ['PJT_IMG', 'pjtImg'],
+          ['PJT_STTS', 'pjtStts'],
+          ['START_DT', 'startDt'],
           ['END_DT', 'endDt'],
           ['PERIOD', 'period'],
           ['DURATION_UNIT', 'durationUnit'],
           ['PJT_INTRO', 'pjtIntro'],
-          ['PJT_DETAIL','pjtDetail'],
+          ['PJT_DETAIL', 'pjtDetail'],
           [db.Sequelize.literal('GROUP_CONCAT(DISTINCT ST_NM)'), 'stack'],
-          [db.Sequelize.fn('SUM', db.Sequelize.literal('TOTAL_CNT')), 'PO'],
-          [db.Sequelize.fn('SUM', db.Sequelize.literal('CNT')), 'TO'],
-          [db.Sequelize.literal(
-              `JSON_ARRAYAGG(DISTINCT JSON_OBJECT(
-                    "pjtRoleSn", tpr.PJT_ROLE_SN,
-                    "part", tpr.PART,
-                    "totalCnt", tpr.TOTAL_CNT,
-                    "cnt", tpr.CNT,
-                    "mem", (
-                      SELECT GROUP_CONCAT(um.USER_NM)
-                      FROM TB_PJT_M pm
-                      INNER JOIN TB_USER um ON pm.USER_SN = um.USER_SN
-                      WHERE pm.PJT_SN = ${pjtSn} AND pm.PJT_ROLE_SN = tpr.PJT_ROLE_SN AND pm.DEL_YN = FALSE
-                      GROUP BY pm.PJT_ROLE_SN
-                    )
-                  ))`
-          ), 'role'],
-          ['WANTED','wanted'],
-        ],
-        include:[
-          {
-            model: db.TB_USER,
-            as: 'tu',
-            attributes: [],
-          },
-          {
-            model: db.TB_PJT_SKILL,
-            required: false,
-            attributes: [],
-            include: [
-              {
-                model: db.TB_ST,
-                attributes: ['ST_NM'],
-              }
-            ],
-          },
-          {
-            model: db.TB_PJT_ROLE,
-            as: 'tpr',
-            attributes: [],
-          },
-          {
-            model: db.TB_PJT_M,
-            attributes: [],
-            where: {USER_SN: userSn}
-          },
-        ],
+          [db.Sequelize.fn('SUM', db.Sequelize.literal('DISTINCT TOTAL_CNT')), 'PO'],
+          [db.Sequelize.fn('SUM', db.Sequelize.literal('DISTINCT CNT')), 'TO'],
+          [db.Sequelize.literal(`JSON_ARRAYAGG(DISTINCT JSON_OBJECT(
+            "pjtRoleSn", tpr.PJT_ROLE_SN,
+            "part", tpr.PART,
+            "totalCnt", tpr.TOTAL_CNT,
+            "cnt", tpr.CNT,
+            "mem", (
+              SELECT GROUP_CONCAT(um.USER_NM)
+              FROM TB_PJT_M pm
+              INNER JOIN TB_USER um ON pm.USER_SN = um.USER_SN
+              WHERE pm.PJT_SN = ${pjtSn} AND pm.PJT_ROLE_SN = tpr.PJT_ROLE_SN AND pm.DEL_YN = FALSE
+              GROUP BY pm.PJT_ROLE_SN
+            )
+          ))`), 'role'], ['WANTED', 'wanted'],],
+        include: [{
+          model: db.TB_USER, as: 'tu', attributes: [],
+        }, {
+          model: db.TB_PJT_SKILL, required: false, attributes: [], include: [{
+            model: db.TB_ST, attributes: ['ST_NM'],
+          }],
+        }, {
+          model: db.TB_PJT_ROLE, as: 'tpr', attributes: [],
+        },],
         group: ['PJT_SN']
       });
+    } catch (error) {
+      throwError(`프로젝트 조회 에러 -  ${error.message}`);
+    }
+  }
 
+  async myProject(userSn, pjtSn) {
+    try {
+      const pjtMem = await db.TB_PJT_M.findOne({
+        where: {PJT_SN: pjtSn, USER_SN: userSn, DEL_YN: false}
+      });
 
-      if(!project){
-        throwError('해당 프로젝트가 존재하지 않거나 권한이 없습니다.');
+      if (!pjtMem) {
+        throwError('프로젝트 참여 멤버가 아닙니다.');
       }
-      const pjtStts = await db.TB_CMMN_CD.findOne({
-        attributes: ['CMMN_CD_VAL'],
-        where: {
-          CMMN_CD_TYPE: 'PJT_STTS',
-          CMMN_CD: project.dataValues.pjtStts
+      console.log(pjtMem)
+      const project = await this.getProjectIntro(pjtSn);
+      if (!project) {
+        throwError('해당 프로젝트를 찾을 수 없습니다.');
+      }
+      const sttsVal = await db.TB_CMMN_CD.findOne({
+        attributes: ['CMMN_CD_VAL'], where: {
+          CMMN_CD_TYPE: 'PJT_STTS', CMMN_CD: project.dataValues.pjtStts
         }
       })
-      project.dataValues.pjtStts = pjtStts.dataValues.CMMN_CD_VAL;
-      return project;
+      const { pjtStts, ...rest } = project.dataValues;
+      return {
+        ...rest,
+        pjtSttsCd: pjtStts,
+        pjtStts: sttsVal.dataValues.CMMN_CD_VAL
+      };
 
-    } catch (error){
+    } catch (error) {
       logger.error("내 단일 포르젝트 조회 실패", error)
       throw error;
     }
@@ -144,48 +136,33 @@ class projectService {
     }
   }
 
-  async getProjectMember(req,res){
+  async getProjectMember(req, res) {
     const user = req.userSn.USER_SN;
     const pjt = req.params.pjtSn;
     console.log(pjt);
-    try{
+    try {
       const memList = await db.TB_PJT_M.findAll({
         where: {PJT_SN: pjt, DEL_YN: false},
-        attributes: [
-          ['PJT_MEM_SN','pjtMemSn'],
-          ['USER_SN','userSn'],
-          [db.Sequelize.col('TB_USER.USER_NM'), 'userNm'],
-          ['PJT_ROLE_SN','pjtRoleSn'],
-          [db.Sequelize.col('TB_PJT_ROLE.PART'), 'part'],
-          ['FIRST_DT','firstDt'],
-          ['END_DT','endDt'],
-          ['DEL_YN','delYn'],
-        ],
-        include: [
-          {
-            model: db.TB_USER,
-            attributes: [],
-          },
-          {
-            model: db.TB_PJT_ROLE,
-            attributes: [],
-            where: { DEL_YN:false},
-          }
-        ],
+        attributes: [['PJT_MEM_SN', 'pjtMemSn'], ['USER_SN', 'userSn'], [db.Sequelize.col('TB_USER.USER_NM'), 'userNm'], ['PJT_ROLE_SN', 'pjtRoleSn'], [db.Sequelize.col('TB_PJT_ROLE.PART'), 'part'], ['FIRST_DT', 'firstDt'], ['END_DT', 'endDt'], ['DEL_YN', 'delYn'],],
+        include: [{
+          model: db.TB_USER, attributes: [],
+        }, {
+          model: db.TB_PJT_ROLE, attributes: [], where: {DEL_YN: false},
+        }],
         having: db.Sequelize.literal(`
           EXISTS( SELECT 1 FROM TB_PJT_M pm WHERE pm.PJT_SN = ${pjt} AND pm.USER_SN = ${user})
         `)
       });
-      if(!memList || memList.length === 0){
+      if (!memList || memList.length === 0) {
         throwError('해당 프로젝트이 존재하지 않거나 권한이 없습니다.');
       }
       return memList;
-    } catch (error){
+    } catch (error) {
       throw error;
     }
   }
 
-  async allProject(req, res){
+  async allProject(req, res) {
     const query = `SELECT pj.PJT_SN as pjtSn, pj.PJT_NM as pjtNm, pj.PJT_IMG as pjtImg, pj.START_DT as startDt, pj.END_DT as endDt, pj.PERIOD as period, pj.DURATION_UNIT as durationUnit, pj.PJT_INTRO as pjtIntro, pj.PJT_DETAIL as pjtDetail
                                 , GROUP_CONCAT(DISTINCT st.ST_NM) AS stack
                                 , SUM( DISTINCT pjr.TOTAL_CNT ) AS PO
@@ -202,11 +179,11 @@ class projectService {
                             ORDER BY pj.PJT_SN ASC;`;
     try {
       const result = await db.query(query, {type: QueryTypes.SELECT});
-      for(let i = 0; i <result.length; i++){
+      for (let i = 0; i < result.length; i++) {
         result[i].experience = JSON.parse(result[i].experience);
       }
       return result
-    } catch (error){
+    } catch (error) {
       throw error;
     }
   }
@@ -247,8 +224,12 @@ class projectService {
           throwError(message);
         }
       }
-      if(SELECTED_DT_YN && !START_DT){ throwError('시작날짜가 입력되지 않았습니다.'); }
-      if(!DURATION_UNIT || !PERIOD){ throwError('프로젝트 예상 기간을 입력하세요.'); }
+      if (SELECTED_DT_YN && !START_DT) {
+        throwError('시작날짜가 입력되지 않았습니다.');
+      }
+      if (!DURATION_UNIT || !PERIOD) {
+        throwError('프로젝트 예상 기간을 입력하세요.');
+      }
       // 프로젝트 생성
       const newProject = await db.TB_PJT.create({
         PJT_NM,
@@ -269,47 +250,34 @@ class projectService {
       // 스택 처리
       for (const stack of STACKS) {
         const [st] = await db.TB_ST.findOrCreate({
-          where: { ST_NM: stack.ST_NM.toLowerCase() },
-          defaults: { ST_NM: stack.ST_NM.toLowerCase() },
-          transaction
+          where: {ST_NM: stack.ST_NM.toLowerCase()}, defaults: {ST_NM: stack.ST_NM.toLowerCase()}, transaction
         });
 
         await db.TB_PJT_SKILL.create({
-          PJT_SN: newProject.PJT_SN,
-          ST_SN: st.ST_SN
+          PJT_SN: newProject.PJT_SN, ST_SN: st.ST_SN
         }, {transaction});
       }
 
       // 팀원
       for (const role of ROLES) {
         await db.TB_PJT_ROLE.create({
-          PJT_SN: newProject.PJT_SN,
-          PART: role.PART.toLowerCase(),
-          TOTAL_CNT: role.TOTAL_CNT,
-          CNT: 0 // 현재 참여자 수를 기본값 0으로 설정
+          PJT_SN: newProject.PJT_SN, PART: role.PART.toLowerCase(), TOTAL_CNT: role.TOTAL_CNT, CNT: 0 // 현재 참여자 수를 기본값 0으로 설정
         }, {transaction});
       }
 
       // 생성자 멤버추가
       const [constructorRole, created] = await db.TB_PJT_ROLE.findOrCreate({
-        where: {PJT_SN: newProject.PJT_SN, PART: CONSTRUCTOR_ROLE.toLowerCase()},
-        defaults: {
-          PJT_SN: newProject.PJT_SN,
-          PART: CONSTRUCTOR_ROLE,
-          TOTAL_CNT: 1,
-          CNT: 1
-        },
-        transaction
+        where: {PJT_SN: newProject.PJT_SN, PART: CONSTRUCTOR_ROLE.toLowerCase()}, defaults: {
+          PJT_SN: newProject.PJT_SN, PART: CONSTRUCTOR_ROLE, TOTAL_CNT: 1, CNT: 1
+        }, transaction
       });
-      if(!created){
+      if (!created) {
         constructorRole.TOTAL_CNT += 1;
         constructorRole.CNT += 1;
         await constructorRole.save({transaction});
       }
       await db.TB_PJT_M.create({
-        PJT_SN: newProject.PJT_SN,
-        USER_SN: user,
-        PJT_ROLE_SN: constructorRole.PJT_ROLE_SN
+        PJT_SN: newProject.PJT_SN, USER_SN: user, PJT_ROLE_SN: constructorRole.PJT_ROLE_SN
       }, {transaction});
 
       await transaction.commit();
@@ -321,16 +289,16 @@ class projectService {
     }
   }
 
-  async toVectorPjt(userSn, pjtSn){
-    try{
+  async toVectorPjt(userSn, pjtSn) {
+    try {
       await mutex.lock()
       const pjtData = await this.myProject(userSn, pjtSn);
       const pjtJson = JSON.stringify(pjtData.dataValues);
-      await runPjtToVec(pjtJson).then(()=>{
-          console.log("프로젝트 벡터화 완료")
+      await runPjtToVec(pjtJson).then(() => {
+        console.log("프로젝트 벡터화 완료")
       })
       mutex.unlock(); // Mutex 해제
-    } catch (error){
+    } catch (error) {
       mutex.unlock(); // Mutex 해제
       throw new Error("프로젝트 데이터 벡터화 처리 중 에러 발생: ", error);
     }
