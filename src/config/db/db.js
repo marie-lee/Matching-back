@@ -10,6 +10,7 @@ const db = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.D
 
 // 모델 import
 db.TB_USER = require('./tb.user')(db, Sequelize.DataTypes);
+db.TB_USER_EMAIL = require('./tb.user.email')(db, Sequelize.DataTypes);
 db.TB_PF = require('./tb.pf')(db, Sequelize.DataTypes);
 db.TB_ST = require('./tb.st')(db, Sequelize.DataTypes);
 db.TB_PF_ST = require('./tb.pf.st')(db, Sequelize.DataTypes);
