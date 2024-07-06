@@ -4,38 +4,9 @@ const {QueryTypes} = require("sequelize");
 const {runPytonToVectorization, runPjtToVec} = require("../../utils/matching/spawnVectorization");
 const mutex = require('../../utils/matching/Mutex');
 const {throwError} = require("../../utils/errors");
+const {oneCmmnVal} = require("../common/common.service");
 
 class projectService {
-
-  async reqProject(userSn, pjtSn) {
-
-    const query = `SELECT pj.PJT_SN as pjtSn, pj.PJT_NM as pjtNm, pj.PJT_IMG as pjtImg, pj.START_DT as startDt, pj.END_DT as endDt, pj.PERIOD as period, pj.DURATION_UNIT as durationUnit, pj.PJT_INTRO as pjtIntro, pj.PJT_DETAIL as pjtDetail
-                                , GROUP_CONCAT(DISTINCT st.ST_NM) AS stack
-                                , SUM( DISTINCT pjr.TOTAL_CNT ) AS PO
-                                , sum( DISTINCT pjr.CNT) AS \`TO\`
-                                , JSON_ARRAYAGG( DISTINCT JSON_OBJECT( "part", pjr.PART, "totalCnt", pjr.TOTAL_CNT, "cnt", pjr.CNT)) AS role
-                                , pj.WANTED as experience
-                            FROM TB_PJT pj
-                              INNER JOIN TB_REQ r ON r.PJT_SN = pj.PJT_SN AND r.REQ_STTS in ('REQ','AGREE','CONFIRM') AND r.DEL_YN = FALSE
-                              INNER JOIN TB_USER tu ON r.USER_SN = tu.USER_SN AND tu.DEL_YN= FALSE
-                              LEFT JOIN TB_PJT_SKILL pjSk ON pjSk.PJT_SN = pj.PJT_SN
-                              LEFT JOIN TB_ST st ON st.ST_SN = pjSk.ST_SN
-                              LEFT JOIN TB_PJT_ROLE pjr ON pjr.PJT_SN = pj.PJT_SN
-                            WHERE pj.PJT_SN = ${pjtSn} AND tu.USER_SN = ${userSn} AND pj.DEL_YN = FALSE
-                            GROUP BY pjr.PJT_SN;`;
-    try {
-      const result = await db.query(query, {type: QueryTypes.SELECT});
-      if (result[0] == null) {
-        logger.error("요청받은 프르젝트 조회 실패 - 프로젝트가 없거나 권한이 없음")
-        throw new Error("해당 프로젝트가 존재하지 않거나 권한이 없습니다.")
-      }
-      result[0].experience = JSON.parse(result[0].experience);
-      return result;
-    } catch (error) {
-      logger.error("요청받은 포르젝트 조회 실패", error)
-      throw error;
-    }
-  }
 
   async getProjectIntro(pjtSn) {
     try {
@@ -57,8 +28,8 @@ class projectService {
           ['PJT_INTRO', 'pjtIntro'],
           ['PJT_DETAIL', 'pjtDetail'],
           [db.Sequelize.literal('GROUP_CONCAT(DISTINCT ST_NM)'), 'stack'],
-          [db.Sequelize.fn('SUM', db.Sequelize.literal('DISTINCT TOTAL_CNT')), 'PO'],
-          [db.Sequelize.fn('SUM', db.Sequelize.literal('DISTINCT CNT')), 'TO'],
+          [db.Sequelize.fn('SUM', db.Sequelize.literal('DISTINCT TOTAL_CNT')), 'TO'],
+          [db.Sequelize.fn('SUM', db.Sequelize.literal('DISTINCT CNT')), 'PO'],
           [db.Sequelize.literal(`JSON_ARRAYAGG(DISTINCT JSON_OBJECT(
             "pjtRoleSn", tpr.PJT_ROLE_SN,
             "part", tpr.PART,
@@ -97,17 +68,12 @@ class projectService {
       if (!pjtMem) {
         throwError('프로젝트 참여 멤버가 아닙니다.');
       }
-      console.log(pjtMem)
       const project = await this.getProjectIntro(pjtSn);
       if (!project) {
         throwError('해당 프로젝트를 찾을 수 없습니다.');
       }
-      const sttsVal = await db.TB_CMMN_CD.findOne({
-        attributes: ['CMMN_CD_VAL'], where: {
-          CMMN_CD_TYPE: 'PJT_STTS', CMMN_CD: project.dataValues.pjtStts
-        }
-      })
-      const { pjtStts, ...rest } = project.dataValues;
+      const sttsVal = await oneCmmnVal('PJT_STTS', project.dataValues.pjtStts);
+      const {pjtStts, ...rest} = project.dataValues;
       return {
         ...rest,
         pjtSttsCd: pjtStts,
@@ -139,7 +105,6 @@ class projectService {
   async getProjectMember(req, res) {
     const user = req.userSn.USER_SN;
     const pjt = req.params.pjtSn;
-    console.log(pjt);
     try {
       const memList = await db.TB_PJT_M.findAll({
         where: {PJT_SN: pjt, DEL_YN: false},
@@ -165,8 +130,8 @@ class projectService {
   async allProject(req, res) {
     const query = `SELECT pj.PJT_SN as pjtSn, pj.PJT_NM as pjtNm, pj.PJT_IMG as pjtImg, pj.START_DT as startDt, pj.END_DT as endDt, pj.PERIOD as period, pj.DURATION_UNIT as durationUnit, pj.PJT_INTRO as pjtIntro, pj.PJT_DETAIL as pjtDetail
                                 , GROUP_CONCAT(DISTINCT st.ST_NM) AS stack
-                                , SUM( DISTINCT pjr.TOTAL_CNT ) AS PO
-                                , sum( DISTINCT pjr.CNT) AS \`TO\`
+                                , SUM( DISTINCT pjr.TOTAL_CNT ) AS TO
+                                , sum( DISTINCT pjr.CNT) AS \`PO\`
                                 , JSON_ARRAYAGG( DISTINCT JSON_OBJECT( "part", pjr.PART, "totalCnt", pjr.TOTAL_CNT, "cnt", pjr.CNT)) AS role
                                 , pj.WANTED as experience
                             FROM TB_PJT pj
@@ -303,6 +268,7 @@ class projectService {
       throw new Error("프로젝트 데이터 벡터화 처리 중 에러 발생: ", error);
     }
   }
+
 }
 
 module.exports = new projectService();

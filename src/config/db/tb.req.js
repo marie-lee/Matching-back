@@ -47,9 +47,9 @@ module.exports = (sequelize, DataTypes) => {
     });
   
     TB_REQ.associate = models => {
-      TB_REQ.belongsTo(models.TB_PJT, { foreignKey: 'PJT_SN' });
-      TB_REQ.belongsTo(models.TB_USER, { foreignKey: 'USER_SN' });
-      TB_REQ.belongsTo(models.TB_PJT_ROLE, { foreignKey: 'PJT_ROLE_SN' });
+      TB_REQ.belongsTo(models.TB_PJT, { as:'tp', foreignKey: 'PJT_SN' });
+      TB_REQ.belongsTo(models.TB_USER, { as: 'tu', foreignKey: 'USER_SN' });
+      TB_REQ.belongsTo(models.TB_PJT_ROLE, { as: 'tpr', foreignKey: 'PJT_ROLE_SN' });
     };
   
     return TB_REQ;

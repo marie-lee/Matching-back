@@ -66,7 +66,7 @@ module.exports = (sequelize, DataTypes) => {
   });
 
   TB_USER.associate = models => {
-    TB_USER.hasMany(models.TB_PF, { foreignKey: 'USER_SN' });
+    TB_USER.hasMany(models.TB_PF, { as: 'tpf', foreignKey: 'USER_SN' });
     TB_USER.hasMany(models.TB_PJT, { foreignKey: 'CREATED_USER_SN' });
     TB_USER.hasMany(models.TB_REQ, { foreignKey: 'USER_SN' });
     TB_USER.hasMany(models.TB_PJT_M, { foreignKey: 'USER_SN' });
