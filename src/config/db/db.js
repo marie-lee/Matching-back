@@ -31,6 +31,7 @@ db.TB_PJT_ROLE = require('./tb.pjt.role')(db, Sequelize.DataTypes);
 db.TB_REQ = require('./tb.req')(db, Sequelize.DataTypes);
 db.TB_PJT_M = require('./tb.pjt.m')(db, Sequelize.DataTypes);
 db.TB_CMMN_CD = require('./tb.cmmn.cd')(db, Sequelize.DataTypes);
+db.TB_WBS = require('./tb.wbs')(db, Sequelize.DataTypes);
 
 // Sequelize 인스턴스의 models 객체를 사용하여 모든 모델 간의 관계 설정
 Object.keys(db.models).forEach(modelName => {
