@@ -19,6 +19,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(2000),
       allowNull: false
     },
+    PHONE: {
+      type: DataTypes.STRING(11),
+      allowNull: true
+    },
     USER_IMG: {
       type: DataTypes.STRING(2000),
       allowNull: true
@@ -70,6 +74,7 @@ module.exports = (sequelize, DataTypes) => {
     TB_USER.hasMany(models.TB_PJT, { foreignKey: 'CREATED_USER_SN' });
     TB_USER.hasMany(models.TB_REQ, { foreignKey: 'USER_SN' });
     TB_USER.hasMany(models.TB_PJT_M, { foreignKey: 'USER_SN' });
+    TB_USER.hasMany(models.TB_WBS, { foreignKey: 'LAST_UPDATER' });
   };
 
   return TB_USER;

@@ -18,6 +18,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false
       },
+      ROLE: {
+        type: DataTypes.STRING(45),
+        allowNull: true
+      },
       FIRST_DT: {
         type: DataTypes.DATE,
         allowNull: false,

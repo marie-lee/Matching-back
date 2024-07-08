@@ -87,6 +87,7 @@ module.exports = (sequelize, DataTypes) => {
       TB_PJT.hasMany(models.TB_PJT_ROLE, {as:'tpr', foreignKey: 'PJT_SN' });
       TB_PJT.hasMany(models.TB_REQ, { as: 'tr', foreignKey: 'PJT_SN' });
       TB_PJT.hasMany(models.TB_PJT_M, { foreignKey: 'PJT_SN' });
+      TB_PJT.hasMany(models.TB_WBS, { foreignKey: 'PJT_SN' });
     };
   
     return TB_PJT;
