@@ -61,6 +61,36 @@ router.get('/project/member/:pjtSn', jwt.authenticateToken, async (req, res) => 
         logger.error('프로젝트 멤버 리스트 조회 실패: ', error);
         return res.status(400).send('프로젝트 멤버 리스트 조회 실패: ' + error.message)
     }
-})
+});
+
+router.post('/project/wbs/create/:pjtSn', jwt.authenticateToken, async (req, res)=>{
+    const userSn = req.userSn.USER_SN;
+    const pjtSn = req.params.pjtSn;
+    const data = req.body;
+    if(projectService.createWbs(userSn, pjtSn, data)){
+        return res.status(200).send('WBS 등록 완료');
+    }
+    else{
+        return res.status(400).send('WBS 등록 실패');
+    }
+});
+
+router.get('/project/wbs/create/:pjtSn', jwt.authenticateToken, async (req, res)=>{
+    const userSn = req.userSn.USER_SN;
+    const pjtSn = req.params.pjtSn;
+    try{
+        const data = await projectService.createWbsInfo(userSn, pjtSn);
+
+        if(data != null){
+            return res.status(200).json(data);
+        }
+        else{
+            return res.status(400).send('조회 실패');
+        }
+    }
+    catch (e){
+        return res.status(403).send(e.message);
+    }
+});
 
 module.exports = router;
