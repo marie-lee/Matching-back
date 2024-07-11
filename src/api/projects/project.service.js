@@ -269,6 +269,75 @@ class projectService {
     }
   }
 
+  async createWbs(userSn, pjtSn, data){
+    const t = await db.transaction();
+    try {
+      // 시작일 종료일 설정
+      await db.TB_PJT.update(
+          {START_DT: data.START_DT, END_DT: data.END_DT},
+          {where:{PJT_SN: data.PJT_SN},
+          transaction: t
+          });
+
+      // 멤버 권한 설정
+      for (const member of data.members){
+        await db.TB_PJT_M.update(
+            {ROLE: member.ROLE},
+            {where:{PJT_MEM_SN: member.PJT_MEM_SN},
+            transaction: t}
+        );
+      }
+
+      // 템플릿 데이터 입력
+      await db.TB_WBS.create({
+        PJT_SN: pjtSn,
+        TEMPLATE_DATA: data.TEMPLATE_DATA,
+        LAST_UPDATER: userSn
+      },{t});
+
+      await t.commit();
+      return true;
+    }
+    catch (e){
+      await t.rollback();
+      logger.error('WBS 생성중 오류 발생', e);
+      return false;
+    }
+  }
+
+  async createWbsInfo(userSn, pjtSn){
+    const pjt = await db.TB_PJT.findOne({where:{PJT_SN: pjtSn}});
+    if(userSn !== pjt.CREATED_USER_SN){
+      throw new Error('프로젝트 생성자가 아닙니다.');
+    }
+    const creater = await  db.TB_USER.findOne({where:{USER_SN: pjt.CREATED_USER_SN}});
+    const pjtData = {
+      CREATER: creater.USER_NM,
+      START_DT: pjt.START_DT,
+      END_DT: pjt.END_DT
+    };
+    const members = await  db.TB_PJT_M.findAll({where:{PJT_SN: pjtSn}});
+    let memberData = [];
+
+
+    for(const member of members){
+      const user = await  db.TB_USER.findOne({where: {USER_SN: member.USER_SN}});
+      const part = await  db.TB_PJT_ROLE.findOne({where: {PJT_ROLE_SN: member.PJT_ROLE_SN}});
+      const userData = {
+        USER_IMG: user.USER_IMG,
+        USER_SN: user.USER_SN,
+        USER_NM: user.USER_NM,
+        PART: part.PART};
+      memberData.push(userData);
+    }
+
+    return {
+      pjtData: pjtData,
+      memberData: memberData
+    };
+  }
 }
+
+
 
 module.exports = new projectService();
