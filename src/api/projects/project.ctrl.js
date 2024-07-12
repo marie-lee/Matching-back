@@ -67,11 +67,12 @@ router.post('/project/wbs/create/:pjtSn', jwt.authenticateToken, async (req, res
     const userSn = req.userSn.USER_SN;
     const pjtSn = req.params.pjtSn;
     const data = req.body;
-    if(projectService.createWbs(userSn, pjtSn, data)){
-        return res.status(200).send('WBS 등록 완료');
+    try{
+        await projectService.createWbs(userSn, pjtSn, data);
+        return res.status(200).send('프로젝트 WBS 생성 성공');
     }
-    else{
-        return res.status(400).send('WBS 등록 실패');
+    catch (e){
+        return res.status(400).send('프로젝트 WBS 생성 실패 error = ' + e.message);
     }
 });
 

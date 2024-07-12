@@ -278,30 +278,33 @@ class projectService {
           {where:{PJT_SN: data.PJT_SN},
           transaction: t
           });
-
       // 멤버 권한 설정
-      for (const member of data.members){
+      for (const member of data[0].members){
         await db.TB_PJT_M.update(
             {ROLE: member.ROLE},
-            {where:{PJT_MEM_SN: member.PJT_MEM_SN},
+            {where:{PJT_SN: pjtSn, USER_SN: member.USER_SN},
             transaction: t}
         );
       }
-
-      // 템플릿 데이터 입력
-      await db.TB_WBS.create({
-        PJT_SN: pjtSn,
-        TEMPLATE_DATA: data.TEMPLATE_DATA,
-        LAST_UPDATER: userSn
-      },{t});
+      if(!await db.TB_WBS.findOne({where:{PJT_SN:pjtSn}})){
+        // 템플릿 데이터 입력
+        await db.TB_WBS.create({
+          PJT_SN: pjtSn,
+          TEMPLATE_DATA: JSON.stringify(data[0].TEMPLATE_DATA),
+          LAST_UPDATER: userSn
+        },{t});
+      }
+      else{
+        throw new Error('WBS가 존재합니다.');
+      }
 
       await t.commit();
       return true;
     }
     catch (e){
       await t.rollback();
-      logger.error('WBS 생성중 오류 발생', e);
-      return false;
+      logger.error('WBS 생성중 오류 발생 error : ', e);
+      throw e;
     }
   }
 

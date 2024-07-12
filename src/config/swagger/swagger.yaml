@@ -149,6 +149,13 @@ paths:
       summary: 프로젝트 WBS 생성 시 프로젝트 조회
       description: |
         프로젝트 WBS 생성 시 프로젝트 조회
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
       responses:
         '200':
           $ref: '#/components/responses/createWbsInfo200'
@@ -164,6 +171,13 @@ paths:
       summary: 프로젝트 WBS 생성
       description: |
         프로젝트 WBS 생성
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
       requestBody:
         content:
           application/json:
@@ -578,42 +592,59 @@ components:
     reqCreateWbs:
       type: object
       properties:
+        START_DT:
+          type: string
+          description: 프로젝트 시작일
+        END_DT:
+          type: string
+          description: 프로젝트 종료일
+        members:
+          type: array
+          items:
+            type: object
+            properties:
+              USER_SN:
+                type: integer
+                description: 멤버의 유저 PK
+              ROLE:
+                type: string
+                description: 권한 정보
         TEMPLATE_DATA:
           type: string
           description: WBS JSON DATA
-          example: [
-                      {
-                        "manage": [
-                          {"사전준비": ["기획분석", "WBS 작성"]},
-                          {"화면설계": ["화면설계서 작성"]}
-                        ]
-                      },
-                      {
-                        "design": [
-                          {"사전준비": ["디자인 레퍼런스 스터디"]},
-                          {"시안 작업": ["시안 작업"]},
-                          {"디자인 작업": ["상세페이지 디자인"]}
-                        ]
-                      },
-                      {
-                        "publishing": [
-                          {"퍼블리싱 작업": ["레이아웃 퍼블리싱", "페이지 퍼블리싱"]}
-                        ]
-                      },
-                      {
-                        "development": [
-                          {"사전준비": ["개발 환경 구축", "플랫폼 기본 설정"]},
-                          {"DB": ["데이터베이스/테이블 구성"]},
-                          {"개발": ["F.E 개발", "B.E 개발"]}
-                        ]
-                      },
-                      {
-                        "testing": [
-                          {"1차 테스트": ["1차 개발자 알파 테스트 및 수정"]},
-                          {"2차 테스트": ["2차 사용자 알파 테스트", "알파 테스트 수정사항 수정진행"]}
-                        ]
-                      }
-                    ]
+      example:
+        - START_DT: 2024-01-01
+          END_DT: 2024-01-31
+          members:
+            - USER_SN: 1
+              ROLE: owner
+            - USER_SN: 2
+              ROLE: member
+          TEMPLATE_DATA:
+            {
+              "manage": [
+                {"사전준비": ["기획분석", "WBS 작성"]},
+                {"화면설계": ["화면설계서 작성"]}
+              ],
+              "design": [
+                {"사전준비": ["디자인 레퍼런스 스터디"]},
+                {"시안 작업": ["시안 작업"]},
+                {"디자인 작업": ["상세페이지 디자인"]}
+              ],
+              "publishing": [
+                {"퍼블리싱 작업": ["레이아웃 퍼블리싱", "페이지 퍼블리싱"]}
+              ],
+              "development": [
+                {"사전준비": ["개발 환경 구축", "플랫폼 기본 설정"]},
+                {"DB": ["데이터베이스/테이블 구성"]},
+                {"개발": ["F.E 개발", "B.E 개발"]}
+              ],
+              "testing": [
+                {"1차 테스트": ["1차 개발자 알파 테스트 및 수정"]},
+                {"2차 테스트": ["2차 사용자 알파 테스트", "알파 테스트 수정사항 수정진행"]}
+              ]
+            }
+
 
   securitySchemes:
     JWT:
@@ -1459,7 +1490,7 @@ components:
         text/plain:
           schema:
             type: string
-            example: 프로젝트 WBS 생성 실패
+            example: 프로젝트 WBS 생성 실패 error =
     createWbsInfo200:
       description: 프로젝트 WBS 생성 정보 조회 성공
       content:
