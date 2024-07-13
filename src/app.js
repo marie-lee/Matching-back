@@ -5,6 +5,7 @@ const morganMiddleware = require('./middleware/morganMiddleware');
 const errorMiddleware = require('./middleware/errorMidleware');
 const { logger } = require('./utils/logger');
 const cors = require('cors');
+const passport = require('./config/passport');
 
 // Utils
 const { swaggerUi, swaggerDocument } = require("./config/swagger/index");
@@ -40,6 +41,8 @@ const corsOptions = {
   credential: true
 };
 app.use(cors(corsOptions));
+
+app.use(passport.initialize());
 
 // db 동기화
 db.sync({ force: false }).then(() => {
