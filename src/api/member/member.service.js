@@ -8,16 +8,17 @@ class MemberService {
     async login(req, res) {
         const t = await db.transaction();
         try{
-            const user = await db.TB_USER.findOne({ where: { USER_EMAIL: req.body.email, USER_PW: req.body.password } });
+            //const user = await db.TB_USER.findOne({ where: { USER_EMAIL: req.body.email, USER_PW: req.body.password } });
+          const user = await db.TB_USER.findOne({ where: { USER_EMAIL: req.body.email } });
             if (!user) {
                 logger.error('로그인 실패 : 유저 정보를 찾지 못했습니다.')
                 return res.status(401).send('로그인 실패 : 유저 정보를 찾지 못했습니다.')
             }
-
-            // const isPasswordValid = await bcrypt.compare(password, user.password);
-            // if (!isPasswordValid) {
-            //     throw new Error('Invalid password');
-            // }
+            const isPasswordValid = await bcrypt.compare(req.body.password, user.USER_PW);
+            if (!isPasswordValid) {
+                logger.error('로그인 실패 : 잘못된 비밀번호입니다.');
+                return res.status(401).send('로그인 실패 : 잘못된 비밀번호입니다.');
+            }
 
             const userSn = user.USER_SN; // 사용자 고유 식별자
             const refreshToken = jwt.generateRefreshToken(userSn);
@@ -167,7 +168,26 @@ class MemberService {
       logger.error('이메일 인증 코드 확인 중 오류 발생:', error);
       return res.status(500).send('이메일 인증 코드 확인 중 오류가 발생했습니다.');
     }
-}
+ }
+  async handleGoogleCallback(req, res) {
+    //const transaction = await db.transaction();
+    try {
+      const userSn = req.user.USER_SN;
+      const accessToken = jwt.generateAccessToken(userSn);
+      const refreshToken = jwt.generateRefreshToken(userSn);
+
+      await db.TB_USER.update({ REFRESH_TOKEN: refreshToken }, { where: { USER_SN: userSn }});
+
+      return res.json({
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+        USER_NM: req.user.USER_NM,
+      });
+    } catch (error) {
+      logger.error('Google 로그인 중 오류 발생:', error);
+      return res.status(500).send('Google 로그인 중 오류가 발생했습니다.');
+    }
+  }
 
 
 }
