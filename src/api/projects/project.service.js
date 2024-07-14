@@ -339,6 +339,31 @@ class projectService {
       memberData: memberData
     };
   }
+
+  async editWbs(userSn, pjtSn, data){
+    const t = await db.transaction();
+    try {
+      if (!await db.TB_WBS.findOne({where: {PJT_SN: pjtSn}})) {
+        throw new Error('WBS가 존재하지 않습니다.');
+      } else {
+        // 템플릿 데이터 입력
+        await db.TB_WBS.update(
+            {LAST_UPDATER: userSn, TEMPLATE_DATA: JSON.stringify(data[0].TEMPLATE_DATA)},
+            {
+              where: {PJT_SN: pjtSn},
+              transaction: t
+            }
+        )
+      }
+      await t.commit();
+      return true;
+    }
+    catch (e) {
+      await t.rollback();
+      logger.error('WBS 수정 중 오류 발생 error : ', e);
+      throw e;
+    }
+  }
 }
 
 
