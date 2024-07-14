@@ -3,6 +3,7 @@ const jwt = require('../../utils/jwt/jwt');
 const db = require('../../config/db/db');
 const { logger } = require('../../utils/logger');
 const nodemailer = require('nodemailer');
+const {where} = require("sequelize");
 
 class MemberService {
     async login(req, res) {
@@ -188,8 +189,21 @@ class MemberService {
       return res.status(500).send('Google 로그인 중 오류가 발생했습니다.');
     }
   }
+  async findId(req,res){
+      try{
+        const{USER_NM,PHONE}=req.body;
+        const user = await db.TB_USER.findOne({where:{USER_NM,PHONE}});
+        if(!user){
+          logger.error('아이디 찾기 실패: 유저 정보를 찾을 수 없습니다');
+          return res.status(404).send('아이디 찾기 실패: 유저 정보를 찾을 수 없습니다');
+        }
+        return res.status(200).json({USER_ID:user.USER_EMAIL});
+      }catch (error) {
+        logger.error('아이디 찾기 중 오류 발생:', error);
+        return res.status(500).send('아이디 찾기 중 오류가 발생했습니다.');
 
-
+      }
+  }
 }
 
 module.exports = new MemberService();

@@ -44,4 +44,14 @@ router.get('/login/google', passport.authenticate('google', { scope: ['profile',
 router.get('/registeration/join/google', passport.authenticate('google', { session: false, failureRedirect: '/login' }), async (req, res) => {
   return await MemberService.handleGoogleCallback(req, res);
 });
+
+router.post('/find/id',async (req,res)=>{
+  try{
+    return await MemberService.findId(req,res);
+  } catch (error){
+    logger.error('아이디 찾기 실패:',error);
+    return res.status(400).send('아이디 찾기 실패:'+error.message);
+  }
+});
+
 module.exports = router;
