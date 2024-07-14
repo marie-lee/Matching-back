@@ -108,4 +108,14 @@ router.post('/project/wbs/edit/:pjtSn', jwt.authenticateToken, async (req,res) =
     }
 })
 
+router.get('/project/wbs/:pjtSn', jwt.authenticateToken, async (req, res)=> {
+    try{
+        const data = await projectService.getWbs(req, res);
+        if(data != null){ return res.status(200).json(data); }
+        else { return res.status(400).send('조회되는 WBS가 없습니다.'); }
+    } catch (error){
+        return res.status(400).send(`WBS 조회 중 에러 발생 :  ${error.message}`);
+    }
+})
+
 module.exports = router;

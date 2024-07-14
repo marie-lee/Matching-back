@@ -4,7 +4,7 @@ const {QueryTypes} = require("sequelize");
 const {runPytonToVectorization, runPjtToVec} = require("../../utils/matching/spawnVectorization");
 const mutex = require('../../utils/matching/Mutex');
 const {throwError} = require("../../utils/errors");
-const {oneCmmnVal} = require("../common/common.service");
+const {oneCmmnVal, formatDt} = require("../common/common.service");
 
 class projectService {
 
@@ -362,6 +362,36 @@ class projectService {
       await t.rollback();
       logger.error('WBS 수정 중 오류 발생 error : ', e);
       throw e;
+    }
+  }
+
+  async getWbs(req, res) {
+    const user = req.userSn.USER_SN;
+    const pjt = req.params.pjtSn;
+
+    try {
+      const member = await db.TB_PJT_M.findOne({
+        where: {PJT_SN: pjt, USER_SN: user, DEL_YN: false}
+      });
+      if(!member){ throwError('프로젝트 참여 멤버가 아닙니다.'); }
+      const data = await db.TB_WBS.findOne({
+        where: {PJT_SN: pjt, DEL_YN: false},
+        attributes: [['TEMPLATE_DATA', 'templateData'], ['CREATED_DT', 'createdDt'], ['MODIFIED_DT', 'modifiedDt']],
+      });
+
+      if(data === null){ return null; }
+      const { templateData, createdDt, modifiedDt } = data.dataValues || {};
+      const wbs = templateData ? JSON.parse(templateData) : null;
+      return {
+        pjtSn: pjt,
+        wbs,
+        createdDt: createdDt ? formatDt(createdDt) : null,
+        modifiedDt: modifiedDt ? formatDt(modifiedDt) : null,
+      };
+
+    } catch (error) {
+      logger.error('wbs 조회 중 오류 발생 : ', error.message);
+      throw error;
     }
   }
 }
