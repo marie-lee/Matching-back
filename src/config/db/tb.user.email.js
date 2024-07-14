@@ -18,6 +18,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false
     },
+    PURPOSE: {
+      type: DataTypes.STRING(50),
+      allowNull: false
+    },
     CREATED_DT: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW

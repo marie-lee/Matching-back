@@ -98,7 +98,7 @@ class MemberService {
     }
     async requestEmail(req,res){
       try{
-        const{USER_EMAIL}=req.body;
+        const { USER_EMAIL, PURPOSE } = req.body;
 
         if (!USER_EMAIL) {
           logger.error('이메일 인증 요청 실패: 이메일이 제공되지 않았습니다.');
@@ -106,7 +106,7 @@ class MemberService {
         }
 
         const email = await db.TB_USER.findOne({where:{USER_EMAIL}});
-        if(email){
+        if(PURPOSE === 'register' && email){
           logger.error('이메일 인증 요청 실패 : 이미 존재하는 이메일입니다.');
           return res.status(400).send('이메일 인증 요청 실패 : 이미 존재하는 이메일입니다');
         }
@@ -148,23 +148,29 @@ class MemberService {
 
   async verifyEmailCode(req, res) {
     try {
-      const { USER_EMAIL, verificationCode } = req.body;
+      const { USER_EMAIL, verificationCode , PURPOSE} = req.body;
 
       if (!USER_EMAIL || !verificationCode) {
         logger.error('이메일 인증 실패: 이메일 또는 인증 코드가 제공되지 않았습니다.');
         return res.status(400).send('이메일 인증 실패: 이메일 또는 인증 코드가 제공되지 않았습니다.');
       }
 
-      const record = await db.TB_USER_EMAIL.findOne({ where: { USER_EMAIL: USER_EMAIL, VERIFICATION_CODE: verificationCode } });
+      const record = await db.TB_USER_EMAIL.findOne({
+        where: {
+          USER_EMAIL: USER_EMAIL,
+          VERIFICATION_CODE: verificationCode,
+          PURPOSE: PURPOSE
+        }
+      });
 
       if (!record) {
         logger.error('이메일 인증 실패: 인증 코드가 일치하지 않습니다.');
         return res.status(400).send('이메일 인증 실패: 인증 코드가 일치하지 않습니다.');
       }
 
-      await db.TB_USER_EMAIL.update({ VERIFIED: true }, { where: { USER_EMAIL: USER_EMAIL } });
+      await db.TB_USER_EMAIL.update({ VERIFIED: true }, { where: { USER_EMAIL: USER_EMAIL, PURPOSE: PURPOSE } });
 
-      return res.status(200).json({ message: '이메일 인증 성공' });
+      return res.status(200).json({ message: '이메일 인증 성공', token: token });
     } catch (error) {
       logger.error('이메일 인증 코드 확인 중 오류 발생:', error);
       return res.status(500).send('이메일 인증 코드 확인 중 오류가 발생했습니다.');
@@ -204,6 +210,95 @@ class MemberService {
 
       }
   }
+  async findPassword(req, res) {
+    try {
+      const { USER_NM, USER_EMAIL } = req.body;
+      if (!USER_NM || !USER_EMAIL) {
+        logger.error('비밀번호 찾기 요청 실패: 이름 또는 이메일이 제공되지 않았습니다.');
+        return res.status(400).send('비밀번호 찾기 요청 실패: 이름 또는 이메일이 제공되지 않았습니다.');
+      }
+      const user = await db.TB_USER.findOne({ where: { USER_NM, USER_EMAIL } });
+      if (!user) {
+        logger.error('비밀번호 찾기 실패: 유저 정보를 찾을 수 없습니다.');
+        return res.status(404).send('비밀번호 찾기 실패: 유저 정보를 찾을 수 없습니다.');
+      }
+
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+      const transporter = nodemailer.createTransport({
+        service: 'Gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
+
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: USER_EMAIL,
+        subject: 'Password Reset Verification Code',
+        text: `Your verification code is ${verificationCode}`,
+      };
+
+      await transporter.sendMail(mailOptions);
+
+      await db.TB_USER_EMAIL.upsert({
+        USER_EMAIL: USER_EMAIL,
+        VERIFICATION_CODE: verificationCode,
+        VERIFIED: false,
+        PURPOSE: 'reset_password'
+      });
+
+      return res.status(200).json({ message: 'Verification code sent to your email' });
+    } catch (error) {
+      logger.error('비밀번호 찾기 요청 중 오류 발생:', error);
+      return res.status(500).send('비밀번호 찾기 요청 중 오류가 발생했습니다.');
+    }
+  }
+  async confirmPasswordReset(req, res) {
+    try {
+      const { USER_EMAIL, newPassword, confirmPassword } = req.body;
+
+
+      // 비밀번호 확인
+      if (newPassword !== confirmPassword) {
+        logger.error('비밀번호 재설정 실패: 새 비밀번호와 확인 비밀번호가 일치하지 않습니다.');
+        return res.status(400).send('비밀번호 재설정 실패: 새 비밀번호와 확인 비밀번호가 일치하지 않습니다.');
+      }
+
+      const record = await db.TB_USER_EMAIL.findOne({
+        where: { USER_EMAIL, VERIFIED: true, PURPOSE: 'reset_password' }
+      });
+
+      if (!record) {
+        logger.error('비밀번호 재설정 실패: 인증이 완료되지 않았습니다.');
+        return res.status(400).send('비밀번호 재설정 실패: 인증이 완료되지 않았습니다.');
+      }
+
+      const user = await db.TB_USER.findOne({ where: { USER_EMAIL } });
+
+      // 기존 비밀번호와 새 비밀번호가 같은지 확인
+      const isSamePassword = await bcrypt.compare(newPassword, user.USER_PW);
+      if (isSamePassword) {
+        logger.error('비밀번호 재설정 실패: 새 비밀번호가 기존 비밀번호와 같습니다.');
+        return res.status(400).send('비밀번호 재설정 실패: 새 비밀번호가 기존 비밀번호와 같습니다.');
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await db.TB_USER.update({
+        USER_PW: hashedPassword
+      }, { where: { USER_EMAIL } });
+
+      await db.TB_USER_EMAIL.destroy({ where: { USER_EMAIL, PURPOSE: 'reset_password' } });
+
+      return res.status(200).json({ message: '비밀번호가 성공적으로 변경되었습니다.' });
+    } catch (error) {
+      logger.error('비밀번호 재설정 중 오류 발생:', error);
+      return res.status(500).send('비밀번호 재설정 중 오류가 발생했습니다.');
+    }
+  }
+
+
 }
 
 module.exports = new MemberService();
