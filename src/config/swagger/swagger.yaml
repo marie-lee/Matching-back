@@ -215,6 +215,26 @@ paths:
           $ref: '#/components/responses/editWbs400'
       security:
         - JWT: [ ]
+  /project/wbs/{pjtSn}:
+    get:
+      tags:
+        - project
+      summary: 프로젝트 WBS 조회
+      description: 프로젝트 WBS 조회
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/getWBS200'
+        '400':
+          $ref: '#/components/responses/getWBS400'
+      security:
+        - JWT: [ ]
   /status:
     get:
       tags:
@@ -1629,3 +1649,50 @@ components:
           schema:
             type: string
             example: 'WBS 수정 중 오류 발생 error : (에러메시지)'
+    getWBS200:
+      description: 프로젝트 wbs 조회 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              pjtSn:
+                type: integer
+                description: 프로젝트 PK 값
+                example: 5
+              wbs:
+                type: object
+                example:
+                  manage:
+                    - 사전준비:
+                      - 기획분석:
+                        - engineer: 홍길동
+                          start-date: '2024-01-01'
+                          due-date: '2024-01-07'
+                          status: 대기
+                        - WBS 작성:
+                          - engineer: 홍길동
+                            start-date: '2024-01-01'
+                            due-date: '2024-01-07'
+                            status: 진행중
+                      - 화면설계:
+                        - 화면설계서 작성:
+                          - engineer: 홍길동
+                            start-date: '2024-01-01'
+                            due-date: '2024-01-07'
+                            status: 대기
+              createdDt:
+                type: string
+                description: 생성날짜
+                example: '2024-07-15 10:00:00'
+              modifiedDt:
+                type: string
+                description: 수정날짜
+                example: '2024-07-15 15:30:00'
+    getWBS400:
+      description: WBS 조회 중 오류 발생
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: 'WBS 조회 중 오류 발생 : (에러메시지)'
