@@ -94,4 +94,18 @@ router.get('/project/wbs/create/:pjtSn', jwt.authenticateToken, async (req, res)
     }
 });
 
+router.post('/project/wbs/edit/:pjtSn', jwt.authenticateToken, async (req,res) =>{
+    const userSn = req.userSn.USER_SN;
+    const pjtSn = req.params.pjtSn;
+    const data = req.body;
+    try {
+        if(projectService.editWbs(userSn, pjtSn, data)){
+            res.status(200).send('WBS 수정 완료.');
+        }
+    }
+    catch (e) {
+        return res.status(400).send('WBS 수정 중 오류 발생 error : '+e.message)
+    }
+})
+
 module.exports = router;
