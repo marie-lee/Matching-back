@@ -21,7 +21,8 @@ router.post('/profile', jwt.authenticateToken, async (req, res)=>{
         await profileService.profileUpload(req, res);
     }
     catch (error){
-        res.status(400).send('입력중 에러 발생 에러내용 : ' + error);
+        logger.error('입력중 에러 발생 에러내용', error);
+        return res.status(400).send('입력중 에러 발생 에러내용 : ' + error);
     }
 });
 

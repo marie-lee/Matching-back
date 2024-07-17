@@ -48,6 +48,7 @@ class profileService {
         catch (error){
             await this.deleteFileFromMinio(req.body.profile, req.body.portfolios);
             await t.rollback(); // 에러 발생 시 트랜잭션 롤백
+            logger.error('프로필 포트폴리오 등록 중 에러 발생:', error);
             throw error;
         }
     }
@@ -56,7 +57,7 @@ class profileService {
 
         let whereClause = '';
         let orderByClause = '';
-        
+
         // keys 배열이 비어있지 않다면 WHERE 조건을 추가
         if (snList.length > 0) {
             // 본인 프로필 제거
@@ -71,7 +72,7 @@ class profileService {
                                         "introduction", pf.PF_INTRO,
                                         "img", usr.USER_IMG,
                                         "career", JSON_ARRAYAGG( DISTINCT JSON_OBJECT(
-                                            "careerNm", cr.CAREER_NM, 
+                                            "careerNm", cr.CAREER_NM,
                                             "enteringDt", cr.ENTERING_DT,
                                             "quitDt", cr.QUIT_DT
                                         )),
@@ -96,11 +97,11 @@ class profileService {
                                 FROM TB_PF pf
                                     INNER JOIN TB_USER usr ON usr.USER_SN = pf.USER_SN
                                     INNER JOIN TB_CAREER cr ON cr.PF_SN = pf.PF_SN
-                                    INNER JOIN TB_PF_ST pfSt ON pfSt.PF_SN = pf.PF_SN 
-                                    INNER JOIN TB_ST st ON st.ST_SN = pfSt.ST_SN 
+                                    INNER JOIN TB_PF_ST pfSt ON pfSt.PF_SN = pf.PF_SN
+                                    INNER JOIN TB_ST st ON st.ST_SN = pfSt.ST_SN
                                     INNER JOIN TB_PF_INTRST pfI ON pfI.PF_SN = pf.PF_SN
                                     INNER JOIN TB_INTRST intrst ON intrst.INTRST_SN = pfI.INTRST_SN
-                                    INNER JOIN TB_PF_URL pfU ON pfU.PF_SN = pf.PF_SN 
+                                    INNER JOIN TB_PF_URL pfU ON pfU.PF_SN = pf.PF_SN
                                     INNER JOIN TB_URL url ON pfU.URL_SN = url.URL_SN
                                     INNER JOIN TB_PF_PFOL pfPl ON pfPl.PF_SN = pf.PF_SN
                                     INNER JOIN VIEW_PFOL vpl ON vpl.PFOL_SN = pfPl.PFOL_SN
@@ -146,7 +147,7 @@ class profileService {
                                         )
                                     ) AS carrer
                                     , JSON_ARRAYAGG( DISTINCT
-                                        JSON_OBJECT( 
+                                        JSON_OBJECT(
                                             'ST_NM', st.ST_NM
                                             , 'ST_LEVEL', ps.ST_LEVEL
                                         )
@@ -155,13 +156,13 @@ class profileService {
                                         JSON_OBJECT( 'INTEREST_NM', i.INTRST_NM )
                                     ) AS interest
                                     , JSON_ARRAYAGG( DISTINCT
-                                        JSON_OBJECT( 
+                                        JSON_OBJECT(
                                             'URL_ADDR', u.URL
                                             ,'URL_INTRO', u.URL_INTRO
                                         )
                                     ) AS url
                                 FROM TB_PF pf
-                                    LEFT JOIN TB_USER usr ON usr.USER_SN = pf.USER_SN 
+                                    LEFT JOIN TB_USER usr ON usr.USER_SN = pf.USER_SN
                                     LEFT JOIN TB_CAREER cr ON cr.PF_SN = pf.PF_SN AND cr.DEL_YN = FALSE
                                     LEFT JOIN TB_PF_ST ps ON pf.PF_SN = ps.PF_SN
                                     LEFT JOIN TB_ST st ON ps.ST_SN = st.ST_SN
@@ -185,7 +186,7 @@ class profileService {
                                         "introduction", pf.PF_INTRO,
                                         "img", usr.USER_IMG,
                                         "career", JSON_ARRAYAGG( DISTINCT JSON_OBJECT(
-                                            "careerNm", cr.CAREER_NM, 
+                                            "careerNm", cr.CAREER_NM,
                                             "enteringDt", cr.ENTERING_DT,
                                             "quitDt", cr.QUIT_DT
                                         )),
@@ -210,11 +211,11 @@ class profileService {
                                 FROM TB_PF pf
                                     INNER JOIN TB_USER usr ON usr.USER_SN = pf.USER_SN
                                     INNER JOIN TB_CAREER cr ON cr.PF_SN = pf.PF_SN
-                                    INNER JOIN TB_PF_ST pfSt ON pfSt.PF_SN = pf.PF_SN 
-                                    INNER JOIN TB_ST st ON st.ST_SN = pfSt.ST_SN 
+                                    INNER JOIN TB_PF_ST pfSt ON pfSt.PF_SN = pf.PF_SN
+                                    INNER JOIN TB_ST st ON st.ST_SN = pfSt.ST_SN
                                     INNER JOIN TB_PF_INTRST pfI ON pfI.PF_SN = pf.PF_SN
                                     INNER JOIN TB_INTRST intrst ON intrst.INTRST_SN = pfI.INTRST_SN
-                                    INNER JOIN TB_PF_URL pfU ON pfU.PF_SN = pf.PF_SN 
+                                    INNER JOIN TB_PF_URL pfU ON pfU.PF_SN = pf.PF_SN
                                     INNER JOIN TB_URL url ON pfU.URL_SN = url.URL_SN
                                     INNER JOIN TB_PF_PFOL pfPl ON pfPl.PF_SN = pf.PF_SN
                                     INNER JOIN VIEW_PFOL vpl ON vpl.PFOL_SN = pfPl.PFOL_SN
@@ -244,7 +245,7 @@ class profileService {
                                         )
                                     ) AS stack
                                     , pm.URL  AS IMG
-                                FROM TB_PFOL pl 
+                                FROM TB_PFOL pl
                                 LEFT JOIN TB_PF_PFOL pp ON pl.PFOL_SN = pp.PFOL_SN
                                 LEFT JOIN TB_PFOL_ST ps ON ps.PFOL_SN = pp.PFOL_SN
                                 LEFT JOIN TB_ST st ON st.ST_SN = ps.ST_SN
@@ -264,6 +265,15 @@ class profileService {
 
     async profileInsert(profile, userSn, transaction){
         try {
+            if (!profile.PF_INTRO) {
+              throw new Error('한 줄 소개가 입력되지 않았습니다.');
+            }
+            if (!profile.STACK) {
+              throw new Error('스킬이 입력되지 않았습니다.');
+            }
+            if (!profile.INTRST) {
+              throw new Error('관심 분야가 입력되지 않았습니다.');
+            }
             if(await db.TB_PF.findOne({where : {USER_SN: userSn}})){
                 logger.error('해당 유저의 프로필이 이미 존재합니다.');
                 return false;
