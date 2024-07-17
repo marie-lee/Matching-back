@@ -18,6 +18,7 @@ passport.use(new GoogleStrategy({
           USER_EMAIL: emails[0].value,
           USER_PW: '',
           LOGIN_TYPE: 'GOOGLE',
+          PHONE,
           UID: id,
           REFRESH_TOKEN: '',
           DEVICE_TOKEN: '',
