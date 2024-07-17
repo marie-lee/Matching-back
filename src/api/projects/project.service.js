@@ -394,6 +394,43 @@ class projectService {
       throw error;
     }
   }
+
+  async getWbsTemplate(template) {
+    try {
+      // const template = await db.TB_WBS.findOne({
+      //   where: {PJT_SN: pjtSn, DEL_YN: false},
+      //   attributes: ['TEMPLATE_DATA'],
+      // });
+      const template = {
+        "basic2depth": {
+          name: "기본 2 Depth"
+        },
+        "basic3depth": {
+          name: "기본 3 Depth"
+        },
+        "planning": {
+          name: "기획팀 템플릿"
+        },
+        "design": {
+          name: "디자인 템플릿"
+        },
+        "development": {
+          name: "개발팀 템플릿"
+        },
+        "backend": {
+          name: "개발팀 템플릿 (웹 백엔드)"
+        },
+        "frontend": {
+          name: "개발팀 템플릿 (웹 프론트엔드)"
+        }
+      }
+      return template;
+      //return template.TEMPLATE_DATA ? JSON.parse(template.TEMPLATE_DATA) : null;
+    } catch (error) {
+      logger.error('WBS 템플릿 조회 중 오류 발생: ', error.message);
+      throw error;
+    }
+  }
 }
 
 
