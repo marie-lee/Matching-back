@@ -65,6 +65,16 @@ router.get('/project/member/:pjtSn', jwt.authenticateToken, async (req, res) => 
     }
 });
 
+router.get('/project/wbs/template', jwt.authenticateToken, async (req, res) => {
+  try {
+    const template = await projectService.getWbsTemplate();
+    return res.status(200).send(template);
+  } catch (error) {
+    logger.error('WBS 템플릿 조회 중 오류 발생: ', error);
+    return res.status(400).send('WBS 템플릿 조회 중 오류 발생: ' + error.message);
+  }
+});
+
 router.post('/project/wbs/create/:pjtSn', jwt.authenticateToken, async (req, res)=>{
     const userSn = req.userSn.USER_SN;
     const pjtSn = req.params.pjtSn;
