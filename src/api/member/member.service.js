@@ -43,7 +43,24 @@ class MemberService {
     async register(req,res){
       const transaction = await db.transaction();
       try{
-        const { USER_NM, USER_EMAIL, USER_PW, USER_PW_CONFIRM } = req.body;
+        const { USER_NM, USER_EMAIL, USER_PW, USER_PW_CONFIRM, PHONE } = req.body;
+
+        if (!USER_NM) {
+          logger.error('회원가입 실패: 이름을 입력해야 합니다.');
+          return res.status(400).send('회원가입 실패: 이름을 입력해야 합니다.');
+        }
+        if (!USER_EMAIL) {
+          logger.error('회원가입 실패: 이메일을 입력해야 합니다.');
+          return res.status(400).send('회원가입 실패: 이메일을 입력해야 합니다.');
+        }
+        if (!USER_PW) {
+          logger.error('회원가입 실패: 비밀번호를 입력해야 합니다.');
+          return res.status(400).send('회원가입 실패: 비밀번호를 입력해야 합니다.');
+        }
+        if (!PHONE) {
+          logger.error('회원가입 실패: 전화번호를 입력해야 합니다.');
+          return res.status(400).send('회원가입 실패: 전화번호를 입력해야 합니다.');
+        }
 
         // 비밀번호와 비밀번호 확인이 일치하는지 확인
         if (USER_PW !== USER_PW_CONFIRM) {
@@ -71,6 +88,7 @@ class MemberService {
           USER_PW : hashedPassword,
           LOGIN_TYPE:'LOCAL',
           UID: '',
+          PHONE,
           REFRESH_TOKEN: '',
           DEVICE_TOKEN: '',
           CREATED_DT: new Date(),
@@ -84,7 +102,7 @@ class MemberService {
         await db.TB_USER.update({ REFRESH_TOKEN: refreshToken }, { where: { USER_SN: userSn }, transaction: transaction });
 
         await transaction.commit();
-        return res.status(201).json({
+        return res.status(200).json({
           message: '회원가입 성공',
           accessToken: accessToken,
           refreshToken: refreshToken,
