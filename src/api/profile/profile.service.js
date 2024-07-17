@@ -692,6 +692,63 @@ class profileService {
             throw error;
         }
     }
+
+    async portfolioDetailSelect(userSn,pfolSn) {
+      const query = `SELECT pl.PFOL_SN
+                                      , pl.PFOL_NM
+                                      , pl.START_DT
+                                      , pl.END_DT
+                                      , pl.PERIOD
+                                      , pl.INTRO
+                                      , pl.MEM_CNT
+                                      , pl.CONTRIBUTION
+                                      , pl.SERVICE_STTS
+                                      , pl.RESULT
+                                      , JSON_ARRAYAGG(DISTINCT
+                                          JSON_OBJECT(
+                                              'ST_NM', st.ST_NM
+                                          )
+                                      ) AS stack
+                                      , JSON_ARRAYAGG(DISTINCT
+                                          JSON_OBJECT(
+                                              'ROLE_NM', r.ROLE_NM
+                                          )
+                                      ) AS roles
+                                      , JSON_ARRAYAGG(DISTINCT
+                                          JSON_OBJECT(
+                                              'URL', u.URL,
+                                              'URL_INTRO', u.URL_INTRO,
+                                              'RELEASE_YN', pu.RELEASE_YN,
+                                              'OS', pu.OS
+                                          )
+                                      ) AS urls
+                                      , JSON_ARRAYAGG(DISTINCT
+                                          JSON_OBJECT(
+                                              'URL', pm.URL,
+                                              'MAIN_YN', pm.MAIN_YN
+                                          )
+                                      ) AS media
+                                  FROM TB_PFOL pl
+                                  LEFT JOIN TB_PFOL_ST ps ON pl.PFOL_SN = ps.PFOL_SN
+                                  LEFT JOIN TB_ST st ON st.ST_SN = ps.ST_SN
+                                  LEFT JOIN TB_PFOL_ROLE pr ON pl.PFOL_SN = pr.PFOL_SN
+                                  LEFT JOIN TB_ROLE r ON r.ROLE_SN = pr.ROLE_SN
+                                  LEFT JOIN TB_PFOL_URL pu ON pl.PFOL_SN = pu.PFOL_SN
+                                  LEFT JOIN TB_URL u ON pu.URL_SN = u.URL_SN
+                                  LEFT JOIN TB_PFOL_MEDIA pm ON pl.PFOL_SN = pm.PFOL_SN
+                                  WHERE pl.PFOL_SN = ${pfolSn} AND pl.DEL_YN = 'N'
+                                  GROUP BY pl.PFOL_SN;`;
+      try {
+        const portfolioDetail = await db.query(query, { type: QueryTypes.SELECT });
+        if (portfolioDetail.length === 0) {
+          throwError('포트폴리오를 찾을 수 없습니다.');
+        }
+        return portfolioDetail[0];
+      } catch (error) {
+        logger.error("포트폴리오 상세 조회 중 오류 발생: ", error);
+        throw error;
+      }
+    }
 }
 
 module.exports = new profileService();

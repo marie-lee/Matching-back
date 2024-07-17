@@ -35,4 +35,16 @@ router.put('/profile', jwt.authenticateToken, async (req, res) => {
   }
 });
 
+router.get('/profile/:pfolSn', jwt.authenticateToken, async (req, res)=>{
+  try {
+    const userSn = req.userSn.USER_SN;
+    const pfolSn = req.params.pfolSn;
+    const portfolioDetail = await profileService.portfolioDetailSelect(userSn,pfolSn);
+    return res.status(200).send(portfolioDetail);
+  } catch (error) {
+    logger.error('포트폴리오 상세 조회 중 에러 발생', error);
+    return res.status(400).send('포트폴리오 상세 조회 중 에러 발생: ' + error.message);
+  }
+});
+
 module.exports = router;
