@@ -190,6 +190,24 @@ paths:
           $ref: '#/components/responses/pfPfol200'
       security:
         - JWT: []
+  /membr/profile/{pfolSn}:
+    get:
+      tags:
+       - member
+      summary: 포트폴리오 상세 조회
+      description: 포트폴리오의 상세 조회
+      parameters:
+        - in: path
+          name: pfolSn
+          required: true
+          schema:
+          type: integer
+          description: 포트폴리오의 일련번호
+      responses:
+          '200':
+            $ref: '#/components/schemas/portfolioDetail200'
+      security:
+        - JWT: [ ]
   /project:
     get:
       tags:
@@ -751,6 +769,108 @@ components:
                 MAIN_YN: "0"
               - URL: http://218.232.137.30:20090/matching/portfolio/media.mp4
                 MAIN_YN: "1"
+    portfolioDetail200 :
+      type: object
+      properties:
+          PFOL_SN:
+            type: integer
+            description: 포트폴리오 일련번호
+          PFOL_NM:
+            type: string
+            description: 포트폴리오 이름
+          START_DT:
+            type: string
+            format: date
+            description: 시작일
+          END_DT:
+            type: string
+            format: date
+            description: 종료일
+          PERIOD:
+            type: integer
+            description: 기간
+          INTRO:
+            type: string
+            description: 소개
+          MEM_CNT:
+            type: integer
+            description: 멤버 수
+          CONTRIBUTION:
+            type: integer
+            description: 기여도
+          SERVICE_STTS:
+            type: string
+            description: 서비스 상태
+          RESULT:
+            type: string
+            description: 결과
+          stack:
+            type: array
+            items:
+              type: object
+              properties:
+                ST_NM:
+                  type: string
+                  description: 기술 스택 이름
+          roles:
+            type: array
+            items:
+              type: object
+              properties:
+                ROLE_NM:
+                  type: string
+                  description: 역할 이름
+          urls:
+            type: array
+            items:
+              type: object
+              properties:
+                URL:
+                  type: string
+                  description: URL 주소
+                URL_INTRO:
+                  type: string
+                  description: URL 소개
+                RELEASE_YN:
+                  type: boolean
+                  description: 공개 여부
+                OS:
+                  type: string
+                  description: 운영 체제
+          media:
+            type: array
+            items:
+              type: object
+              properties:
+                URL:
+                  type: string
+                  description: 미디어 URL
+                MAIN_YN:
+                  type: boolean
+                  description: 메인 여부
+      example:
+          PFOL_SN: 1
+          PFOL_NM: 포트폴리오 이름
+          START_DT: 2023-01-01
+          END_DT: 2023-12-31
+          PERIOD: 365
+          INTRO: 포트폴리오 소개
+          MEM_CNT: 5
+          CONTRIBUTION: 20
+          SERVICE_STTS: ACTIVE
+          RESULT:
+          stack:
+            - ST_NM: JavaScript
+          roles:
+            - ROLE_NM: 백엔드 개발자
+          urls:
+            - URL: http://example.com
+              URL_INTRO: 프로젝트 소개 페이지
+              RELEASE_YN: true
+              OS: Web
+          media:
+            - URL: http://example.com/image.jpg
+              MAIN_YN: true
     registerProject:
       type: object
       properties:
