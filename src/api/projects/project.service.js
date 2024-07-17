@@ -86,8 +86,7 @@ class projectService {
     }
   }
 
-  async myProjects(req, res) {
-    const userSn = req.userSn.USER_SN;
+  async myProjects(userSn) {
     const query = `SELECT pj.PJT_SN, pj.PJT_NM, pj.PJT_INTRO, pj.START_DT, pj.END_DT, pj.PERIOD, pj.DURATION_UNIT, pj.CREATED_USER_SN, pj.PJT_STTS
                    FROM TB_USER usr
                           LEFT JOIN TB_PJT_M pjm ON usr.USER_SN = pjm.USER_SN AND pjm.DEL_YN = FALSE
@@ -96,8 +95,9 @@ class projectService {
                    GROUP BY pj.PJT_SN;`;
     try {
       const pjtLists = await db.query(query, {type: QueryTypes.SELECT});
-      return res.status(200).send(pjtLists);
+      return pjtLists
     } catch (error) {
+      logger.error('내 프로젝트 리스트 조회 중 에러 발생:', error);
       throw error;
     }
   }
