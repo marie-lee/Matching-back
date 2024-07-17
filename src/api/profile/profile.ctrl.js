@@ -26,4 +26,13 @@ router.post('/profile', jwt.authenticateToken, async (req, res)=>{
     }
 });
 
+router.put('/profile', jwt.authenticateToken, async (req, res) => {
+  try {
+    await profileService.profileModify(req, res);
+  } catch (error) {
+    logger.error('수정중 에러 발생 에러내용', error);
+    return res.status(400).send('수정중 에러 발생 에러내용 : ' + error);
+  }
+});
+
 module.exports = router;
