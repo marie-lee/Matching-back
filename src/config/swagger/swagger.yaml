@@ -33,6 +33,136 @@ paths:
           $ref: '#/components/responses/loginRes400'
         '401':
           $ref: '#/components/responses/loginRes401'
+  /member/registeration/join:
+    post:
+      tags:
+        - member
+      summary: 회원가입
+      description: 로컬 회원가입
+      requestBody:
+        description:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/register'
+        required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/register200'
+        '400':
+          $ref: '#/components/responses/register400'
+  /member/registeration/certification:
+    post:
+      tags:
+        - member
+      summary: 이메일 인증 요청
+      description: 이메일 인증 요청
+      requestBody:
+        description:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/certification'
+        required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/certification200'
+        '400':
+          $ref: '#/components/responses/certification400'
+  /member/registeration/confirmation:
+    post:
+      tags:
+        - member
+      summary: 이메일 인증 확인
+      description: 이메일 인증 확인
+      requestBody:
+        description:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/confirmation'
+        required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/confirmation200'
+        '400':
+          $ref: '#/components/responses/confirmation400'
+  /member/find/id:
+    post:
+      tags:
+        - member
+      summary: 아이디 찾기
+      description: 아이디 찾기
+      requestBody:
+        description:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/findId'
+        required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/findId200'
+        '400':
+          $ref: '#/components/responses/findId404'
+  /member/find/pw:
+    post:
+      tags:
+        - member
+      summary: 비밀번호 찾기 요청
+      description: 비밀번호 찾기 요청
+      requestBody:
+        description:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/findPw'
+        required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/findPw200'
+        '400':
+          $ref: '#/components/responses/findPw400'
+        '500':
+          $ref: '#/components/responses/findPw500'
+  /member/find/pw/certification:
+    post:
+      tags:
+        - member
+      summary: 비밀번호 찾기 인증
+      description: 비밀번호 찾기 인증
+      requestBody:
+        description:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/pwCertification'
+        required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/certification200'
+        '400':
+          $ref: '#/components/responses/certification400'
+  /member/find/pw/confirmation:
+    post:
+      tags:
+        - member
+      summary: 비밀번호 재설정
+      description: 비밀번호 재설정
+      requestBody:
+        description:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/pwConfirmation'
+        required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/pwConfirmation200'
+        '400':
+          $ref: '#/components/responses/pwConfirmation400'
+        '500':
+          $ref: '#/components/responses/pwConfirmation500'
   /member/profile:
     post:
       tags:
@@ -440,6 +570,95 @@ components:
       required:
         - email
         - password
+    register:
+      type: object
+      properties:
+        USER_NM:
+          type: string
+          description: 유저 이름
+          example: 홍길동
+        USER_EMAIL:
+          type: string
+          description: 유저 이메일
+          example: example@gmail.com
+        PHONE:
+          type: string
+          description: 유저 전화번호
+          example: 010-1234-5678
+        USER_PW:
+          type: string
+          description: 유저 패스워드
+          example: 1234
+        USER_PW_CONFIRM:
+          type: string
+          description: 유저 패스워드 확인
+          example: 1234
+    certification:
+      type: object
+      properties:
+        USER_EMAIL:
+          type: string
+          description: 유저 이메일
+          example: example@gmail.com
+    confirmation:
+      type: object
+      properties:
+        USER_EMAIL:
+          type: string
+          description: 유저 이메일
+          example: example@gmail.com
+        verificationCode:
+          type: string
+          description: 인증 코드
+          example: 123456
+    findId:
+      type: object
+      properties:
+        USER_NM:
+          type: string
+          description: 유저 이름
+          example: 홍길동
+        PHONE:
+          type: string
+          description: 유저 전화번호
+          example: 01012345678
+    findPw:
+      type: object
+      properties:
+        USER_NM:
+          type: string
+          description: 유저 이름
+          example: 홍길동
+        USER_EMAIL:
+          type: string
+          description: 유저 이메일
+          example: example@gmail.com
+    pwCertification:
+      type: object
+      properties:
+        USER_EMAIL:
+          type: string
+          description: 유저 이메일
+          example: example@gmail.com
+        verificationCode:
+          type: string
+          description: 인증 코드
+          example: 123456
+    pwConfirmation:
+      type: object
+      properties:
+        USER_EMAIL:
+          type: string
+          description: 유저 이메일
+          example: example@gmail.com
+        newPassword:
+          type: string
+          description: 새 비밀번호
+          example: 5678
+        confirmPassword:
+          type: string
+          description: 새 비밀번호 확인
+          example: 5678
     profileUpload:
       type: object
       properties:
@@ -757,6 +976,99 @@ components:
       content:
         text:
           example: '로그인 실패 : 유저 정보를 찾지 못했습니다.'
+    register200:
+      description: 회원가입 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: 회원가입 성공
+              accessToken:
+                type: string
+                description: access token
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVU0VSX1NOIjoxLCJpYXQiOjE3MTY2MzkxMjksImV4cCI6MTcxNjY0MDkyOX0.Q4tn2cP5qBM1OTIHohhxSSADtS_tgIQhdbJbibNot_U
+              refreshToken:
+                type: string
+                description: refresh token
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVU0VSX1NOIjoxLCJpYXQiOjE3MTY2MzkxMjksImV4cCI6MTcxNzI0MzkyOX0.aVv_TxAd1GRAWd9i6MjS47vw1NZb0gC3cKO29Y9pUyc
+              USER_NM:
+                type: string
+                description: 유저 이름
+                example: 이름
+    register400:
+      description: 회원가입 실패
+      content:
+        text/plain:
+          example: '회원가입 실패: 에러 메시지'
+    certification200:
+      description: 이메일 인증 코드 발송 성공
+      content:
+        text/plain:
+          example: 'Verification code sent to your email'
+    certification400:
+      description: 잘못된 요청
+      content:
+        text/plain:
+          example: '이메일 인증 요청 실패: 이메일이 제공되지 않았습니다.'
+    confirmation200:
+      description: 이메일 인증 성공
+      content:
+        text/plain:
+          example: '이메일 인증 성공'
+    confirmation400:
+      description: 잘못된 요청
+      content:
+        text/plain:
+          example: '이메일 인증 실패: 인증 코드가 일치하지 않습니다.'
+    findId200:
+      description: 아이디 찾기 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              USER_ID:
+                type: string
+                description: 유저 아이디
+                example: example@gmail.com
+    findId404:
+      description: 유저 정보를 찾을 수 없음
+      content:
+        text/plain:
+          example: '아이디 찾기 실패: 유저 정보를 찾을 수 없습니다.'
+    findPw200:
+      description: 비밀번호 찾기 인증 코드 발송 성공
+      content:
+        text/plain:
+          example: 'Verification code sent to your email'
+    findPw400:
+      description: 잘못된 요청
+      content:
+        text/plain:
+          example: '비밀번호 찾기 요청 실패: 이메일이 제공되지 않았습니다.'
+    findPw500:
+      description: 서버 오류
+      content:
+        text/plain:
+          example: '비밀번호 찾기 요청 중 오류가 발생했습니다.'
+    pwConfirmation200:
+      description: 비밀번호 재설정 성공
+      content:
+        text/plain:
+          example: '비밀번호가 성공적으로 변경되었습니다.'
+    pwConfirmation400:
+      description: 잘못된 요청
+      content:
+        text/plain:
+          example: '비밀번호 재설정 실패: 새 비밀번호와 확인 비밀번호가 일치하지 않습니다.'
+    pwConfirmation500:
+      description: 서버 오류
+      content:
+        text/plain:
+          example: '비밀번호 재설정 중 오류가 발생했습니다.'
     profileUpload200:
       description: 프로필 업로드 성공
       content:
