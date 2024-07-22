@@ -142,8 +142,8 @@ class MemberService {
         const mailOptions = {
           from: process.env.EMAIL_USER,
           to: USER_EMAIL,
-          subject: 'Email Verification Code',
-          text: `Your verification code is ${verificationCode}`,
+          subject: '프로젝트 매칭 플랫폼 회원가입 인증코드',
+          text: `인증번호 : ${verificationCode}`,
         };
 
         await transporter.sendMail(mailOptions);
@@ -151,7 +151,8 @@ class MemberService {
         await db.TB_USER_EMAIL.upsert({
           USER_EMAIL: USER_EMAIL,
           VERIFICATION_CODE: verificationCode,
-          VERIFIED: false
+          VERIFIED: false,
+          PURPOSE: PURPOSE
         });
 
         //const token = jwt.sign({ USER_EMAIL, verificationCode }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -254,8 +255,8 @@ class MemberService {
       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: USER_EMAIL,
-        subject: 'Password Reset Verification Code',
-        text: `Your verification code is ${verificationCode}`,
+        subject: '프로젝트 매칭 플랫폼 비밀번호 인증번호',
+        text: `인증번호 : ${verificationCode}`,
       };
 
       await transporter.sendMail(mailOptions);
