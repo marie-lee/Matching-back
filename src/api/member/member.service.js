@@ -57,10 +57,6 @@ class MemberService {
           logger.error('회원가입 실패: 비밀번호를 입력해야 합니다.');
           return res.status(400).send('회원가입 실패: 비밀번호를 입력해야 합니다.');
         }
-        if (!PHONE) {
-          logger.error('회원가입 실패: 전화번호를 입력해야 합니다.');
-          return res.status(400).send('회원가입 실패: 전화번호를 입력해야 합니다.');
-        }
 
         // 비밀번호와 비밀번호 확인이 일치하는지 확인
         if (USER_PW !== USER_PW_CONFIRM) {
@@ -88,7 +84,6 @@ class MemberService {
           USER_PW : hashedPassword,
           LOGIN_TYPE:'LOCAL',
           UID: '',
-          PHONE,
           REFRESH_TOKEN: '',
           DEVICE_TOKEN: '',
           CREATED_DT: new Date(),
@@ -142,8 +137,8 @@ class MemberService {
         const mailOptions = {
           from: process.env.EMAIL_USER,
           to: USER_EMAIL,
-          subject: 'Email Verification Code',
-          text: `Your verification code is ${verificationCode}`,
+          subject: '프로젝트 매칭 플랫폼 회원가입 인증코드',
+          text: `인증번호 : ${verificationCode}`,
         };
 
         await transporter.sendMail(mailOptions);
@@ -151,7 +146,8 @@ class MemberService {
         await db.TB_USER_EMAIL.upsert({
           USER_EMAIL: USER_EMAIL,
           VERIFICATION_CODE: verificationCode,
-          VERIFIED: false
+          VERIFIED: false,
+          PURPOSE: PURPOSE
         });
 
         //const token = jwt.sign({ USER_EMAIL, verificationCode }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -194,6 +190,7 @@ class MemberService {
       return res.status(500).send('이메일 인증 코드 확인 중 오류가 발생했습니다.');
     }
  }
+
   async handleGoogleCallback(req, res) {
     //const transaction = await db.transaction();
     try {
@@ -254,8 +251,8 @@ class MemberService {
       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: USER_EMAIL,
-        subject: 'Password Reset Verification Code',
-        text: `Your verification code is ${verificationCode}`,
+        subject: '프로젝트 매칭 플랫폼 비밀번호 인증번호',
+        text: `인증번호 : ${verificationCode}`,
       };
 
       await transporter.sendMail(mailOptions);

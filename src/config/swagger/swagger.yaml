@@ -33,7 +33,16 @@ paths:
           $ref: '#/components/responses/loginRes400'
         '401':
           $ref: '#/components/responses/loginRes401'
-  /member/registeration/join:
+  /member/login/google:
+    get:
+      tags:
+        - member
+      summary: 구글 로그인
+      description: Google OAuth2 로그인
+      responses:
+        '302':
+          description: Redirect to Google for authentication
+  /member/registration/join:
     post:
       tags:
         - member
@@ -51,7 +60,7 @@ paths:
           $ref: '#/components/responses/register200'
         '400':
           $ref: '#/components/responses/register400'
-  /member/registeration/certification:
+  /member/registration/certification:
     post:
       tags:
         - member
@@ -69,7 +78,7 @@ paths:
           $ref: '#/components/responses/certification200'
         '400':
           $ref: '#/components/responses/certification400'
-  /member/registeration/confirmation:
+  /member/registration/confirmation:
     post:
       tags:
         - member
@@ -190,7 +199,7 @@ paths:
           $ref: '#/components/responses/pfPfol200'
       security:
         - JWT: []
-  /membr/profile/{pfolSn}:
+  /member/profile/{pfolSn}:
     get:
       tags:
        - member
