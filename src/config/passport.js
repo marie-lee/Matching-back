@@ -5,7 +5,7 @@ const db = require('../config/db/db');
 passport.use(new GoogleStrategy({
     clientID: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
-    callbackURL: 'http://localhost:8080/api/member/registeration/join/google',
+    callbackURL: 'http://localhost:8080/api/member/registration/join/google',
   },
   async (accessToken, refreshToken, profile, done) => {
     try {

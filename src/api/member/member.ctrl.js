@@ -12,7 +12,7 @@ router.post('/login', async (req, res) => {
     }
 });
 
-router.post('/registeration/join',async (req,res)=>{
+router.post('/registration/join',async (req,res)=>{
   try{
     return await MemberService.register(req,res);
   }catch (error) {
@@ -21,7 +21,7 @@ router.post('/registeration/join',async (req,res)=>{
   }
 });
 
-router.post('/registeration/certification',async (req,res)=>{
+router.post('/registration/certification',async (req,res)=>{
   req.body.PURPOSE = 'register';
   try{
     return await MemberService.requestEmail(req,res);
@@ -31,7 +31,7 @@ router.post('/registeration/certification',async (req,res)=>{
   }
 });
 
-router.post('/registeration/confirmation',async (req,res)=>{
+router.post('/registration/confirmation',async (req,res)=>{
   req.body.PURPOSE = 'register';
   try{
     return await MemberService.verifyEmailCode(req,res);
@@ -43,7 +43,7 @@ router.post('/registeration/confirmation',async (req,res)=>{
 
 router.get('/login/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-router.get('/registeration/join/google', passport.authenticate('google', { session: false, failureRedirect: '/login' }), async (req, res) => {
+router.get('/registration/join/google', passport.authenticate('google', { session: false, failureRedirect: '/login' }), async (req, res) => {
   return await MemberService.handleGoogleCallback(req, res);
 });
 
