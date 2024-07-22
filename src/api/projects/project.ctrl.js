@@ -78,9 +78,11 @@ router.get('/project/wbs/template', jwt.authenticateToken, async (req, res) => {
 router.post('/project/wbs/create/:pjtSn', jwt.authenticateToken, async (req, res)=>{
     const userSn = req.userSn.USER_SN;
     const pjtSn = req.params.pjtSn;
-    const data = req.body;
+    const pjtData = req.body.pjtData;
+    const memberData = req.body.memberData;
+    const wbsData = req.body.wbsData;
     try{
-        await projectService.createWbs(userSn, pjtSn, data);
+        await projectService.createWbs(userSn, pjtSn, pjtData, memberData, wbsData);
         return res.status(200).send('프로젝트 WBS 생성 성공');
     }
     catch (e){

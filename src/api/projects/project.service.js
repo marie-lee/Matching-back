@@ -269,33 +269,47 @@ class projectService {
     }
   }
 
-  async createWbs(userSn, pjtSn, data){
+  async createWbs(userSn, pjtSn, pjtData, memberData, wbsData){
     const t = await db.transaction();
+
+    let depth1Count = 1;
+    let depth2Count = 1;
+
     try {
-      // 시작일 종료일 설정
-      await db.TB_PJT.update(
-          {START_DT: data.START_DT, END_DT: data.END_DT},
-          {where:{PJT_SN: data.PJT_SN},
-          transaction: t
-          });
-      // 멤버 권한 설정
-      for (const member of data[0].members){
-        await db.TB_PJT_M.update(
-            {ROLE: member.ROLE},
-            {where:{PJT_SN: pjtSn, USER_SN: member.USER_SN},
-            transaction: t}
-        );
-      }
-      if(!await db.TB_WBS.findOne({where:{PJT_SN:pjtSn}})){
-        // 템플릿 데이터 입력
-        await db.TB_WBS.create({
-          PJT_SN: pjtSn,
-          TEMPLATE_DATA: JSON.stringify(data[0].TEMPLATE_DATA),
-          LAST_UPDATER: userSn
-        },{t});
+      if(!await db.TB_WBS.findOne({where:{PJT_SN: pjtSn}})){
+        // 시작일 종료일 설정
+        await db.TB_PJT.update(
+            {START_DT: pjtData.START_DT, END_DT: pjtData.END_DT},
+            {where:{PJT_SN: pjtSn},
+            transaction: t
+            });
+
+        // 멤버 권한, 담당 설정
+        for (const member of memberData){
+          await db.TB_PJT_M.update(
+              {ROLE: member.ROLE, PART: member.PART},
+              {where:{PJT_SN: pjtSn, USER_SN: member.USER_SN},
+              transaction: t}
+          );
+        }
+
+        // WBS 생성
+        for(const depth1 of wbsData){
+          // depth1 생성
+          const depth1Data = await db.TB_WBS.create({
+                PJT_SN: pjtSn, TICKET_NAME: depth1.name, ORDER_NUM: depth1Count},
+              {transaction: t});
+          depth2Count = 1;
+
+          for(const depth2 of depth1.child){
+            await this.insertWbs(depth2, pjtSn, depth1Data.TICKET_SN, depth2Count, t);
+            depth2Count++;
+          }
+          depth1Count++;
+        }
       }
       else{
-        throw new Error('WBS가 존재합니다.');
+        new Error('WBS가 존재합니다.');
       }
 
       await t.commit();
@@ -308,14 +322,35 @@ class projectService {
     }
   }
 
+  async insertWbs(depth, pjtSn, parentSn, depthCount, transaction){
+    let depth2Count = 1;
+    // 하위 목록이 있다면
+    if(depth.child){
+      const depthData = await db.TB_WBS.create({
+            PJT_SN: pjtSn, TICKET_NAME: depth.name,
+            PARENT_SN: parentSn ,ORDER_NUM: depthCount},
+          {transaction: transaction});
+      for(const depth2 of depth.child){
+        await this.insertWbs(depth2, pjtSn, depthData.TICKET_SN, depth2Count, transaction);
+        depth2Count++;
+      }
+    }
+    // 하위 목록이 없다면
+    else {
+      await db.TB_WBS.create({
+            PJT_SN: pjtSn, TICKET_NAME: depth.name, WORKER: depth.data.WORKER, START_DT: depth.data.START_DT,
+            END_DT: depth.data.END_DT, STATUS: depth.data.STATUS,
+            PARENT_SN: parentSn ,ORDER_NUM: depthCount},
+          {transaction: transaction});
+    }
+  }
+
   async createWbsInfo(userSn, pjtSn){
     const pjt = await db.TB_PJT.findOne({where:{PJT_SN: pjtSn}});
     if(userSn !== pjt.CREATED_USER_SN){
       throw new Error('프로젝트 생성자가 아닙니다.');
     }
-    const creater = await  db.TB_USER.findOne({where:{USER_SN: pjt.CREATED_USER_SN}});
     const pjtData = {
-      CREATER: creater.USER_NM,
       START_DT: pjt.START_DT,
       END_DT: pjt.END_DT
     };

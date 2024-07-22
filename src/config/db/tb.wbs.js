@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
     const TB_WBS = sequelize.define('TB_WBS', {
-        WBS_SN: {
+        TICKET_SN: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,
@@ -10,13 +10,33 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false
         },
-        TEMPLATE_DATA: {
-            type: DataTypes.TEXT,
+        TICKET_NAME: {
+            type: DataTypes.STRING(1500),
             allowNull: false
         },
-        LAST_UPDATER: {
+        WORKER: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: true
+        },
+        START_DT: {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
+        END_DT: {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
+        STATUS: {
+            type: DataTypes.STRING(45),
+            allowNull: true
+        },
+        PARENT_SN: {
+            type: DataTypes.INTEGER,
+            allowNull: true
+        },
+        ORDER_NUM: {
+            type: DataTypes.INTEGER,
+            allowNull: true
         },
         CREATED_DT: {
             type: DataTypes.DATE,
@@ -46,7 +66,7 @@ module.exports = (sequelize, DataTypes) => {
 
     TB_WBS.associate = models => {
         TB_WBS.belongsTo(models.TB_PJT, { foreignKey: 'PJT_SN' });
-        TB_WBS.belongsTo(models.TB_USER, { foreignKey: 'LAST_UPDATER' });
+        TB_WBS.belongsTo(models.TB_USER, { foreignKey: 'WORKER' });
     };
 
     return TB_WBS;

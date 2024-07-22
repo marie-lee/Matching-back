@@ -976,13 +976,16 @@ components:
     reqCreateWbs:
       type: object
       properties:
-        START_DT:
-          type: string
-          description: 프로젝트 시작일
-        END_DT:
-          type: string
-          description: 프로젝트 종료일
-        members:
+        pjtData:
+          type: object
+          properties:
+            START_DT:
+              type: string
+              description: 프로젝트 시작일
+            END_DT:
+              type: string
+              description: 프로젝트 종료일
+        memberData:
           type: array
           items:
             type: object
@@ -990,44 +993,196 @@ components:
               USER_SN:
                 type: integer
                 description: 멤버의 유저 PK
+              USER_NM:
+                type: string
+                description: 멤버 이름
+              PART:
+                type: string
+                description: 담당 분야
               ROLE:
                 type: string
                 description: 권한 정보
-        TEMPLATE_DATA:
-          type: string
-          description: WBS JSON DATA
+        wbsData:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: 항목 이름
+              child:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: 항목 이름
+                    child:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: 업무 이름
+                          data:
+                            type: object
+                            properties:
+                              WORKER:
+                                type: integer
+                                description: 업무 담당자 USER_SN
+                              START_DT:
+                                type: string
+                                description: 업무 시작 일
+                              END_DT:
+                                type: string
+                                description: 업무 종료 일
+                              STATUS:
+                                type: string
+                                description: 업무 진행 상태
       example:
-        - START_DT: 2024-01-01
+        pjtData:
+          START_DT: 2024-01-01
           END_DT: 2024-01-31
-          members:
+        memberData:
             - USER_SN: 1
+              USER_NM: 홍길동
+              PART: F.E
               ROLE: owner
             - USER_SN: 2
+              USER_NM: 김미영
+              PART: B.E
               ROLE: member
-          TEMPLATE_DATA:
-            {
-              "manage": [
-                {"사전준비": ["기획분석", "WBS 작성"]},
-                {"화면설계": ["화면설계서 작성"]}
-              ],
-              "design": [
-                {"사전준비": ["디자인 레퍼런스 스터디"]},
-                {"시안 작업": ["시안 작업"]},
-                {"디자인 작업": ["상세페이지 디자인"]}
-              ],
-              "publishing": [
-                {"퍼블리싱 작업": ["레이아웃 퍼블리싱", "페이지 퍼블리싱"]}
-              ],
-              "development": [
-                {"사전준비": ["개발 환경 구축", "플랫폼 기본 설정"]},
-                {"DB": ["데이터베이스/테이블 구성"]},
-                {"개발": ["F.E 개발", "B.E 개발"]}
-              ],
-              "testing": [
-                {"1차 테스트": ["1차 개발자 알파 테스트 및 수정"]},
-                {"2차 테스트": ["2차 사용자 알파 테스트", "알파 테스트 수정사항 수정진행"]}
-              ]
-            }
+        wbsData:
+          - name: 기획
+            child:
+              - name: 사전준비
+                child:
+                  - name: 사전준비
+                    data:
+                      WORKER: 1
+                      START_DT: 2024-01-01
+                      END_DT: 2024-01-31
+                      STATUS: 대기
+                  - name: WBS 작성
+                    data:
+                      WORKER: 1
+                      START_DT: 2024-01-01
+                      END_DT: 2024-01-31
+                      STATUS: 대기
+              - name: 화면설계
+                child:
+                  - name: 화면 설계서 작성
+                    data:
+                      WORKER: 1
+                      START_DT: 2024-01-01
+                      END_DT: 2024-01-31
+                      STATUS: 대기
+          - name: 디자인
+            child:
+              - name: 사전준비
+                child:
+                  - name: 디자인 레퍼런스 스터디
+                    data:
+                      WORKER: 1
+                      START_DT: 2024-01-01
+                      END_DT: 2024-01-31
+                      STATUS: 대기
+              - name: 시안작업
+                child:
+                  - name: 시안작업
+                    data:
+                      WORKER: 1
+                      START_DT: 2024-01-01
+                      END_DT: 2024-01-31
+                      STATUS: 대기
+              - name: 디자인 작업
+                child:
+                  - name: 상세 페이지 디자인
+                    data:
+                      WORKER: 1
+                      START_DT: 2024-01-01
+                      END_DT: 2024-01-31
+                      STATUS: 대기
+          - name: 퍼블리싱
+            child:
+              - name: 퍼블리싱 작업
+                child:
+                  - name: 레이아웃 퍼블리싱
+                    data:
+                      WORKER: 1
+                      START_DT: 2024-01-01
+                      END_DT: 2024-01-31
+                      STATUS: 대기
+                  - name: 페이지 퍼블리싱
+                    data:
+                      WORKER: 1
+                      START_DT: 2024-01-01
+                      END_DT: 2024-01-31
+                      STATUS: 대기
+          - name: 개발
+            child:
+              - name: 사전준비
+                child:
+                  - name: 개발환경 구축
+                    data:
+                      WORKER: 1
+                      START_DT: 2024-01-01
+                      END_DT: 2024-01-31
+                      STATUS: 대기
+                  - name: 플랫폼 기본 설정
+                    data:
+                      WORKER: 1
+                      START_DT: 2024-01-01
+                      END_DT: 2024-01-31
+                      STATUS: 대기
+              - name: DB
+                child:
+                  - name: 데이터베이스 / 테이블 구성
+                    data:
+                      WORKER: 1
+                      START_DT: 2024-01-01
+                      END_DT: 2024-01-31
+                      STATUS: 대기
+              - name: 웹 개발
+                child:
+                  - name: FE 개발
+                    data:
+                      WORKER: 1
+                      START_DT: 2024-01-01
+                      END_DT: 2024-01-31
+                      STATUS: 대기
+                  - name: BE 개발
+                    data:
+                      WORKER: 1
+                      START_DT: 2024-01-01
+                      END_DT: 2024-01-31
+                      STATUS: 대기
+          - name: 테스트
+            child:
+              - name: 1차 테스트
+                child:
+                  - name: 1차 개발자 알파 테스트 및 수정
+                    data:
+                      WORKER: 1
+                      START_DT: 2024-01-01
+                      END_DT: 2024-01-31
+                      STATUS: 대기
+              - name: 2차 테스트
+                child:
+                  - name: 2차 사용자 알파 테스트
+                    data:
+                      WORKER: 1
+                      START_DT: 2024-01-01
+                      END_DT: 2024-01-31
+                      STATUS: 대기
+                  - name: 알파 테스트 수정사항 수정작업
+                    data:
+                      WORKER: 1
+                      START_DT: 2024-01-01
+                      END_DT: 2024-01-31
+                      STATUS: 대기
     reqEditWbs:
       type: object
       properties:
@@ -2008,9 +2163,6 @@ components:
               pjtData:
                 type: object
                 properties:
-                  CREATER:
-                    type: string
-                    description: 프로젝트 생성자 이름
                   START_DT:
                     type: string
                     description: 프로젝트 시작일
@@ -2037,7 +2189,6 @@ components:
                       description: 담당
           example:
             - pjtData:
-                CREATER: 홍길동
                 START_DT: 2024-01-01T00:00:00.000Z
                 END_DT: 2024-01-31T00:00:00.000Z
               memberData:
