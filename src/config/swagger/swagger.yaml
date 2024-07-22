@@ -2239,39 +2239,308 @@ components:
           schema:
             type: object
             properties:
-              pjtSn:
-                type: integer
-                description: 프로젝트 PK 값
-                example: 5
-              wbs:
-                type: object
+              wbsData:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    TICKET_SN:
+                      type: integer
+                      description: 항목 SN
+                    name:
+                      type: string
+                      description: 항목 이름
+                    ORDER_NUM:
+                      type: integer
+                      description: 정렬 순위
+                    child:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          TICKET_SN:
+                            type: integer
+                            description: 항목 SN
+                          name:
+                            type: string
+                            description: 항목 이름
+                          PARENT_SN:
+                            type: integer
+                            description: 부모 항목 SN
+                          ORDER_NUM:
+                            type: integer
+                            description: 정렬 순위
+                          child:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                TICKET_SN:
+                                  type: integer
+                                  description: 항목 SN
+                                name:
+                                  type: string
+                                  description: 항목 이름
+                                PARENT_SN:
+                                  type: integer
+                                  description: 부모 항목 SN
+                                ORDER_NUM:
+                                  type: integer
+                                  description: 정렬 순위
+                                data:
+                                  type: object
+                                  properties:
+                                    WORKER:
+                                      type: integer
+                                      description: 업무 담당자 USER_SN
+                                    WORKER_NM:
+                                      type: string
+                                      description: 업무 담당자 이름
+                                    START_DT:
+                                      type: string
+                                      description: 업무 시작 일
+                                    END_DT:
+                                      type: string
+                                      description: 업무 종료 일
+                                    STATUS:
+                                      type: string
+                                      description: 업무 진행 상태
                 example:
-                  manage:
-                    - 사전준비:
-                      - 기획분석:
-                        - engineer: 홍길동
-                          start-date: '2024-01-01'
-                          due-date: '2024-01-07'
-                          status: 대기
-                        - WBS 작성:
-                          - engineer: 홍길동
-                            start-date: '2024-01-01'
-                            due-date: '2024-01-07'
-                            status: 진행중
-                      - 화면설계:
-                        - 화면설계서 작성:
-                          - engineer: 홍길동
-                            start-date: '2024-01-01'
-                            due-date: '2024-01-07'
-                            status: 대기
-              createdDt:
-                type: string
-                description: 생성날짜
-                example: '2024-07-15 10:00:00'
-              modifiedDt:
-                type: string
-                description: 수정날짜
-                example: '2024-07-15 15:30:00'
+                  - TICKET_SN: 1
+                    name: 기획
+                    ORDER_SN: 1
+                    child:
+                      - TICKET_SN: 2
+                        name: 사전준비
+                        PARENT_SN: 1
+                        ORDER_SN: 1
+                        child:
+                          - TICKET_SN: 3
+                            name: 사전준비
+                            PARENT_SN: 2
+                            ORDER_SN: 1
+                            data:
+                              WORKER: 1
+                              WORKER_NM: 홍길동
+                              START_DT: 2024-01-01
+                              END_DT: 2024-01-31
+                              STATUS: 대기
+                          - TICKET_SN: 4
+                            name: WBS 작성
+                            PARENT_SN: 2
+                            ORDER_SN: 2
+                            data:
+                              WORKER: 1
+                              WORKER_NM: 홍길동
+                              START_DT: 2024-01-01
+                              END_DT: 2024-01-31
+                              STATUS: 대기
+                      - TICKET_SN: 5
+                        name: 화면설계
+                        PARENT_SN: 1
+                        ORDER_SN: 2
+                        child:
+                          - TICKET_SN: 6
+                            name: 화면 설계서 작성
+                            PARENT_SN: 5
+                            ORDER_SN: 1
+                            data:
+                              WORKER: 1
+                              WORKER_NM: 홍길동
+                              START_DT: 2024-01-01
+                              END_DT: 2024-01-31
+                              STATUS: 대기
+                  - TICKET_SN: 7
+                    name: 디자인
+                    ORDER_SN: 2
+                    child:
+                      - TICKET_SN: 8
+                        name: 사전준비
+                        PARENT_SN: 7
+                        ORDER_SN: 1
+                        child:
+                          - TICKET_SN: 9
+                            name: 디자인 레퍼런스 스터디
+                            PARENT_SN: 8
+                            ORDER_SN: 1
+                            data:
+                              WORKER: 1
+                              WORKER_NM: 홍길동
+                              START_DT: 2024-01-01
+                              END_DT: 2024-01-31
+                              STATUS: 대기
+                      - TICKET_SN: 10
+                        name: 시안작업
+                        PARENT_SN: 7
+                        ORDER_SN: 2
+                        child:
+                          - TICKET_SN: 11
+                            name: 시안작업
+                            PARENT_SN: 10
+                            ORDER_SN: 1
+                            data:
+                              WORKER: 1
+                              WORKER_NM: 홍길동
+                              START_DT: 2024-01-01
+                              END_DT: 2024-01-31
+                              STATUS: 대기
+                      - TICKET_SN: 12
+                        name: 디자인 작업
+                        PARENT_SN: 7
+                        ORDER_SN: 3
+                        child:
+                          - TICKET_SN: 13
+                            name: 상세 페이지 디자인
+                            PARENT_SN: 12
+                            ORDER_SN: 1
+                            data:
+                              WORKER: 1
+                              WORKER_NM: 홍길동
+                              START_DT: 2024-01-01
+                              END_DT: 2024-01-31
+                              STATUS: 대기
+                  - TICKET_SN: 14
+                    name: 퍼블리싱
+                    ORDER_SN: 3
+                    child:
+                      - TICKET_SN: 15
+                        name: 퍼블리싱 작업
+                        PARENT_SN: 14
+                        ORDER_SN: 1
+                        child:
+                          - TICKET_SN: 16
+                            name: 레이아웃 퍼블리싱
+                            PARENT_SN: 15
+                            ORDER_SN: 1
+                            data:
+                              WORKER: 1
+                              WORKER_NM: 홍길동
+                              START_DT: 2024-01-01
+                              END_DT: 2024-01-31
+                              STATUS: 대기
+                          - TICKET_SN: 17
+                            name: 페이지 퍼블리싱
+                            PARENT_SN: 15
+                            ORDER_SN: 2
+                            data:
+                              WORKER: 1
+                              WORKER_NM: 홍길동
+                              START_DT: 2024-01-01
+                              END_DT: 2024-01-31
+                              STATUS: 대기
+                  - TICKET_SN: 18
+                    name: 개발
+                    ORDER_SN: 4
+                    child:
+                      - TICKET_SN: 19
+                        name: 사전준비
+                        PARENT_SN: 18
+                        ORDER_SN: 1
+                        child:
+                          - TICKET_SN: 20
+                            name: 개발환경 구축
+                            PARENT_SN: 19
+                            ORDER_SN: 1
+                            data:
+                              WORKER: 1
+                              WORKER_NM: 홍길동
+                              START_DT: 2024-01-01
+                              END_DT: 2024-01-31
+                              STATUS: 대기
+                          - TICKET_SN: 21
+                            name: 플랫폼 기본 설정
+                            PARENT_SN: 19
+                            ORDER_SN: 2
+                            data:
+                              WORKER: 1
+                              WORKER_NM: 홍길동
+                              START_DT: 2024-01-01
+                              END_DT: 2024-01-31
+                              STATUS: 대기
+                      - TICKET_SN: 22
+                        name: DB
+                        PARENT_SN: 18
+                        ORDER_SN: 2
+                        child:
+                          - TICKET_SN: 23
+                            name: 데이터베이스 / 테이블 구성
+                            PARENT_SN: 22
+                            ORDER_SN: 1
+                            data:
+                              WORKER: 1
+                              WORKER_NM: 홍길동
+                              START_DT: 2024-01-01
+                              END_DT: 2024-01-31
+                              STATUS: 대기
+                      - TICKET_SN: 24
+                        name: 웹 개발
+                        PARENT_SN: 18
+                        ORDER_SN: 3
+                        child:
+                          - TICKET_SN: 25
+                            name: FE 개발
+                            PARENT_SN: 24
+                            ORDER_SN: 1
+                            data:
+                              WORKER: 1
+                              WORKER_NM: 홍길동
+                              START_DT: 2024-01-01
+                              END_DT: 2024-01-31
+                              STATUS: 대기
+                          - TICKET_SN: 26
+                            name: BE 개발
+                            PARENT_SN: 24
+                            ORDER_SN: 2
+                            data:
+                              WORKER: 1
+                              WORKER_NM: 홍길동
+                              START_DT: 2024-01-01
+                              END_DT: 2024-01-31
+                              STATUS: 대기
+                  - TICKET_SN: 27
+                    name: 테스트
+                    ORDER_SN: 5
+                    child:
+                      - TICKET_SN: 28
+                        name: 1차 테스트
+                        PARENT_SN: 27
+                        ORDER_SN: 1
+                        child:
+                          - TICKET_SN: 29
+                            name: 1차 개발자 알파 테스트 및 수정
+                            PARENT_SN: 28
+                            ORDER_SN: 1
+                            data:
+                              WORKER: 1
+                              WORKER_NM: 홍길동
+                              START_DT: 2024-01-01
+                              END_DT: 2024-01-31
+                              STATUS: 대기
+                      - TICKET_SN: 30
+                        name: 2차 테스트
+                        PARENT_SN: 27
+                        ORDER_SN: 2
+                        child:
+                          - TICKET_SN: 31
+                            name: 2차 사용자 알파 테스트
+                            PARENT_SN: 30
+                            ORDER_SN: 1
+                            data:
+                              WORKER: 1
+                              WORKER_NM: 홍길동
+                              START_DT: 2024-01-01
+                              END_DT: 2024-01-31
+                              STATUS: 대기
+                          - TICKET_SN: 32
+                            name: 알파 테스트 수정사항 수정작업
+                            PARENT_SN: 30
+                            ORDER_SN: 2
+                            data:
+                              WORKER: 1
+                              WORKER_NM: 홍길동
+                              START_DT: 2024-01-01
+                              END_DT: 2024-01-31
+                              STATUS: 대기
     getWBS400:
       description: WBS 조회 중 오류 발생
       content:

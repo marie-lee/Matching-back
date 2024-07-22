@@ -124,7 +124,9 @@ router.post('/project/wbs/edit/:pjtSn', jwt.authenticateToken, async (req,res) =
 
 router.get('/project/wbs/:pjtSn', jwt.authenticateToken, async (req, res)=> {
     try{
-        const data = await projectService.getWbs(req, res);
+        const userSn = req.userSn.USER_SN;
+        const pjtSn = req.params.pjtSn;
+        const data = await projectService.getWbs(userSn, pjtSn);
         if(data != null){ return res.status(200).json(data); }
         else { return res.status(400).send('조회되는 WBS가 없습니다.'); }
     } catch (error){

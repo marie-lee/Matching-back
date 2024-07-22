@@ -276,7 +276,7 @@ class projectService {
     let depth2Count = 1;
 
     try {
-      if(!await db.TB_WBS.findOne({where:{PJT_SN: pjtSn}})){
+      if(!await db.TB_WBS.findOne({where:{PJT_SN: pjtSn, PARENT_SN: null, ORDER_NUM: 1, DEL_YN: false}})){
         // 시작일 종료일 설정
         await db.TB_PJT.update(
             {START_DT: pjtData.START_DT, END_DT: pjtData.END_DT},
@@ -354,13 +354,13 @@ class projectService {
       START_DT: pjt.START_DT,
       END_DT: pjt.END_DT
     };
-    const members = await  db.TB_PJT_M.findAll({where:{PJT_SN: pjtSn}});
+    const members = await  db.TB_PJT_M.findAll({where:{PJT_SN: pjtSn, DEL_YN: false}});
     let memberData = [];
 
 
     for(const member of members){
-      const user = await  db.TB_USER.findOne({where: {USER_SN: member.USER_SN}});
-      const part = await  db.TB_PJT_ROLE.findOne({where: {PJT_ROLE_SN: member.PJT_ROLE_SN}});
+      const user = await  db.TB_USER.findOne({where: {USER_SN: member.USER_SN, DEL_YN: false}});
+      const part = await  db.TB_PJT_ROLE.findOne({where: {PJT_ROLE_SN: member.PJT_ROLE_SN, DEL_YN: false}});
       const userData = {
         USER_IMG: user.USER_IMG,
         USER_SN: user.USER_SN,
@@ -378,7 +378,7 @@ class projectService {
   async editWbs(userSn, pjtSn, data){
     const t = await db.transaction();
     try {
-      if (!await db.TB_WBS.findOne({where: {PJT_SN: pjtSn}})) {
+      if (!await db.TB_WBS.findOne({where: {PJT_SN: pjtSn, PARENT_SN: null, ORDER_NUM: 1, DEL_YN: false}})) {
         throw new Error('WBS가 존재하지 않습니다.');
       } else {
         // 템플릿 데이터 입력
@@ -400,28 +400,112 @@ class projectService {
     }
   }
 
-  async getWbs(req, res) {
-    const user = req.userSn.USER_SN;
-    const pjt = req.params.pjtSn;
-
+  async getWbs(userSn, pjtSn) {
+    let depth1Array = [];
     try {
       const member = await db.TB_PJT_M.findOne({
-        where: {PJT_SN: pjt, USER_SN: user, DEL_YN: false}
+        where: {PJT_SN: pjtSn, USER_SN: userSn, DEL_YN: false}
       });
       if(!member){ throwError('프로젝트 참여 멤버가 아닙니다.'); }
-      const data = await db.TB_WBS.findOne({
-        where: {PJT_SN: pjt, DEL_YN: false},
-        attributes: [['TEMPLATE_DATA', 'templateData'], ['CREATED_DT', 'createdDt'], ['MODIFIED_DT', 'modifiedDt']],
+
+      const depth1Data = await db.TB_WBS.findAll({
+        where: {PJT_SN: pjtSn, PARENT_SN: null},
+        order: [
+            ['ORDER_NUM', 'ASC']
+        ]
       });
 
-      if(data === null){ return null; }
-      const { templateData, createdDt, modifiedDt } = data.dataValues || {};
-      const wbs = templateData ? JSON.parse(templateData) : null;
+      for (const depth1 of depth1Data){
+        let depth2Array = [];
+        const depth2Data = await db.TB_WBS.findAll({
+          where: {PJT_SN: pjtSn, PARENT_SN: depth1.TICKET_SN, DEL_YN: false},
+          order: [
+            ['ORDER_NUM', 'ASC']
+          ]
+        });
+
+        for(const depth2 of depth2Data){
+          let depth3Array = [];
+          const depth3Data = await db.TB_WBS.findAll({
+            where: {PJT_SN: pjtSn, PARENT_SN: depth2.TICKET_SN, DEL_YN: false},
+            order: [
+              ['ORDER_NUM', 'ASC']
+            ]
+          });
+          if(depth3Data[0].WORKER === null){
+            for(const depth3 of depth3Data){
+              let depth4Array = [];
+              const depth4Data = await db.TB_WBS.findAll({
+                where: {PJT_SN: pjtSn, PARENT_SN: depth3.TICKET_SN, DEL_YN: false},
+                order: [
+                  ['ORDER_NUM', 'ASC']
+                ]
+              });
+              for(const depth4 of depth4Data){
+                const user = await db.TB_USER.findOne({where:{USER_SN: depth4.WORKER}});
+                const object = {
+                  TICKET_SN: depth4.TICKET_SN,
+                  name: depth4.TICKET_NAME,
+                  PARENT_SN: depth4.PARENT_SN,
+                  ORDER_NUM: depth4.ORDER_NUM,
+                  data: {
+                    WORKER: depth4.WORKER,
+                    WORKER_NM: user.USER_NM,
+                    START_DT: depth4.START_DT,
+                    END_DT: depth4.END_DT,
+                    STATUS: depth4.STATUS
+                  }
+                };
+                depth4Array.push(object);
+              }
+              const depth3Object = {
+                TICKET_SN: depth3.TICKET_SN,
+                name: depth3.TICKET_NAME,
+                ORDER_NUM: depth3.ORDER_NUM,
+                PARENT_SN: depth3.PARENT_SN,
+                child: depth4Array
+              };
+              depth3Array.push(depth3Object);
+            }
+          }
+          else{
+            for(const depth3 of depth3Data){
+              const user = await db.TB_USER.findOne({where:{USER_SN:depth3.WORKER}});
+              const depth3Object = {
+                TICKET_SN: depth3.TICKET_SN,
+                name: depth3.TICKET_NAME,
+                PARENT_SN: depth3.PARENT_SN,
+                ORDER_NUM: depth3.ORDER_NUM,
+                data: {
+                  WORKER: depth3.WORKER,
+                  WORKER_NM: user.USER_NM,
+                  START_DT: depth3.START_DT,
+                  END_DT: depth3.END_DT,
+                  STATUS: depth3.STATUS
+                }
+              };
+              depth3Array.push(depth3Object);
+            }
+            const depth2Object = {
+              TICKET_SN: depth2.TICKET_SN,
+              name: depth2.TICKET_NAME,
+              PARENT_SN: depth2.PARENT_SN,
+              ORDER_NUM: depth2.ORDER_NUM,
+              child: depth3Array
+            };
+            depth2Array.push(depth2Object);
+          }
+        }
+        const depth1Object = {
+          TICKET_SN: depth1.TICKET_SN,
+          name: depth1.TICKET_NAME,
+          ORDER_NUM: depth1.ORDER_NUM,
+          child: depth2Array
+        };
+        depth1Array.push(depth1Object);
+      }
       return {
-        pjtSn: pjt,
-        wbs,
-        createdDt: createdDt ? formatDt(createdDt) : null,
-        modifiedDt: modifiedDt ? formatDt(modifiedDt) : null,
+        wbsData: depth1Array
       };
 
     } catch (error) {
