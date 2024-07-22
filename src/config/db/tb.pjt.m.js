@@ -18,6 +18,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false
       },
+      PART: {
+        type: DataTypes.STRING(45),
+        allowNull: true
+      },
       ROLE: {
         type: DataTypes.STRING(45),
         allowNull: true
