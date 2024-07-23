@@ -33,6 +33,26 @@ paths:
           $ref: '#/components/responses/loginRes400'
         '401':
           $ref: '#/components/responses/loginRes401'
+  /member/login/google:
+    post:
+      tags:
+        - member
+      summary: google login
+      description: google login
+      requestBody:
+        description: google login
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/googleLoginReq'
+        required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/loginRes200'
+        '400':
+          $ref: '#/components/responses/loginRes400'
+        '500':
+          $ref: '#/components/responses/loginRes500'
   /member/registration/join:
     post:
       tags:
@@ -45,6 +65,24 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/register'
+        required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/register200'
+        '400':
+          $ref: '#/components/responses/register400'
+  /member/registration/join/google:
+    post:
+      tags:
+        - member
+      summary: 구글 회원가입
+      description: 구글 회원가입
+      requestBody:
+        description:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/googleRegister'
         required: true
       responses:
         '200':
@@ -588,6 +626,16 @@ components:
       required:
         - email
         - password
+    googleLoginReq:
+      description: google login request
+      type: object
+      properties:
+        email:
+          type: string
+          description: 구글 이메일
+          example: example@gmail.com
+      required:
+        - email
     register:
       type: object
       properties:
@@ -611,6 +659,21 @@ components:
           type: string
           description: 유저 패스워드 확인
           example: 1234
+    googleRegister:
+      type: object
+      properties:
+        USER_NM:
+          type: string
+          description: 구글 사용자 이름
+          example: 홍길동
+        USER_EMAIL:
+          type: string
+          description: 구글 사용자 이메일
+          example: example@gmail.com
+        PHONE:
+          type: string
+          description: 유저 전화번호
+          example: 01012345678
     certification:
       type: object
       properties:
@@ -1251,6 +1314,11 @@ components:
       content:
         text:
           example: '로그인 실패 : 유저 정보를 찾지 못했습니다.'
+    loginRes500:
+      description: 서버 오류
+      content:
+        text/plain:
+          example: '구글 로그인 중 오류발생'
     register200:
       description: 회원가입 성공
       content:

@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const MemberService = require('./member.service');
 const {logger} = require('../../utils/logger');
-const passport = require('passport');
 
 router.post('/login', async (req, res) => {
     try {
@@ -14,7 +13,15 @@ router.post('/login', async (req, res) => {
 
 router.post('/registration/join',async (req,res)=>{
   try{
-    return await MemberService.register(req,res);
+    return await MemberService.register(req,res,'local');
+  }catch (error) {
+    logger.error('회원가입 실패',error);
+    return res.status(400).send('회원가입 실패 : ' + error);
+  }
+});
+router.post('/registration/join/google',async (req,res)=>{
+  try{
+    return await MemberService.register(req,res,'google');
   }catch (error) {
     logger.error('회원가입 실패',error);
     return res.status(400).send('회원가입 실패 : ' + error);
@@ -41,10 +48,13 @@ router.post('/registration/confirmation',async (req,res)=>{
   }
 });
 
-router.get('/login/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-
-router.get('/registration/join/google', passport.authenticate('google', { session: false, failureRedirect: '/login' }), async (req, res) => {
-  return await MemberService.handleGoogleCallback(req, res);
+router.post('/login/google',async (req,res)=>{
+  try{
+    return await MemberService.googleLogin(req,res);
+  }catch (error){
+    logger.error('구글 로그인 실패:',error);
+    return res.status(400).send('구글 로그인 실패:'+error.message);
+  }
 });
 
 router.post('/find/id',async (req,res)=>{
