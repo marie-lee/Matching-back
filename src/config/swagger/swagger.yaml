@@ -602,7 +602,7 @@ components:
         PHONE:
           type: string
           description: 유저 전화번호
-          example: 010-1234-5678
+          example: 01012345678
         USER_PW:
           type: string
           description: 유저 패스워드

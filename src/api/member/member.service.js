@@ -189,7 +189,8 @@ class MemberService {
 
       await db.TB_USER_EMAIL.update({ VERIFIED: true }, { where: { USER_EMAIL: USER_EMAIL, PURPOSE: PURPOSE } });
 
-      return res.status(200).json({ message: '이메일 인증 성공', token: token });
+      // return res.status(200).json({ message: '이메일 인증 성공', token: token });
+      return res.status(200).json({ message: '이메일 인증 성공'});
     } catch (error) {
       logger.error('이메일 인증 코드 확인 중 오류 발생:', error);
       return res.status(500).send('이메일 인증 코드 확인 중 오류가 발생했습니다.');
