@@ -22,7 +22,7 @@ class recommendationService {
         const pjtSn = req.params.pjtSn;
 
         try {
-            await mutex.lock();
+            // await mutex.lock();
             // 파이썬 실행
             const pyResult = await runPythonScript(pjtSn);
 
@@ -43,10 +43,10 @@ class recommendationService {
                 };
             });
 
-            mutex.unlock(); // Mutex 해제
+            // mutex.unlock(); // Mutex 해제
             return res.status(200).send(matchingResult);
         } catch (error) {
-            mutex.unlock(); // Mutex 해제
+            // mutex.unlock(); // Mutex 해제
             throw error;
         }
     }
