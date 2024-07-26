@@ -652,13 +652,13 @@ class profileService {
                                 WHERE usr.USER_SN = ${userSn} AND usr.DEL_YN = 'N'
                                 GROUP BY pf.PF_SN, usr.USER_SN, usr.USER_NM;`;
         try {
-            await mutex.lock();
+            // await mutex.lock();
             const pfPfolData = await db.query(query, {type: QueryTypes.SELECT});
             const pfPfolJson = JSON.stringify(pfPfolData);
             await runPfPfolToVec(pfPfolJson);
-            mutex.unlock(); // Mutex 해제
+            // mutex.unlock(); // Mutex 해제
         } catch (error){
-            mutex.unlock(); // Mutex 해제
+            // mutex.unlock(); // Mutex 해제
             throw error;
         }
     }

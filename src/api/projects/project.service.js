@@ -256,15 +256,15 @@ class projectService {
 
   async toVectorPjt(userSn, pjtSn) {
     try {
-      await mutex.lock()
+      // await mutex.lock()
       const pjtData = await this.myProject(userSn, pjtSn);
       const pjtJson = JSON.stringify(pjtData.dataValues);
       await runPjtToVec(pjtJson).then(() => {
         console.log("프로젝트 벡터화 완료")
       })
-      mutex.unlock(); // Mutex 해제
+      // mutex.unlock(); // Mutex 해제
     } catch (error) {
-      mutex.unlock(); // Mutex 해제
+      // mutex.unlock(); // Mutex 해제
       throw new Error("프로젝트 데이터 벡터화 처리 중 에러 발생: ", error);
     }
   }
