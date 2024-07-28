@@ -40,45 +40,46 @@ class MemberService {
     }
 
     async register(req, res, type){
+      const { USER_NM, USER_EMAIL, USER_PW, USER_PW_CONFIRM, PHONE } = req.body;
+
+      if (!USER_NM) {
+        logger.error('회원가입 실패: 이름을 입력해야 합니다.');
+        return res.status(400).send('회원가입 실패: 이름을 입력해야 합니다.');
+      }
+      if (!USER_EMAIL) {
+        logger.error('회원가입 실패: 이메일을 입력해야 합니다.');
+        return res.status(400).send('회원가입 실패: 이메일을 입력해야 합니다.');
+      }
+      if (type === 'local') {
+        if (!USER_PW) {
+          logger.error('회원가입 실패: 비밀번호를 입력해야 합니다.');
+          return res.status(400).send('회원가입 실패: 비밀번호를 입력해야 합니다.');
+        }
+        if (USER_PW !== USER_PW_CONFIRM) {
+          logger.error('회원가입 실패: 비밀번호가 일치하지 않습니다.');
+          return res.status(400).send('회원가입 실패: 비밀번호가 일치하지 않습니다.');
+        }
+      }
+      if (!PHONE) {
+        logger.error('회원가입 실패: 전화번호를 입력해야 합니다.');
+        return res.status(400).send('회원가입 실패: 전화번호를 입력해야 합니다.');
+      }
+
+      const emailVerification = await db.TB_USER_EMAIL.findOne({ where: { USER_EMAIL, VERIFIED: true } });
+
+      if (!emailVerification) {
+        logger.error('회원가입 실패: 이메일 인증이 완료되지 않았습니다.');
+        return res.status(400).send('회원가입 실패: 이메일 인증이 완료되지 않았습니다.');
+      }
+
+      const existingUser = await db.TB_USER.findOne({ where: { USER_EMAIL } });
+      if (existingUser) {
+        logger.error('회원가입 실패: 이미 존재하는 이메일입니다.');
+        return res.status(400).send('회원가입 실패: 이미 존재하는 이메일입니다.');
+      }
+
       const transaction = await db.transaction();
       try{
-        const { USER_NM, USER_EMAIL, USER_PW, USER_PW_CONFIRM, PHONE } = req.body;
-
-        if (!USER_NM) {
-          logger.error('회원가입 실패: 이름을 입력해야 합니다.');
-          return res.status(400).send('회원가입 실패: 이름을 입력해야 합니다.');
-        }
-        if (!USER_EMAIL) {
-          logger.error('회원가입 실패: 이메일을 입력해야 합니다.');
-          return res.status(400).send('회원가입 실패: 이메일을 입력해야 합니다.');
-        }
-        if (type === 'local') {
-          if (!USER_PW) {
-            logger.error('회원가입 실패: 비밀번호를 입력해야 합니다.');
-            return res.status(400).send('회원가입 실패: 비밀번호를 입력해야 합니다.');
-          }
-          if (USER_PW !== USER_PW_CONFIRM) {
-            logger.error('회원가입 실패: 비밀번호가 일치하지 않습니다.');
-            return res.status(400).send('회원가입 실패: 비밀번호가 일치하지 않습니다.');
-          }
-        }
-        if (!PHONE) {
-          logger.error('회원가입 실패: 전화번호를 입력해야 합니다.');
-          return res.status(400).send('회원가입 실패: 전화번호를 입력해야 합니다.');
-        }
-
-        const emailVerification = await db.TB_USER_EMAIL.findOne({ where: { USER_EMAIL, VERIFIED: true } });
-
-        if (!emailVerification) {
-          logger.error('회원가입 실패: 이메일 인증이 완료되지 않았습니다.');
-          return res.status(400).send('회원가입 실패: 이메일 인증이 완료되지 않았습니다.');
-        }
-
-        const existingUser = await db.TB_USER.findOne({ where: { USER_EMAIL } });
-        if (existingUser) {
-          logger.error('회원가입 실패: 이미 존재하는 이메일입니다.');
-          return res.status(400).send('회원가입 실패: 이미 존재하는 이메일입니다.');
-        }
         let hashedPassword = '';
         if (type === 'local') {
           hashedPassword = await bcrypt.hash(USER_PW, 10);
