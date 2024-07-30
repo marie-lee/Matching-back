@@ -21,23 +21,22 @@ router.get('/project/all', async (req,res) => {
 
 // 내가 생성헌 프로젝트 리스트 조회
 router.get('/project', jwt.authenticateToken, async (req, res) => {
+    const userSn = req.userSn.USER_SN;
     try {
-        const userSn = req.userSn.USER_SN;
         const myProjects = await projectService.myProjects(userSn);
-        return res.status(200).send(myProjects);
+        return res.status(200).json(myProjects);
     } catch (error) {
         logger.error('내 프로젝트 리스트 조회 실패', error);
-        return res.status(400).send('내 프로젝트 리스트 조회 실패 : ' + error);
+        return res.status(400).json('내 프로젝트 리스트 조회 실패 : ' + error);
     }
 });
 
 // 내가 참여한 프로젝트 상세 조회
 router.get('/project/:pjtSn', jwt.authenticateToken, async (req, res) => {
+    const userSn = req.userSn.USER_SN;
+    const pjtSn = req.params.pjtSn;
     try {
-        const userSn = req.userSn.USER_SN;
-        const pjtSn = req.params.pjtSn;
         const pjtData = await projectService.myProject(userSn, pjtSn);
-
         if(pjtData.message){ return res.status(400).json({message : pjtData.message}); }
         return res.status(200).json(pjtData);
     } catch (error) {
@@ -76,17 +75,17 @@ router.post('/project/add', jwt.authenticateToken, upload.single('PJT_IMG'), asy
 
 // 프로젝트 멤버 리스트 조회
 router.get('/project/member/:pjtSn', jwt.authenticateToken, async (req, res) => {
+    const user = req.userSn.USER_SN;
+    const pjt = req.params.pjtSn;
     try {
-        const user = req.userSn.USER_SN;
-        const pjt = req.params.pjtSn;
         const members = await projectService.getProjectMember(user, pjt);
         if (members.message) {
-            return res.status(200).send(members.message);
+            return res.status(200).json(members.message);
         }
-        return res.status(200).send(members);
+        return res.status(200).json(members);
     } catch (error) {
         logger.error('프로젝트 멤버 리스트 조회 실패: ', error);
-        return res.status(400).send('프로젝트 멤버 리스트 조회 실패: ' + error.message)
+        return res.status(400).json('프로젝트 멤버 리스트 조회 실패: ' + error.message)
     }
 });
 
