@@ -20,7 +20,7 @@ class recommendationService {
 
             const userPfPfol = await profileService.pfPfolSelectAll(sortedKeys, user);
 
-            const matchingResult = userPfPfol.map(profile => {
+            return userPfPfol.map(profile => {
                 const pfSn = profile.pfSn;
                 const similarityScore = dataJson[pfSn.toString()];
                 return {
