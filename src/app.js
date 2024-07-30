@@ -18,7 +18,7 @@ require('dotenv').config();
 // ctrl
 const memberCtrl = require('./api/member/member.ctrl');
 const profileCtrl = require('./api/profile/profile.ctrl');
-const projectCtrl = require('./api/projects/project.ctrl');
+const projectCtrl = require('./api/project/project.ctrl');
 const statusCtrl = require('./api/status/status.ctrl');
 const recommendationCtrl = require('./api/recommendation/recommendation.ctrl');
 
