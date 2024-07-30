@@ -1,7 +1,7 @@
 const db = require('../../config/db/db');
 const { logger } = require('../../utils/logger');
 const { QueryTypes } = require("sequelize");
-const projectService = require('../projects/project.service');
+const projectService = require('../project/project.service');
 const profileService = require('../profile/profile.service');
 const {runPythonScript} = require("../../utils/matching/spawnMatching");
 const mutex = require('../../utils/matching/Mutex');

@@ -178,6 +178,10 @@ const updatePjtMemCnt = async(pjtRole, transaction) => {
         await pjtRole.increment('CNT', {by: 1, transaction})
 }
 
+const myCreatedProjectList = async(user) => {
+    return await db.TB_PJT.findAll({where: {CREATED_USER_SN: user, DEL_YN:false}});
+}
+
 module.exports = {
     createProject,
     findOrCreateStack,
@@ -196,4 +200,5 @@ module.exports = {
     pjtRoleInfo,
     pjtRoleMem,
     updatePjtMemCnt,
+    myCreatedProjectList
 };

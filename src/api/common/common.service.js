@@ -2,7 +2,7 @@ const db = require('../../config/db/db');
 const {logger} = require('../../utils/logger');
 const {QueryTypes} = require("sequelize");
 const {throwError} = require("../../utils/errors");
-const {getProjectIntro} = require("../projects/project.service");
+const {getProjectIntro} = require("../project/project.service");
 const {error} = require("winston");
 const moment = require("moment")
 
