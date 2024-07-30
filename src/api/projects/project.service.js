@@ -37,15 +37,8 @@ class projectService {
   }
 
   async myProjects(userSn) {
-    const query = `SELECT pj.PJT_SN, pj.PJT_NM, pj.PJT_INTRO, pj.START_DT, pj.END_DT, pj.PERIOD, pj.DURATION_UNIT, pj.CREATED_USER_SN, pj.PJT_STTS
-                   FROM TB_USER usr
-                          LEFT JOIN TB_PJT_M pjm ON usr.USER_SN = pjm.USER_SN AND pjm.DEL_YN = FALSE
-                          LEFT JOIN TB_PJT pj ON pjm.PJT_SN = pj.PJT_SN AND pj.DEL_YN = FALSE
-                   WHERE usr.USER_SN = ${userSn}
-                   GROUP BY pj.PJT_SN;`;
     try {
-      const pjtLists = await db.query(query, {type: QueryTypes.SELECT});
-      return pjtLists
+      return await projectRepository.getMyProjects(userSn)
     } catch (error) {
       logger.error('내 프로젝트 리스트 조회 중 에러 발생:', error);
       throw error;
@@ -59,27 +52,17 @@ class projectService {
       throw error;
     }
   };
-  async getProjectMember(req, res) {
-    const user = req.userSn.USER_SN;
-    const pjt = req.params.pjtSn;
+
+  async getProjectMember(user, pjt) {
     try {
-      const memList = await db.TB_PJT_M.findAll({
-        where: {PJT_SN: pjt, DEL_YN: false},
-        attributes: [['PJT_MEM_SN', 'pjtMemSn'], ['USER_SN', 'userSn'], [db.Sequelize.col('TB_USER.USER_NM'), 'userNm'], ['PJT_ROLE_SN', 'pjtRoleSn'], [db.Sequelize.col('TB_PJT_ROLE.PART'), 'part'], ['FIRST_DT', 'firstDt'], ['END_DT', 'endDt'], ['DEL_YN', 'delYn'],],
-        include: [{
-          model: db.TB_USER, attributes: [],
-        }, {
-          model: db.TB_PJT_ROLE, attributes: [], where: {DEL_YN: false},
-        }],
-        having: db.Sequelize.literal(`
-          EXISTS( SELECT 1 FROM TB_PJT_M pm WHERE pm.PJT_SN = ${pjt} AND pm.USER_SN = ${user})
-        `)
-      });
+      const memList = await projectRepository.findProjectMembers(user, pjt);
+
       if (!memList || memList.length === 0) {
-        throwError('해당 프로젝트이 존재하지 않거나 권한이 없습니다.');
+        return {message: '프로젝트 멤버가 존재하지 않습니다.'};
       }
       return memList;
     } catch (error) {
+      logger.error('프로젝트 멤버 조회 중 오류 발생:', error);
       throw error;
     }
   }

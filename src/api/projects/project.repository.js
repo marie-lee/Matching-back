@@ -71,13 +71,13 @@ const getAllProjects = async() => {
 
 // 내 프로젝트 조회
 const getMyProjects = async(userSn) => {
-    const query = `SELECT pj.PJT_SN, pj.PJT_NM, pj.PJT_INTRO, pj.START_DT, pj.END_DT, pj.PERIOD, pj.DURATION_UNIT, pj.CREATED_USER_SN, tcc.CMMN_CD_VAL AS PJT_STTS
-                       FROM TB_USER usr
-                              LEFT JOIN TB_PJT_M pjm ON usr.USER_SN = pjm.USER_SN AND pjm.DEL_YN = FALSE
-                              LEFT JOIN TB_PJT pj ON pjm.PJT_SN = pj.PJT_SN AND pj.DEL_YN = FALSE
-                              INNER JOIN TB_CMMN_CD tcc ON tcc.CMMN_CD_TYPE = 'PJT_STTS' AND tcc.CMMN_CD = pj.PJT_STTS
-                       WHERE usr.USER_SN = ${userSn}
-                       GROUP BY pj.PJT_SN;`;
+    const query = `SELECT pj.PJT_SN, pj.PJT_NM, pj.PJT_INTRO, pj.START_DT, pj.END_DT, pj.PERIOD, pj.DURATION_UNIT, pj.CREATED_USER_SN, pj.PJT_STTS
+                   FROM TB_USER usr
+                          LEFT JOIN TB_PJT_M pjm ON usr.USER_SN = pjm.USER_SN AND pjm.DEL_YN = FALSE
+                          LEFT JOIN TB_PJT pj ON pjm.PJT_SN = pj.PJT_SN AND pj.DEL_YN = FALSE
+                          INNER JOIN TB_CMMN_CD tcc ON tcc.CMMN_CD_TYPE = 'PJT_STTS' AND tcc.CMMN_CD = pj.PJT_STTS
+                   WHERE usr.USER_SN = ${userSn}
+                   GROUP BY pj.PJT_SN;`;
 
     return await db.query(query, {type: QueryTypes.SELECT});
 }
@@ -154,14 +154,11 @@ const findProjectMembers = async(user, pjt) => {
             ['END_DT', 'endDt'],
             ['DEL_YN', 'delYn']
         ],
-        include: [{
-            model: db.TB_USER, attributes: []
-        }, {
-            model: db.TB_PJT_ROLE, attributes: [], where: {DEL_YN: false}
-        }],
-        having: db.Sequelize.literal(`
-                EXISTS(SELECT 1 FROM TB_PJT_M pm WHERE pm.PJT_SN = ${pjt} AND pm.USER_SN = ${user})
-            `)
+        include: [
+            {model: db.TB_USER, attributes: []},
+            {model: db.TB_PJT_ROLE, attributes: [], where: {DEL_YN: false}}
+        ],
+        having: db.Sequelize.literal(`EXISTS(SELECT 1 FROM TB_PJT_M pm WHERE pm.PJT_SN = ${pjt} AND pm.USER_SN = ${user})`)
     });
 }
 
