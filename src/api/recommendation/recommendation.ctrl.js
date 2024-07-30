@@ -3,6 +3,7 @@ const router = express.Router();
 const recommendationService = require('./recommendation.service');
 const jwt = require('../../utils/jwt/jwt');
 const {logger} = require('../../utils/logger');
+
 router.get('/recommendation/project/:pjtSn', jwt.authenticateToken, async (req, res)=>{
     const pjt = req.params.pjtSn;
     const user = req.userSn.USER_SN;
