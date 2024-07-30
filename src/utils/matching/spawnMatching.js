@@ -10,7 +10,7 @@ const runPythonScript = (pjtSn) => {
         const pythonProcess = spawn(process.env.PYTHON_PATH, ['/home/dldudgus/Matching-back/src/utils/matching/matching.py', pjtSn], {env: {PYTHONIOENCODING: 'utf-8'}});
 
         // 로컬
-        // const pythonProcess = spawn('python', ['./src/utils/matching/matching.py', pjtSn], {env: {PYTHONIOENCODING: 'utf-8'}});
+        // const pythonProcess = spawn(process.env.PYTHON_PATH, ['./src/utils/matching/matching.py', pjtSn], {env: {PYTHONIOENCODING: 'utf-8'}});
 
 
         let result = '';
