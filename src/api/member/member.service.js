@@ -125,12 +125,6 @@ class MemberService {
           return res.status(400).send('이메일 인증 요청 실패: 이메일이 제공되지 않았습니다.');
         }
 
-        const email = await db.TB_USER.findOne({where:{USER_EMAIL}});
-        if(PURPOSE === 'register' && email){
-          logger.error('이메일 인증 요청 실패 : 이미 존재하는 이메일입니다.');
-          return res.status(400).send('이메일 인증 요청 실패 : 이미 존재하는 이메일입니다');
-        }
-
         const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
         const transporter = nodemailer.createTransport({
