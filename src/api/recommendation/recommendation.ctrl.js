@@ -16,5 +16,4 @@ router.get('/recommendation/project/:pjtSn', jwt.authenticateToken, async (req, 
     }
 });
 
-
 module.exports = router;
