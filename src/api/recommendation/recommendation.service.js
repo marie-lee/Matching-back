@@ -7,24 +7,10 @@ const {runPythonScript} = require("../../utils/matching/spawnMatching");
 const mutex = require('../../utils/matching/Mutex');
 class recommendationService {
 
-    async selectMemberData(req,res){
-
+    async selectMatchingData(user, pjt) {
         try {
-            const pfPfol = await profileService.pfPfolSelectAll();
-            const pfPfolJson = JSON.stringify(pfPfol);
-            return res.status(200).send(pfPfolJson);
-        } catch (error){
-            throw error
-        }
-
-    }
-    async selectMatchingData(req, res) {
-        const pjtSn = req.params.pjtSn;
-
-        try {
-            // await mutex.lock();
             // 파이썬 실행
-            const pyResult = await runPythonScript(pjtSn);
+            const pyResult = await runPythonScript(pjt);
 
             const dataJson = JSON.parse(pyResult);
 
@@ -32,7 +18,7 @@ class recommendationService {
             // 정렬된 키-값 쌍 배열에서 키(key)만 가져와서 배열로 만듦
             const sortedKeys = sortedEntries.map(entry => parseInt(entry[0], 10));
 
-            const userPfPfol = await profileService.pfPfolSelectAll(sortedKeys, req.userSn.USER_SN);
+            const userPfPfol = await profileService.pfPfolSelectAll(sortedKeys, user);
 
             const matchingResult = userPfPfol.map(profile => {
                 const pfSn = profile.pfSn;
@@ -42,11 +28,7 @@ class recommendationService {
                     similarityScore
                 };
             });
-
-            // mutex.unlock(); // Mutex 해제
-            return res.status(200).send(matchingResult);
         } catch (error) {
-            // mutex.unlock(); // Mutex 해제
             throw error;
         }
     }
