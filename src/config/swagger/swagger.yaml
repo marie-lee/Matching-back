@@ -309,7 +309,7 @@ paths:
       requestBody:
         description: 프로젝트 등록 정보
         content:
-          application/json:
+          multipart/form-data:
             schema:
               $ref: '#/components/schemas/registerProject'
         required: true
@@ -943,7 +943,8 @@ components:
           example: Sample Project
         PJT_IMG:
           type: string
-          description: 프로젝트 이미지 URL
+          format: binary
+          description: 프로젝트 이미지 파일
           example: https://example.com/image.png
         PJT_INTRO:
           type: string

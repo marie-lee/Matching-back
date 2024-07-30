@@ -12,7 +12,7 @@ import numpy as np
 # 서버
 VECTOR_FILE = "/home/dldudgus/Matching-back/src/utils/matching/vector_data/project_vectors.json"
 # 로컬
-#VECTOR_FILE = "./src/utils/matching/vector_data/project_vectors.json"
+# VECTOR_FILE = "./src/utils/matching/vector_data/project_vectors.json"
 
 # 최대 시퀀스 길이 설정
 MAX_LENGTH = 77
@@ -91,8 +91,8 @@ def main():
         vector_file = load_vectors_from_file()
         # 파일이 비어있을 경우, 프로젝트 데이터 가져오기
         if len(vector_file) == 0 :
-            url = "http://localhost:8080/api/project/all"
-            # url = "http://218.232.137.30:20080/api/project/all"
+#             url = "http://localhost:8080/api/project/all"
+            url = "http://218.232.137.30:20080/api/project/all"
             response = requests.get(url)
 
             if response.status_code == 200:
@@ -129,4 +129,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
