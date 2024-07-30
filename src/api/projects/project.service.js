@@ -52,6 +52,13 @@ class projectService {
     }
   }
 
+  async allProject(){
+    try {
+      return await projectRepository.getAllProjects();
+    } catch (error) {
+      throw error;
+    }
+  };
   async getProjectMember(req, res) {
     const user = req.userSn.USER_SN;
     const pjt = req.params.pjtSn;
@@ -72,32 +79,6 @@ class projectService {
         throwError('해당 프로젝트이 존재하지 않거나 권한이 없습니다.');
       }
       return memList;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async allProject(req, res) {
-    const query = `SELECT pj.PJT_SN as pjtSn, pj.PJT_NM as pjtNm, pj.PJT_IMG as pjtImg, pj.START_DT as startDt, pj.END_DT as endDt, pj.PERIOD as period, pj.DURATION_UNIT as durationUnit, pj.PJT_INTRO as pjtIntro, pj.PJT_DETAIL as pjtDetail
-                                , GROUP_CONCAT(DISTINCT st.ST_NM) AS stack
-                                , SUM( DISTINCT pjr.TOTAL_CNT ) AS TO
-                                , sum( DISTINCT pjr.CNT) AS \`PO\`
-                                , JSON_ARRAYAGG( DISTINCT JSON_OBJECT( "part", pjr.PART, "totalCnt", pjr.TOTAL_CNT, "cnt", pjr.CNT)) AS role
-                                , pj.WANTED as experience
-                            FROM TB_PJT pj
-                              INNER JOIN TB_USER tu ON tu.USER_SN = pj.CREATED_USER_SN
-                              LEFT JOIN TB_PJT_SKILL pjSk ON pjSk.PJT_SN = pj.PJT_SN
-                              LEFT JOIN TB_ST st ON st.ST_SN = pjSk.ST_SN
-                              LEFT JOIN TB_PJT_ROLE pjr ON pjr.PJT_SN = pj.PJT_SN
-                            WHERE pj.DEL_YN = FALSE
-                            GROUP BY pjr.PJT_SN
-                            ORDER BY pj.PJT_SN ASC;`;
-    try {
-      const result = await db.query(query, {type: QueryTypes.SELECT});
-      for (let i = 0; i < result.length; i++) {
-        result[i].experience = JSON.parse(result[i].experience);
-      }
-      return result
     } catch (error) {
       throw error;
     }
