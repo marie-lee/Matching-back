@@ -67,7 +67,7 @@ router.get('/status/myProject/:pjtSn/:userSn', jwt.authenticateToken, async (req
         else userData;
     } catch (error) {
         logger.error('프로필 및 포트폴리오 조회 실패', error.message);
-        return res.status(400).send('프로필 및 포트폴리오 조회 실패  : ' + error.message);
+        return res.status(400).json('프로필 및 포트폴리오 조회 실패  : ' + error.message);
     }
 })
 
