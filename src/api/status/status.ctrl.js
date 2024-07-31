@@ -42,7 +42,7 @@ router.get('/status/myProject', jwt.authenticateToken, async (req, res) => {
     }
 })
 
-// 참여 요청 프로젝트 조회
+// 참여 요청 프로젝트 상세 조회
 router.get('/status/user/:pjtSn', jwt.authenticateToken, async (req, res) => {
     const userSn = req.userSn.USER_SN;
     const pjtSn = req.params.pjtSn;
@@ -56,9 +56,15 @@ router.get('/status/user/:pjtSn', jwt.authenticateToken, async (req, res) => {
     }
 })
 
+// 요청된 개발자 상세 조회
 router.get('/status/myProject/:pjtSn/:userSn', jwt.authenticateToken, async (req, res) => {
+    const userSn = req.params.userSn;
+    const pjtSn = req.params.pjtSn;
     try {
-        const userData = await statusService.myData(req, res);
+        // profile부분과 연결 - 추후 수정 필요
+        const userData = await statusService.engineerData(userSn, pjtSn, res);
+        if(userData.message) return res.status(400).json({message : userData.message});
+        else userData;
     } catch (error) {
         logger.error('프로필 및 포트폴리오 조회 실패', error.message);
         return res.status(400).send('프로필 및 포트폴리오 조회 실패  : ' + error.message);

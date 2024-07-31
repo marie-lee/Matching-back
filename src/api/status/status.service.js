@@ -87,15 +87,14 @@ class statusService {
       throw error;
     }
   }
-  async myData(req,res){
-    const userSn = req.params.userSn;
-    const pjtSn = req.params.pjtSn;
+
+  async engineerData(userSn, pjtSn, res){
     try{
-      const mem = await db.TB_REQ.findOne({
-        where: {PJT_SN: pjtSn, USER_SN:userSn, DEL_YN:false}
-      })
-      if(!mem) {throwError('프로젝트 참여요청 내역이 없습니다.')}
-      return await profileService.pfPfolSelect(userSn, res);
+      const mem = await statusRepository.findRequest(userSn, pjtSn);
+      console.log(mem)
+      if(!mem) {return {message : '프로젝트 참여요청 내역이 없습니다.'};}
+      // profile부분과 연결 - 추후 수정 필요
+      return await profileService.pfPfolSelect(userSn, res)
     } catch (error){
       throw error
     }
