@@ -666,20 +666,29 @@ class profileService {
     async portfolioInfoSelect(pfSn) {
         const query = `SELECT pl.PFOL_SN
                                     , pl.PFOL_NM
+                                    , pl.INTRO
                                     , pl.START_DT
                                     , pl.END_DT
                                     , pl.PERIOD
+                                    , pl.MEM_CNT
                                     , JSON_ARRAYAGG( DISTINCT
                                         JSON_OBJECT(
                                             'ST_NM', st.ST_NM
                                         )
                                     ) AS stack
+                                    , pl.CONTRIBUTION
+                                    , pl.SERVICE_STTS
+                                    , tcc.CMMN_CD_VAL AS SERVICE_STTS_VAL
+                                    , pl.\`RESULT\`
+                                    , pl.CREATED_DT
+                                    , pl.MODIFIED_DT 
                                     , pm.URL  AS IMG
                                 FROM TB_PFOL pl
                                 LEFT JOIN TB_PF_PFOL pp ON pl.PFOL_SN = pp.PFOL_SN
                                 LEFT JOIN TB_PFOL_ST ps ON ps.PFOL_SN = pp.PFOL_SN
                                 LEFT JOIN TB_ST st ON st.ST_SN = ps.ST_SN
                                 LEFT JOIN TB_PFOL_MEDIA pm ON pl.PFOL_SN = pm.PFOL_SN AND pm.MAIN_YN = 1
+                                LEFT JOIN TB_CMMN_CD tcc ON tcc.CMMN_CD_TYPE = 'SERVICE_STTS' AND tcc.CMMN_CD = pl.SERVICE_STTS
                                 WHERE pp.PF_SN = ${pfSn} AND pl.DEL_YN = 'N'
                                 GROUP BY pl.PFOL_SN
                                 ORDER BY pl.START_DT ASC`;
