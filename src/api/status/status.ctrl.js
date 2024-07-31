@@ -3,8 +3,6 @@ const router = express.Router();
 const statusService = require('./status.service');
 const jwt = require('../../utils/jwt/jwt');
 const {logger} = require('../../utils/logger');
-const projectService = require("../projects/project.service");
-const profileService = require("../profile/profile.service");
 
 // 프로젝트 참여 요청 전송
 router.post('/status/:pjtSn/req', jwt.authenticateToken, async (req, res) => {
