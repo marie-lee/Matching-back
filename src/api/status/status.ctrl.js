@@ -17,15 +17,16 @@ router.get('/status', jwt.authenticateToken, async (req, res) => {
         return res.status(400).send('현황 조회 중 에러 : ' + error);
     }
 });
+
 // 내 현황 조회
 router.get('/status/user', jwt.authenticateToken, async (req, res) => {
     const user = req.userSn.USER_SN;
     try {
         const status = await statusService.myStatus(user);
-        res.status(200).send(status);
+        res.status(200).json(status);
     } catch (error) {
         logger.error('프로젝트 현황 조회 중 에러 발생: ' + error.message);
-        res.status(400).send('프로젝트 현황 조회 중 에러 발생: ' + error.message);
+        res.status(400).json({message :'프로젝트 현황 조회 중 에러 발생: ' + error.message});
     }
 })
 

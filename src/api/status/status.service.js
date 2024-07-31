@@ -3,7 +3,7 @@ const {logger} = require('../../utils/logger');
 const {QueryTypes} = require("sequelize");
 const {throwError} = require("../../utils/errors");
 const {getProjectIntro} = require("../project/project.service");
-const {oneCmmnVal} = require("../common/common.service");
+const oneCmmnVal = require("../common/common.repository");
 const profileService = require("../profile/profile.service");
 const statusRepository = require("./status.repository");
 const projectRepository = require("../project/project.repository");
@@ -25,46 +25,14 @@ class statusService {
 
       return jsonData
     } catch (error) {
+      logger.error(error)
       throw error;
     }
   }
 
-
   async myStatus(user) {
     try {
-      const statusList = await db.TB_REQ.findAll({
-        where: {USER_SN: user, DEL_YN: false},
-        attributes: [
-          ['REQ_SN', 'reqSn'],
-          [db.Sequelize.col('tp.PJT_SN'), 'pjtSn'],
-          [db.Sequelize.col('tp.PJT_IMG'), 'pjtImg'],
-          [db.Sequelize.col('tp.PJT_NM'), 'pjtNm'],
-          [db.Sequelize.fn('SUM', db.Sequelize.col('tp.tpr.TOTAL_CNT')), 'TO'],
-          [db.Sequelize.col('tpr.PART'), 'part'],
-          ['REQ_STTS', 'reqStts']
-
-        ],
-        include: [
-          {
-            model: db.TB_PJT,
-            as: 'tp',
-            attributes: [],
-            include: [
-              {
-                model: db.TB_PJT_ROLE,
-                as: 'tpr',
-                attributes: [],
-              }
-            ]
-          },{
-            model: db.TB_PJT_ROLE,
-            as: 'tpr',
-            attributes: [],
-            where: {}
-          },
-        ],
-        group: ['REQ_SN'],
-      });
+      const statusList = await statusRepository.myReqList(user);
       for (const status of statusList){
         const stts = await oneCmmnVal('REQ_STTS', status.dataValues.reqStts);
         const {reqStts, ...rest} = status.dataValues;
@@ -76,9 +44,11 @@ class statusService {
       }
       return statusList;
     } catch (error) {
+      logger.error(error)
       throw error;
     }
   }
+
   async projectStatus(req, res) {
     try{
       const statusList = await db.TB_PJT.findAll({

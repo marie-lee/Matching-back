@@ -51,6 +51,42 @@ const projectReqList = async(pjtSn) => {
     return await db.query(query, {type: QueryTypes.SELECT});
 }
 
+const myReqList = async(user) => {
+    return await db.TB_REQ.findAll({
+        where: {USER_SN: user, DEL_YN: false},
+        attributes: [
+            ['REQ_SN', 'reqSn'],
+            [db.Sequelize.col('tp.PJT_SN'), 'pjtSn'],
+            [db.Sequelize.col('tp.PJT_IMG'), 'pjtImg'],
+            [db.Sequelize.col('tp.PJT_NM'), 'pjtNm'],
+            [db.Sequelize.fn('SUM', db.Sequelize.col('tp.tpr.TOTAL_CNT')), 'TO'],
+            [db.Sequelize.col('tpr.PART'), 'part'],
+            ['REQ_STTS', 'reqStts']
+
+        ],
+        include: [
+            {
+                model: db.TB_PJT,
+                as: 'tp',
+                attributes: [],
+                include: [
+                    {
+                        model: db.TB_PJT_ROLE,
+                        as: 'tpr',
+                        attributes: [],
+                    }
+                ]
+            },{
+                model: db.TB_PJT_ROLE,
+                as: 'tpr',
+                attributes: [],
+                where: {}
+            },
+        ],
+        group: ['REQ_SN'],
+    });
+}
+
 module.exports = {
     myRequestList,
     findRequest,
@@ -59,4 +95,5 @@ module.exports = {
     findReqMem,
     updateRequest,
     projectReqList,
+    myReqList,
 };
