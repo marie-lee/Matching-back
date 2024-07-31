@@ -24,8 +24,9 @@ class profileService {
                     await this.toVectorPfPfol(userSn)
                 }
                 else{
-                    await t.rollback();
-                    res.status(304).send('이미 등록된 프로필 입니다.');
+                    await this.profileModifyFunc(data, userSn, t);
+                    await t.commit();
+                    res.status(200).send('프로필 수정 완료.');
                 }
             }
             else if(data.profile && data.portfolios){
@@ -41,8 +42,9 @@ class profileService {
                     await this.toVectorPfPfol(userSn)
                 }
                 else{
-                    await t.rollback();
-                    res.status(304).send('이미 등록된 프로필 입니다.');
+                    await this.profileModifyFunc(data, userSn, t);
+                    await t.commit();
+                    res.status(200).send('프로필 포트폴리오 수정 완료.');
                 }
             }
 
@@ -51,6 +53,27 @@ class profileService {
             await this.deleteFileFromMinio(req.body.profile, req.body.portfolios);
             await t.rollback(); // 에러 발생 시 트랜잭션 롤백
             logger.error('프로필 포트폴리오 등록 중 에러 발생:', error);
+            throw error;
+        }
+    }
+
+    async profileModifyFunc(data, userSn, transaction){
+        try{
+            if(!data.profile){
+                throwError('프로필 데이터가 없습니다.');
+            }
+
+            const pf = await this.profileUpdate(data.profile, userSn, t);
+            if(data.portfolios){
+                for (const portfolio of data.portfolios) {
+                    await this.portfolioUpdate(portfolio, pf, transaction);
+                }
+            }
+            await this.toVectorPfPfol(userSn);
+        }
+        catch (error){
+            await this.deleteFileFromMinio(data.profile, data.portfolios);
+            logger.error('프로필 및 포트폴리오 수정 중 에러 발생:', error);
             throw error;
         }
     }
