@@ -673,44 +673,22 @@ class profileService {
                                     , pl.MEM_CNT
                                     , JSON_ARRAYAGG( DISTINCT
                                         JSON_OBJECT(
-                                        \t'ST_SN', st.ST_SN 
-                                            ,'ST_NM', st.ST_NM
+                                            'ST_NM', st.ST_NM
                                         )
                                     ) AS stack
-                                    , JSON_ARRAYAGG( DISTINCT
-                                        JSON_OBJECT(
-                                        \t'ROLE_SN', tr.ROLE_SN 
-                                            ,'ROLE_NM', tr.ROLE_NM 
-                                        )
-                                    ) AS role
                                     , pl.CONTRIBUTION
                                     , pl.SERVICE_STTS
                                     , tcc.CMMN_CD_VAL AS SERVICE_STTS_VAL
                                     , pl.\`RESULT\`
                                     , pl.CREATED_DT
                                     , pl.MODIFIED_DT 
-                                    , JSON_ARRAYAGG( DISTINCT
-                                        JSON_OBJECT(
-                                        \t'URL_SN', tpu.URL_SN 
-                                            ,'URL', tu.URL
-                                            , 'OS', tpu.OS 
-                                        )
-                                    ) AS url
-                                    , CASE 
-                                        WHEN pm.MAIN_YN = 1 THEN pm.URL 
-                                            ELSE NULL 
-                                        END AS IMG
-                                    , GROUP_CONCAT(pm.URL) AS IMG_SUB
+                                    , pm.URL  AS IMG
                                 FROM TB_PFOL pl
                                 LEFT JOIN TB_PF_PFOL pp ON pl.PFOL_SN = pp.PFOL_SN
                                 LEFT JOIN TB_PFOL_ST ps ON ps.PFOL_SN = pp.PFOL_SN
                                 LEFT JOIN TB_ST st ON st.ST_SN = ps.ST_SN
-                               \tLEFT JOIN TB_PFOL_ROLE tpr ON tpr.PFOL_SN = pl.PFOL_SN 
-                               \tLEFT JOIN TB_ROLE tr ON tr.ROLE_SN = tpr.ROLE_SN 
-                                LEFT JOIN TB_PFOL_URL tpu ON tpu.PFOL_SN = pl.PFOL_SN AND tpu.DEL_YN = false
-                                LEFT JOIN TB_URL tu ON tu.URL_SN = tpu.URL_SN 
-                                LEFT JOIN TB_PFOL_MEDIA pm ON pl.PFOL_SN = pm.PFOL_SN
-                                LEFT JOIN TB_CMMN_CD tcc ON tcc.CMMN_CD_TYPE = 'SERVICE_STTS' AND tcc.CMMN_CD = pl.SERVICE_STTS AND tcc.CMMN_CD = pl.SERVICE_STTS
+                                LEFT JOIN TB_PFOL_MEDIA pm ON pl.PFOL_SN = pm.PFOL_SN AND pm.MAIN_YN = 1
+                                LEFT JOIN TB_CMMN_CD tcc ON tcc.CMMN_CD_TYPE = 'SERVICE_STTS' AND tcc.CMMN_CD = pl.SERVICE_STTS
                                 WHERE pp.PF_SN = ${pfSn} AND pl.DEL_YN = 'N'
                                 GROUP BY pl.PFOL_SN
                                 ORDER BY pl.START_DT ASC`;
