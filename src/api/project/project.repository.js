@@ -164,7 +164,7 @@ const findProjectMembers = async(user, pjt) => {
 
 
 const myOneProject = async(userSn, pjtSn) => {
-        return await db.TB_PJT.findOne({where: {PJT_SN: pjtSn, CREATED_USER_SN: userSn}});
+        return await db.TB_PJT.findOne({where: {PJT_SN: pjtSn, CREATED_USER_SN: userSn, DEL_YN: false}});
 }
 
 const pjtRoleInfo = async(pjtRoleSn) => {

@@ -1,10 +1,10 @@
 const db = require('../../config/db/db');
 const {logger} = require('../../utils/logger');
 const oneCmmnVal = require("../common/common.repository");
+
 const profileService = require("../profile/profile.service");
-const statusRepository = require("./status.repository");
 const projectRepository = require("../project/project.repository");
-const {projectReqList} = require("./status.repository");
+const statusRepository = require("./status.repository");
 
 class statusService {
   async status(user) {
@@ -47,7 +47,8 @@ class statusService {
   async projectStatus(user) {
     try{
       const statusList = await statusRepository.projectReqList(user);
-
+      console.log(statusList)
+      // 결과 배열을 변환합니다.
       const result = statusList.map(pjt => ({
         pjtSn: pjt.dataValues.pjtSn,
         pjtNm: pjt.dataValues.pjtNm,
@@ -62,23 +63,24 @@ class statusService {
       }));
       for (const pjt of result) {
         for (let status of pjt.reqList) {
+          console.log(status)
           const stts = await oneCmmnVal('REQ_STTS', status.reqStts);
           status.reqSttsCd = status.reqStts;
-          status.reqStts = stts.dataValues.CMMN_CD_VAL;
+          if(stts) status.reqStts = stts.CMMN_CD_VAL;
         }
       }
       return result;
-    }catch (error){
+    } catch (error) {
       throw error;
     }
   }
 
+
   async reqProject(userSn, pjtSn) {
-
     try {
-      const req = statusRepository.findRequest(pjtSn, userSn);
+      const req = await statusRepository.findRequest(pjtSn, userSn);
+      if(req){ return {message : '해당 프로젝트 참여요청 내역이 없습니다.'}; }
 
-      if(!req){ return {message : '해당 프로젝트 참여요청 내역이 없습니다.'}; }
       const pjt = await projectRepository.getProjectIntro(pjtSn);
       if(!pjt){ return {message : '프로젝트가 존재하지 않거나 권한이 없습니다.'}; }
 
@@ -101,40 +103,19 @@ class statusService {
 
   }
 
-  async reqUser(req, res) {
+  async reqUser(reqDto) {
     const transaction = await db.transaction();
     try {
-      const reqData = {
-        PJT_SN: req.params.pjtSn,
-        USER_SN: req.body.userSn,
-        PJT_ROLE_SN: req.body.pjtRoleSn,
-        REQ_STTS: 'REQ'
-      };
-      // 필수 필드 확인
-      const requiredFields = {
-        PJT_SN: '프로젝트가 선택되지 않았습니다.',
-        USER_SN: '회원 정보가 없습니다.',
-        PJT_ROLE_SN: '프로젝트 파트 일련번호가 없습니다.',
-      }
-      for (const [field, message] of Object.entries(requiredFields)) {
-        if (!reqData[field]) {
-          throwError(message);
-        }
-      }
-      let reqMem = await db.TB_REQ.findOne({where: {PJT_SN: reqData.PJT_SN, USER_SN: reqData.USER_SN}});
-      if (reqMem) {
-        throwError('이미 요청된 회원입니다.');
-      }
-      let pr = await db.TB_PJT_ROLE.findOne({where: {PJT_SN: reqData.PJT_SN, PJT_ROLE_SN: reqData.PJT_ROLE_SN}});
-      if (!pr) {
-        throwError('없는 프로젝트 파트입니다.');
-      }
-      if (pr.TOTAL_CNT === pr.CNT) {
-        throwError('파트 인원이 모두 찼습니다.')
-      }
+      const  reqMem = await statusRepository.findRequest(reqDto.USER_SN, reqDto.PJT_SN)
+      if (reqMem) return { message : '이미 요청된 회원입니다.'};
 
-      await db.TB_REQ.create(reqData, {transaction});
+      const pr = await statusRepository.findProjectRole(reqDto.PJT_SN, reqDto.PJT_ROLE_SN);
+      if (!pr) return {message :'없는 프로젝트 파트입니다.'}
+      if (pr.TOTAL_CNT === pr.CNT) return {message : '파트 인원이 모두 찼습니다.'}
+
+      const request = await statusRepository.createRequest(reqDto, transaction)
       await transaction.commit();
+      return request;
     } catch (error) {
       await transaction.rollback();
       logger.error('프로젝트 참여 요청 중 에러 발생: ', error.message);
@@ -142,49 +123,37 @@ class statusService {
     }
   }
 
-  async updateReq(req, res) {
+  async updateReq(reqDto) {
     const transaction = await db.transaction();
-    const pjtSn = req.params.pjtSn;
-    const reqSn = req.params.reqSn;
-    const reqStts = req.body.reqStts;
+    const {PJT_SN, USER_SN, REQ_STTS, REQ_SN} = reqDto
     try {
 
-      let pjt = await db.TB_PJT.findOne({where: {PJT_SN: pjtSn, CREATED_USER_SN: req.userSn.USER_SN}, transaction});
-      if (!pjt) {
-        throwError('프로젝트에 대한 권한이 없습니다.')
-      }
-      let reqMem = await db.TB_REQ.findOne({where: {PJT_SN: pjtSn, REQ_SN: reqSn, DEL_YN: false}, transaction});
-      if (!reqMem) {
-        throwError('수정할 회원이 없습니다.');
-      }
-      let pr = await db.TB_PJT_ROLE.findOne({where: {PJT_ROLE_SN: reqMem.PJT_ROLE_SN}, transaction});
-      if (pr.TOTAL_CNT === pr.CNT) {
-        throwError('파트 인원이 모두 찼습니다.')
-      }
-      let mem = await db.TB_PJT_M.findOne({
-        where: {
-          PJT_SN: pjtSn,
-          USER_SN: reqMem.USER_SN,
-          PJT_ROLE_SN: reqMem.PJT_ROLE_SN
-        }, transaction
-      });
-      if (mem) {
-        throwError('이미 프로젝트에 참가 중 입니다.')
-      }
+      let pjt = await projectRepository.myOneProject(USER_SN, PJT_SN)
+      if (!pjt) return {message : '프로젝트에 대한 권한이 없습니다.'};
+      let reqMem = await statusRepository.findReqMem(PJT_SN, REQ_SN);
+      if (!reqMem) return {message : '수정할 회원이 없습니다.'};
+      let pr = await statusRepository.findProjectRole(PJT_SN, reqMem.PJT_ROLE_SN)
+      if (pr.TOTAL_CNT === pr.CNT) return {message : '파트 인원이 모두 찼습니다.'};
+      console.log(pr)
+      let mem = await projectRepository.pjtRoleMem(
+          {PJT_SN: PJT_SN, USER_SN: reqMem.USER_SN, PJT_ROLE_SN: reqMem.PJT_ROLE_SN}
+      );
+      if (mem) return {message : '이미 프로젝트에 참가 중 입니다.'};
 
-      if (reqStts === 'CONFIRM' || reqStts === 'CANCEL' || reqStts === 'REJECT') {
+      if (REQ_STTS === 'CONFIRM' || REQ_STTS === 'CANCEL' || REQ_STTS === 'REJECT') {
         reqMem.FINISHIED_DT = new Date();
         reqMem.DEL_YN = true;
       }
-      reqMem.REQ_STTS = reqStts;
-      await reqMem.save(transaction);
+      reqMem.REQ_STTS = REQ_STTS;
+      const updateReq = await statusRepository.updateRequest(reqMem,transaction);
 
       if (reqMem.REQ_STTS === 'CONFIRM') {
         await pr.increment('CNT', {by: 1, transaction});
         const pm = {PJT_SN: reqMem.PJT_SN, USER_SN: reqMem.USER_SN, PJT_ROLE_SN: reqMem.PJT_ROLE_SN};
-        await db.TB_PJT_M.create(pm, {transaction});
+        await projectRepository.createProjectMember(pm, {transaction});
       }
       await transaction.commit();
+      return updateReq
     } catch (error) {
       await transaction.rollback();
       logger.error(error.message);
