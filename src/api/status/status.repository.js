@@ -24,12 +24,13 @@ const updateRequest = async (reqMem, transaction) => {
 const myRequestList = async(userSn) => {
     const query = `SELECT req.REQ_SN, pj.PJT_SN, pj.PJT_IMG, pj.PJT_NM,
                                 SUM(pjr.TOTAL_CNT) AS TOTAL_CNT,
-                                pjrr.PART, req.REQ_STTS
+                                pjrr.PART, req.REQ_STTS, tcc.CMMN_CD_VAL AS REQ_STTS_VAL
                                 FROM TB_USER usr
                                 LEFT JOIN TB_REQ req ON usr.USER_SN = req.USER_SN AND req.DEL_YN = FALSE
                                 LEFT JOIN TB_PJT pj ON req.PJT_SN = pj.PJT_SN AND pj.DEL_YN = FALSE
                                 LEFT JOIN TB_PJT_ROLE pjr ON pj.PJT_SN = pjr.PJT_SN
                                 LEFT JOIN TB_PJT_ROLE pjrr ON req.PJT_ROLE_SN = pjrr.PJT_ROLE_SN
+                                INNER JOIN TB_CMMN_CD tcc ON tcc.CMMN_CD_TYPE = 'REQ_STTS' AND tcc.CMMN_CD = req.REQ_STTS
                                 WHERE usr.USER_SN = ${userSn}
                                 GROUP BY req.REQ_SN;`;
     return await db.query(query, {type: QueryTypes.SELECT});
@@ -37,13 +38,14 @@ const myRequestList = async(userSn) => {
 
 const projectReqList = async(pjtSn) => {
     const query = `SELECT req.REQ_SN, pf.PF_SN, usr.USER_SN, usr.USER_IMG, usr.USER_NM, pf.PF_INTRO,
-                                pjrr.PART, req.REQ_STTS
+                                pjrr.PART, req.REQ_STTS, tcc.CMMN_CD_VAL AS REQ_STTS_VAL
                                 FROM TB_PJT pj
                                 LEFT JOIN TB_REQ req ON pj.PJT_SN = req.PJT_SN
                                 LEFT JOIN TB_USER usr ON req.USER_SN = usr.USER_SN
                                 LEFT JOIN TB_PF pf ON req.USER_SN = pf.USER_SN
                                 LEFT JOIN TB_PJT_ROLE pjr ON req.PJT_SN = pjr.PJT_SN
                                 LEFT JOIN TB_PJT_ROLE pjrr ON req.PJT_ROLE_SN = pjrr.PJT_ROLE_SN
+                                INNER JOIN TB_CMMN_CD tcc ON tcc.CMMN_CD_TYPE = 'REQ_STTS' AND tcc.CMMN_CD = req.REQ_STTS
                                 WHERE pj.PJT_SN = ${pjtSn}
                                 GROUP BY req.REQ_SN;`
     return await db.query(query, {type: QueryTypes.SELECT});

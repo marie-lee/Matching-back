@@ -30,10 +30,10 @@ class statusService {
   }
 
 
-  async myStatus(req, res) {
+  async myStatus(user) {
     try {
       const statusList = await db.TB_REQ.findAll({
-        where: {USER_SN: req.userSn.USER_SN, DEL_YN: false},
+        where: {USER_SN: user, DEL_YN: false},
         attributes: [
           ['REQ_SN', 'reqSn'],
           [db.Sequelize.col('tp.PJT_SN'), 'pjtSn'],
@@ -268,7 +268,7 @@ class statusService {
       REQ.PJT_SN = pjt.PJT_SN;
       REQ.PJT_NM = pjt.PJT_NM;
 
-      REQ.REQ_LIST = await projectRepository.myCreatedProjectList(pjt.PJT_SN);
+      REQ.REQ_LIST = await statusRepository.projectReqList(pjt.PJT_SN);
       return REQ;
     } catch (error) {
       throw error;

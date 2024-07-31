@@ -1821,6 +1821,9 @@ components:
                       REQ_STTS:
                         type: string
                         description: 요청 상태코드
+                      REQ_STTS_VAL:
+                        type: string
+                        description: 요청 상태코드 값
                 projectReqList:
                   type: array
                   items:
@@ -1861,6 +1864,9 @@ components:
                             REQ_STTS:
                               type: string
                               description: 요청 상태코드
+                            REQ_STTS_VAL:
+                              type: string
+                              description: 요청 상태코드 값
           example:
             - myReqList:
               - REQ_SN: 1
@@ -1870,6 +1876,7 @@ components:
                 TOTAL_CNT: 11
                 PART: 프론트엔드
                 REQ_STTS: REQ
+                REQ_STTS_VAL: 요청
               - REQ_SN: 2
                 PJT_SN: 2
                 PJT_IMG: http://218.232.137.30:20090/matching/project/img.png
@@ -1877,6 +1884,7 @@ components:
                 TOTAL_CNT: 7
                 PART: 기획
                 REQ_STTS: AGREE
+                REQ_STTS_VAL: 수락
             - projectReqList:
                 - PJT_SN: 3
                   PJT_NM: project3
@@ -1889,6 +1897,7 @@ components:
                       PF_INTRO: 프로필 설명 1
                       PART: 백엔드
                       REQ_STTS: REJECTION
+                      REQ_STTS_VAL: 거절
                     - REQ_SN: 4
                       PF_SN: 3
                       USER_SN: 2
@@ -1897,6 +1906,7 @@ components:
                       PF_INTRO: 프로필 설명 2
                       PART: 디자인
                       REQ_STTS: REQ
+                      REQ_STTS_VAL: 요청
                 - PJT_SN: 4
                   PJT_NM: project4
                   REQ_LIST:
@@ -1916,6 +1926,7 @@ components:
                       PF_INTRO: 프로필 설명 4
                       PART: 디자인
                       REQ_STTS: AGREE
+                      REQ_STTS_VAL: 동의
     statusUser200:
       description: 개발자 기준 현황 조회 성공
       content:
