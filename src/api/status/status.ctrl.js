@@ -98,7 +98,6 @@ router.get('/status/user/:pjtSn', jwt.authenticateToken, async (req, res) => {
     }
 })
 
-
 router.get('/status/myProject/:pjtSn/:userSn', jwt.authenticateToken, async (req, res) => {
     const pjtSn = req.params.pjtSn;
     const userSn = req.params.userSn;
