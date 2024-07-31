@@ -725,7 +725,7 @@ class profileService {
                                     , pl.CONTRIBUTION
                                     , pl.SERVICE_STTS
                                     , tcc.CMMN_CD_VAL AS SERVICE_STTS_VAL
-                                    , pl.`RESULT`
+                                    , pl.\`RESULT\`
                                     , pl.CREATED_DT
                                     , pl.MODIFIED_DT 
                                     , JSON_ARRAYAGG( DISTINCT
