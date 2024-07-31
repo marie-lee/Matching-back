@@ -47,7 +47,6 @@ class statusService {
   async projectStatus(user) {
     try{
       const statusList = await statusRepository.projectReqList(user);
-      console.log(statusList)
       // 결과 배열을 변환합니다.
       const result = statusList.map(pjt => ({
         pjtSn: pjt.dataValues.pjtSn,
@@ -93,8 +92,7 @@ class statusService {
   async engineerData(userSn, pjtSn, res){
     try{
       const mem = await statusRepository.findRequest(userSn, pjtSn);
-      console.log(mem)
-      if(!mem) {return {message : '프로젝트 참여요청 내역이 없습니다.'};}
+      if(!mem) return {message : '프로젝트 참여요청 내역이 없습니다.'};
       // profile부분과 연결 - 추후 수정 필요
       return await profileService.pfPfolSelect(userSn, res)
     } catch (error){
