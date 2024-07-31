@@ -22,6 +22,11 @@ module.exports = (sequelize, DataTypes) => {
       OS: {
         type: DataTypes.STRING(50),
         allowNull: true
+      },
+      DEL_YN: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
       }
     }, {
       tableName: 'TB_PFOL_URL',
