@@ -25,7 +25,6 @@ class statusService {
 
       return jsonData
     } catch (error) {
-      logger.error(error)
       throw error;
     }
   }
@@ -44,46 +43,13 @@ class statusService {
       }
       return statusList;
     } catch (error) {
-      logger.error(error)
       throw error;
     }
   }
 
-  async projectStatus(req, res) {
+  async projectStatus(user) {
     try{
-      const statusList = await db.TB_PJT.findAll({
-        where: { CREATED_USER_SN: req.userSn.USER_SN },
-        attributes: [
-          ['PJT_SN', 'pjtSn'],
-          ['PJT_NM', 'pjtNm'],
-        ],
-        include: [
-          {
-            model: db.TB_REQ,
-            as: 'tr',
-            attributes: [
-              ['REQ_SN', 'reqSn'],
-              ['REQ_STTS','reqStts'],
-            ],
-            include: [
-              {
-                model: db.TB_USER,
-                as: 'tu',
-                attributes: [
-                  ['USER_SN', 'userSn'],
-                  ['USER_NM', 'userNm'],
-                  ['USER_IMG', 'userImg']
-                ],
-              },
-              {
-                model: db.TB_PJT_ROLE,
-                as: 'tpr',
-                attributes: [['PART','part']]
-              }
-            ],
-          }
-        ],
-      });
+      const statusList = await statusRepository.projectReqList(user);
 
       const result = statusList.map(pjt => ({
         pjtSn: pjt.dataValues.pjtSn,
@@ -238,7 +204,7 @@ class statusService {
       REQ.PJT_SN = pjt.PJT_SN;
       REQ.PJT_NM = pjt.PJT_NM;
 
-      REQ.REQ_LIST = await statusRepository.projectReqList(pjt.PJT_SN);
+      REQ.REQ_LIST = await statusRepository.projectRequestList(pjt.PJT_SN);
       return REQ;
     } catch (error) {
       throw error;

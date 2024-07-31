@@ -36,7 +36,7 @@ const myRequestList = async(userSn) => {
     return await db.query(query, {type: QueryTypes.SELECT});
 }
 
-const projectReqList = async(pjtSn) => {
+const projectRequestList = async(pjtSn) => {
     const query = `SELECT req.REQ_SN, pf.PF_SN, usr.USER_SN, usr.USER_IMG, usr.USER_NM, pf.PF_INTRO,
                                 pjrr.PART, req.REQ_STTS, tcc.CMMN_CD_VAL AS REQ_STTS_VAL
                                 FROM TB_PJT pj
@@ -87,6 +87,41 @@ const myReqList = async(user) => {
     });
 }
 
+const projectReqList = async(user) => {
+    return await db.TB_PJT.findAll({
+        where: { CREATED_USER_SN: user },
+        attributes: [
+            ['PJT_SN', 'pjtSn'],
+            ['PJT_NM', 'pjtNm'],
+        ],
+        include: [
+            {
+                model: db.TB_REQ,
+                as: 'tr',
+                attributes: [
+                    ['REQ_SN', 'reqSn'],
+                    ['REQ_STTS','reqStts'],
+                ],
+                include: [
+                    {
+                        model: db.TB_USER,
+                        as: 'tu',
+                        attributes: [
+                            ['USER_SN', 'userSn'],
+                            ['USER_NM', 'userNm'],
+                            ['USER_IMG', 'userImg']
+                        ],
+                    },
+                    {
+                        model: db.TB_PJT_ROLE,
+                        as: 'tpr',
+                        attributes: [['PART','part']]
+                    }
+                ],
+            }
+        ],
+    });
+}
 module.exports = {
     myRequestList,
     findRequest,
@@ -94,6 +129,7 @@ module.exports = {
     createRequest,
     findReqMem,
     updateRequest,
-    projectReqList,
+    projectRequestList,
     myReqList,
+    projectReqList,
 };

@@ -32,12 +32,13 @@ router.get('/status/user', jwt.authenticateToken, async (req, res) => {
 
 // 내 프로젝트 현황 조회 
 router.get('/status/myProject', jwt.authenticateToken, async (req, res) => {
+    const user = req.userSn.USER_SN;
     try {
-        const status = await statusService.projectStatus(req, res);
-        res.status(200).send(status);
+        const status = await statusService.projectStatus(user);
+        res.status(200).json(status);
     } catch (error) {
         logger.error('프로젝트 현황 조회 중 에러 발생: ' + error.message);
-        res.status(400).send('프로젝트 현황 조회 중 에러 발생: ' + error.message);
+        res.status(400).json({message :'프로젝트 현황 조회 중 에러 발생: ' + error.message});
     }
 })
 
