@@ -5,6 +5,7 @@ const jwt = require('../../utils/jwt/jwt');
 const {logger} = require('../../utils/logger');
 const projectService = require("../project/project.service");
 const profileService = require("../profile/profile.service");
+const MatchingReqDto = require("./dto/status.req.dto");
 
 // 내 현황 조회
 router.get('/status', jwt.authenticateToken, async (req, res) => {
@@ -73,13 +74,21 @@ router.get('/status/myProject/:pjtSn/:userSn', jwt.authenticateToken, async (req
 
 // 프로젝트 참여 요청 전송
 router.post('/status/:pjtSn/req', jwt.authenticateToken, async (req, res) => {
-    try {
-        console.log("d")
-        await statusService.reqUser(req, res);
+        const pjtSn = req.params.pjtSn;
+        const userSn = req.body.userSn;
+        const pjtRoleSn =  req.body.pjtRoleSn;
 
-        return res.status(200).send('회원에게 프로젝트 참여 요청 성공');
+        console.log(pjtSn,userSn, pjtRoleSn)
+        const reqDto = new MatchingReqDto(pjtSn, userSn, pjtRoleSn, 'REQ');
+        reqDto.validate();
+
+    try {
+        const sendReq = await statusService.reqUser(reqDto);
+        if(sendReq.message) return res.status(400).json({message : sendReq.message});
+        return res.status(200).json({message :'회원에게 프로젝트 참여 요청 성공'});
 
     } catch (error) {
+        logger.error('프로젝트 참여 요청 전송 중 에러 발생: ' + error.message)
         return res.status(400).send('프로젝트 참여 요청 전송 중 에러 발생: ' + error.message);
     }
 })
