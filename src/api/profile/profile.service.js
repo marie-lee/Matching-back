@@ -700,7 +700,7 @@ class profileService {
                                         WHEN pm.MAIN_YN = 1 THEN pm.URL 
                                             ELSE NULL 
                                         END AS IMG
-                                    , GROUP_CONCAT(pm.URL) AS IMG_SUB
+                                    , JSON_ARRAYAGG(pm.URL) AS IMG_SUB
                                 FROM TB_PFOL pl
                                 LEFT JOIN TB_PF_PFOL pp ON pl.PFOL_SN = pp.PFOL_SN
                                 LEFT JOIN TB_PFOL_ST ps ON ps.PFOL_SN = pp.PFOL_SN
