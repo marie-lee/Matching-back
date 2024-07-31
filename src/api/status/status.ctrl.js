@@ -44,12 +44,15 @@ router.get('/status/myProject', jwt.authenticateToken, async (req, res) => {
 
 // 참여 요청 프로젝트 조회
 router.get('/status/user/:pjtSn', jwt.authenticateToken, async (req, res) => {
+    const userSn = req.userSn.USER_SN;
+    const pjtSn = req.params.pjtSn;
     try {
-        const pjtData = await statusService.reqProject(req, res);
-        return res.status(200).send(pjtData);
+        const pjtData = await statusService.reqProject(userSn, pjtSn);
+        if(pjtData.message){ return res.status(200).json(pjtData); }
+        return res.status(200).json(pjtData);
     } catch (error) {
         logger.error(`요청된 프로젝트 조회 실패: ${error.message}`);
-        return res.status(400).send(`요청된 프로젝트 조회 실패 :  ${error.message}`);
+        return res.status(400).json({message : `요청된 프로젝트 조회 실패 :  ${error.message}`});
     }
 })
 

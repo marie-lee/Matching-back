@@ -2,7 +2,7 @@ const db = require('../../config/db/db');
 const {QueryTypes} = require("sequelize");
 
 const findRequest = async(pjtSn, userSn)=> {
-    return await db.TB_REQ.findOne({ where: { PJT_SN: pjtSn, USER_SN: userSn } });
+    return await db.TB_REQ.findOne({ where: { PJT_SN: pjtSn, USER_SN: userSn, DEL_YN: false} });
 }
 
 const findProjectRole = async (pjtSn, pjtRoleSn) => {

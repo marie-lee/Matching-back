@@ -1,8 +1,5 @@
 const db = require('../../config/db/db');
 const {logger} = require('../../utils/logger');
-const {QueryTypes} = require("sequelize");
-const {throwError} = require("../../utils/errors");
-const {getProjectIntro} = require("../project/project.service");
 const oneCmmnVal = require("../common/common.repository");
 const profileService = require("../profile/profile.service");
 const statusRepository = require("./status.repository");
@@ -76,19 +73,17 @@ class statusService {
     }
   }
 
-  async reqProject(req, res) {
-    const userSn = req.userSn.USER_SN;
-    const pjtSn = req.params.pjtSn;
+  async reqProject(userSn, pjtSn) {
+
     try {
-      const req = await db.TB_REQ.findOne({
-        where: {PJT_SN: pjtSn, USER_SN: userSn, DEL_YN: false}
-      });
-      if(!req){throwError('해당 프로젝트 참여요청 내역이 없습니다.');}
-      const pjt = await getProjectIntro(pjtSn);
-      if(!pjt){throwError('프로젝트가 존재하지 않거나 권한이 없습니다.')}
+      const req = statusRepository.findRequest(pjtSn, userSn);
+
+      if(!req){ return {message : '해당 프로젝트 참여요청 내역이 없습니다.'}; }
+      const pjt = await projectRepository.getProjectIntro(pjtSn);
+      if(!pjt){ return {message : '프로젝트가 존재하지 않거나 권한이 없습니다.'}; }
+
       return pjt;
     } catch (error) {
-      logger.error(error.message);
       throw error;
     }
   }

@@ -31,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: DataTypes.NOW
       },
-      FINISHIED_DT: {
+      FINISHED_DT: {
         type: DataTypes.DATE,
       },
       DEL_YN: {
