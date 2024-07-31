@@ -673,21 +673,43 @@ class profileService {
                                     , pl.MEM_CNT
                                     , JSON_ARRAYAGG( DISTINCT
                                         JSON_OBJECT(
-                                            'ST_NM', st.ST_NM
+                                        'ST_SN', st.ST_SN 
+                                            ,'ST_NM', st.ST_NM
                                         )
                                     ) AS stack
+                                    , JSON_ARRAYAGG( DISTINCT
+                                        JSON_OBJECT(
+                                        'ROLE_SN', tr.ROLE_SN 
+                                            ,'ROLE_NM', tr.ROLE_NM 
+                                        )
+                                    ) AS role
                                     , pl.CONTRIBUTION
                                     , pl.SERVICE_STTS
                                     , tcc.CMMN_CD_VAL AS SERVICE_STTS_VAL
                                     , pl.\`RESULT\`
                                     , pl.CREATED_DT
                                     , pl.MODIFIED_DT 
-                                    , pm.URL  AS IMG
+                                    , JSON_ARRAYAGG( DISTINCT
+                                        JSON_OBJECT(
+                                        'URL_SN', tpu.URL_SN 
+                                            ,'URL', tu.URL
+                                            , 'OS', tpu.OS 
+                                        )
+                                    ) AS url
+                                    , CASE 
+                                        WHEN pm.MAIN_YN = 1 THEN pm.URL 
+                                            ELSE NULL 
+                                        END AS IMG
+                                    , GROUP_CONCAT(pm.URL) AS IMG_SUB
                                 FROM TB_PFOL pl
                                 LEFT JOIN TB_PF_PFOL pp ON pl.PFOL_SN = pp.PFOL_SN
                                 LEFT JOIN TB_PFOL_ST ps ON ps.PFOL_SN = pp.PFOL_SN
                                 LEFT JOIN TB_ST st ON st.ST_SN = ps.ST_SN
-                                LEFT JOIN TB_PFOL_MEDIA pm ON pl.PFOL_SN = pm.PFOL_SN AND pm.MAIN_YN = 1
+                               LEFT JOIN TB_PFOL_ROLE tpr ON tpr.PFOL_SN = pl.PFOL_SN 
+                               LEFT JOIN TB_ROLE tr ON tr.ROLE_SN = tpr.ROLE_SN 
+                                LEFT JOIN TB_PFOL_URL tpu ON tpu.PFOL_SN = pl.PFOL_SN AND tpu.DEL_YN = false
+                                LEFT JOIN TB_URL tu ON tu.URL_SN = tpu.URL_SN 
+                                LEFT JOIN TB_PFOL_MEDIA pm ON pl.PFOL_SN = pm.PFOL_SN
                                 LEFT JOIN TB_CMMN_CD tcc ON tcc.CMMN_CD_TYPE = 'SERVICE_STTS' AND tcc.CMMN_CD = pl.SERVICE_STTS
                                 WHERE pp.PF_SN = ${pfSn} AND pl.DEL_YN = 'N'
                                 GROUP BY pl.PFOL_SN
@@ -704,52 +726,47 @@ class profileService {
 
     async portfolioDetailSelect(userSn,pfolSn) {
       const query = `SELECT pl.PFOL_SN
-                                    , pl.PFOL_NM
-                                    , pl.INTRO
-                                    , pl.START_DT
-                                    , pl.END_DT
-                                    , pl.PERIOD
-                                    , pl.MEM_CNT
-                                    , JSON_ARRAYAGG( DISTINCT
-                                        JSON_OBJECT(
-                                        	'ST_SN', st.ST_SN 
-                                            ,'ST_NM', st.ST_NM
-                                        )
-                                    ) AS stack
-                                    , JSON_ARRAYAGG( DISTINCT
-                                        JSON_OBJECT(
-                                        	'ROLE_SN', tr.ROLE_SN 
-                                            ,'ROLE_NM', tr.ROLE_NM 
-                                        )
-                                    ) AS role
-                                    , pl.CONTRIBUTION
-                                    , pl.SERVICE_STTS
-                                    , tcc.CMMN_CD_VAL AS SERVICE_STTS_VAL
-                                    , pl.\`RESULT\`
-                                    , pl.CREATED_DT
-                                    , pl.MODIFIED_DT 
-                                    , JSON_ARRAYAGG( DISTINCT
-                                        JSON_OBJECT(
-                                        	'URL_SN', tpu.URL_SN 
-                                            ,'URL', tu.URL
-                                            , 'OS', tpu.OS 
-                                        )
-                                    ) AS url
-                                    , CASE 
-                                        WHEN pm.MAIN_YN = 1 THEN pm.URL 
-                                            ELSE NULL 
-                                        END AS IMG
-                                    , GROUP_CONCAT(pm.URL) AS IMG_SUB
-                                FROM TB_PFOL pl
-                                LEFT JOIN TB_PF_PFOL pp ON pl.PFOL_SN = pp.PFOL_SN
-                                LEFT JOIN TB_PFOL_ST ps ON ps.PFOL_SN = pp.PFOL_SN
-                                LEFT JOIN TB_ST st ON st.ST_SN = ps.ST_SN
-                                LEFT JOIN TB_PFOL_ROLE tpr ON tpr.PFOL_SN = pl.PFOL_SN 
-                                LEFT JOIN TB_ROLE tr ON tr.ROLE_SN = tpr.ROLE_SN 
-                                LEFT JOIN TB_PFOL_URL tpu ON tpu.PFOL_SN = pl.PFOL_SN AND tpu.DEL_YN = false
-                                LEFT JOIN TB_URL tu ON tu.URL_SN = tpu.URL_SN 
-                                LEFT JOIN TB_PFOL_MEDIA pm ON pl.PFOL_SN = pm.PFOL_SN
-                                LEFT JOIN TB_CMMN_CD tcc ON tcc.CMMN_CD_TYPE = 'SERVICE_STTS' AND tcc.CMMN_CD = pl.SERVICE_STTS
+                                      , pl.PFOL_NM
+                                      , pl.START_DT
+                                      , pl.END_DT
+                                      , pl.PERIOD
+                                      , pl.INTRO
+                                      , pl.MEM_CNT
+                                      , pl.CONTRIBUTION
+                                      , pl.SERVICE_STTS
+                                      , pl.RESULT
+                                      , JSON_ARRAYAGG(DISTINCT
+                                          JSON_OBJECT(
+                                              'ST_NM', st.ST_NM
+                                          )
+                                      ) AS stack
+                                      , JSON_ARRAYAGG(DISTINCT
+                                          JSON_OBJECT(
+                                              'ROLE_NM', r.ROLE_NM
+                                          )
+                                      ) AS roles
+                                      , JSON_ARRAYAGG(DISTINCT
+                                          JSON_OBJECT(
+                                              'URL', u.URL,
+                                              'URL_INTRO', u.URL_INTRO,
+                                              'RELEASE_YN', pu.RELEASE_YN,
+                                              'OS', pu.OS
+                                          )
+                                      ) AS urls
+                                      , JSON_ARRAYAGG(DISTINCT
+                                          JSON_OBJECT(
+                                              'URL', pm.URL,
+                                              'MAIN_YN', pm.MAIN_YN
+                                          )
+                                      ) AS media
+                                  FROM TB_PFOL pl
+                                  LEFT JOIN TB_PFOL_ST ps ON pl.PFOL_SN = ps.PFOL_SN
+                                  LEFT JOIN TB_ST st ON st.ST_SN = ps.ST_SN
+                                  LEFT JOIN TB_PFOL_ROLE pr ON pl.PFOL_SN = pr.PFOL_SN
+                                  LEFT JOIN TB_ROLE r ON r.ROLE_SN = pr.ROLE_SN
+                                  LEFT JOIN TB_PFOL_URL pu ON pl.PFOL_SN = pu.PFOL_SN
+                                  LEFT JOIN TB_URL u ON pu.URL_SN = u.URL_SN
+                                  LEFT JOIN TB_PFOL_MEDIA pm ON pl.PFOL_SN = pm.PFOL_SN
                                   WHERE pl.PFOL_SN = ${pfolSn} AND pl.DEL_YN = 'N'
                                   GROUP BY pl.PFOL_SN;`;
       try {
