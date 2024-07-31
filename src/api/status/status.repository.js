@@ -2,7 +2,7 @@ const db = require('../../config/db/db');
 const {QueryTypes} = require("sequelize");
 
 const findRequest = async(userSn, pjtSn)=> {
-    return await db.TB_REQ.findOne({ where: { PJT_SN: pjtSn, USER_SN: userSn} });
+    return await db.TB_REQ.findOne({ where: {PJT_SN: pjtSn, USER_SN: userSn} });
 }
 
 const findProjectRole = async (pjtSn, pjtRoleSn) => {
@@ -14,7 +14,7 @@ const createRequest = async (reqData, transaction) => {
 }
 
 const findReqMem = async(pjtSn, reqSn, userSn)=>{
-    return await db.TB_REQ.findOne({where: {PJT_SN: pjtSn, REQ_SN: reqSn, USER_SN: userSn, DEL_YN: false}});
+    return await db.TB_REQ.findOne({where: {PJT_SN: pjtSn, REQ_SN: reqSn, DEL_YN: false}});
 }
 
 const updateRequest = async (reqMem, transaction) => {
@@ -62,7 +62,6 @@ const myReqList = async(user) => {
             [db.Sequelize.fn('SUM', db.Sequelize.col('tp.tpr.TOTAL_CNT')), 'TO'],
             [db.Sequelize.col('tpr.PART'), 'part'],
             ['REQ_STTS', 'reqStts']
-
         ],
         include: [
             {
