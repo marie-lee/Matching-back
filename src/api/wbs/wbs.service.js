@@ -71,7 +71,6 @@ class WbsService {
 
             const members = await wbsRepository.findProjectMembers(pjtSn);
             let memberData = [];
-            console.log(members)
 
             for (const member of members) {
                 const user = await wbsRepository.findUserBySn(member.USER_SN);
