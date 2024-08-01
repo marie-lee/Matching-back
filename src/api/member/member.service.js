@@ -118,7 +118,12 @@ class MemberService {
         return { message: '이메일 인증 실패: 인증 코드가 일치하지 않습니다.'};
       }
 
-      await MemberRepository.upsertEmailVerification(USER_EMAIL, PURPOSE, true);
+      await MemberRepository.upsertEmailVerification({
+        USER_EMAIL,
+        VERIFICATION_CODE: verificationCode,
+        VERIFIED: true,
+        PURPOSE
+      });
 
       return { message: '이메일 인증 성공' };
     } catch (error) {

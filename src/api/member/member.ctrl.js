@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const MemberService = require('./member.service');
 const {logger} = require('../../utils/logger');
-const { RegisterDto, LoginDto, EmailVerificationDto, PasswordResetDto } = require('../member/dto/');
+const { RegisterDto, LoginDto, EmailVerificationDto, PasswordResetDto } = require('../member/dto');
 
 //로컬 로그인
 router.post('/login', async (req, res) => {
@@ -62,10 +62,12 @@ router.post('/login/google',async (req,res)=>{
 //이메일 인증 요청
 router.post('/registration/certification',async (req,res)=>{
   try {
-    const emailVerificationDto = new EmailVerificationDto(req.body);
-    emailVerificationDto.validate();
+    const { USER_EMAIL } = req.body;
+    if (!USER_EMAIL) {
+      throw new Error('이메일이 입력되지 않았습니다.');
+    }
 
-    const result = await MemberService.verifyEmailCode(emailVerificationDto.USER_EMAIL, emailVerificationDto.verificationCode, 'register');
+    const result = await MemberService.requestEmail(USER_EMAIL,'register');
     res.status(200).json(result);
   } catch (error) {
     logger.error('이메일 인증 확인 실패:', error);
