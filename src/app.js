@@ -19,6 +19,7 @@ require('dotenv').config();
 const memberCtrl = require('./api/member/member.ctrl');
 const profileCtrl = require('./api/profile/profile.ctrl');
 const projectCtrl = require('./api/project/project.ctrl');
+const wbsCtrl = require('./api/wbs/wbs.ctrl');
 const statusCtrl = require('./api/status/status.ctrl');
 const recommendationCtrl = require('./api/recommendation/recommendation.ctrl');
 
@@ -54,6 +55,7 @@ app.use("/api/member", profileCtrl);
 app.use("/api", projectCtrl);
 app.use("/api", statusCtrl);
 app.use("/api", recommendationCtrl);
+app.use("/api", wbsCtrl);
 
 app.listen(process.env.PORT, () => {
   logger.info('Server is running on port 8080');
