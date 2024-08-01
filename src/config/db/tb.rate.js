@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
-    const TB_WBS = sequelize.define('TB_WBS', {
-        TICKET_SN: {
+    const TB_RATE = sequelize.define('TB_RATE', {
+        RATE_SN:{
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,
@@ -10,45 +10,37 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false
         },
-        TICKET_NAME: {
-            type: DataTypes.STRING(1500),
+        TARGET_SN: {
+            type: DataTypes.INTEGER,
             allowNull: false
         },
-        WORKER: {
+        RATER_SN: {
             type: DataTypes.INTEGER,
-            allowNull: true
+            allowNull: false
         },
-        START_DT: {
-            type: DataTypes.DATE,
-            allowNull: true
-        },
-        END_DT: {
-            type: DataTypes.DATE,
-            allowNull: true
-        },
-        STATUS: {
-            type: DataTypes.STRING(45),
-            allowNull: true
-        },
-        PRIORITY:{
-            type: DataTypes.STRING(45),
-            allowNull: true
-        },
-        LEVEL:{
-            type: DataTypes.STRING(45),
-            allowNull: true
-        },
-        PARENT_SN: {
+        RATE_1: {
             type: DataTypes.INTEGER,
-            allowNull: true
+            allowNull: false
         },
-        ORDER_NUM: {
+        RATE_2: {
             type: DataTypes.INTEGER,
-            allowNull: true
+            allowNull: false
         },
-        ISSUE_TICKET_SN: {
+        RATE_3: {
             type: DataTypes.INTEGER,
-            allowNull: true
+            allowNull: false
+        },
+        RATE_4: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        RATE_5: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        RATE_TEXT: {
+            type: DataTypes.STRING(2000),
+            allowNull: false
         },
         CREATED_DT: {
             type: DataTypes.DATE,
@@ -70,17 +62,17 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: false
         }
     }, {
-        tableName: 'TB_WBS',
+        tableName: 'TB_RATE',
         timestamps: true, // 타임스탬프 활성화
         createdAt: 'CREATED_DT', // createdAt을 CREATED_DT로 매핑
         updatedAt: 'MODIFIED_DT' // updatedAt을 MODIFIED_DT로 매핑
     });
 
-    TB_WBS.associate = models => {
-        TB_WBS.belongsTo(models.TB_PJT, { foreignKey: 'PJT_SN' });
-        TB_WBS.belongsTo(models.TB_USER, { foreignKey: 'WORKER' });
-        TB_WBS.hasMany(models.TB_ISSUE, { foreignKey: 'TICKET_SN' });
+    TB_RATE.associate = models => {
+        TB_RATE.belongsTo(models.TB_PJT, { foreignKey: 'PJT_SN' });
+        TB_RATE.belongsTo(models.TB_USER, { foreignKey: 'TARGET_SN' });
+        TB_RATE.belongsTo(models.TB_USER, { foreignKey: 'RATER_SN' });
     };
 
-    return TB_WBS;
-};
+    return TB_RATE;
+}

@@ -26,6 +26,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(45),
         allowNull: true
       },
+      CONTRIBUTION: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+      },
       FIRST_DT: {
         type: DataTypes.DATE,
         allowNull: false,

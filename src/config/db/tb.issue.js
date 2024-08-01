@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
-    const TB_WBS = sequelize.define('TB_WBS', {
-        TICKET_SN: {
+    const TB_ISSUE = sequelize.define('TB_ISSUE', {
+        ISSUE_SN:{
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,
@@ -10,17 +10,25 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false
         },
-        TICKET_NAME: {
-            type: DataTypes.STRING(1500),
+        TICKET_SN: {
+            type: DataTypes.INTEGER,
             allowNull: false
         },
-        WORKER: {
+        TICKET_NM: {
+            type: DataTypes.STRING(2000),
+            allowNull: false
+        },
+        PRIORITY: {
+            type: DataTypes.STRING(45),
+            allowNull: true
+        },
+        PRESENT_SN: {
             type: DataTypes.INTEGER,
             allowNull: true
         },
-        START_DT: {
-            type: DataTypes.DATE,
-            allowNull: true
+        CONTENT: {
+            type: DataTypes.STRING(3000),
+            allowNull: false
         },
         END_DT: {
             type: DataTypes.DATE,
@@ -28,26 +36,6 @@ module.exports = (sequelize, DataTypes) => {
         },
         STATUS: {
             type: DataTypes.STRING(45),
-            allowNull: true
-        },
-        PRIORITY:{
-            type: DataTypes.STRING(45),
-            allowNull: true
-        },
-        LEVEL:{
-            type: DataTypes.STRING(45),
-            allowNull: true
-        },
-        PARENT_SN: {
-            type: DataTypes.INTEGER,
-            allowNull: true
-        },
-        ORDER_NUM: {
-            type: DataTypes.INTEGER,
-            allowNull: true
-        },
-        ISSUE_TICKET_SN: {
-            type: DataTypes.INTEGER,
             allowNull: true
         },
         CREATED_DT: {
@@ -70,17 +58,18 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: false
         }
     }, {
-        tableName: 'TB_WBS',
+        tableName: 'TB_ISSUE',
         timestamps: true, // 타임스탬프 활성화
         createdAt: 'CREATED_DT', // createdAt을 CREATED_DT로 매핑
         updatedAt: 'MODIFIED_DT' // updatedAt을 MODIFIED_DT로 매핑
     });
 
-    TB_WBS.associate = models => {
-        TB_WBS.belongsTo(models.TB_PJT, { foreignKey: 'PJT_SN' });
-        TB_WBS.belongsTo(models.TB_USER, { foreignKey: 'WORKER' });
-        TB_WBS.hasMany(models.TB_ISSUE, { foreignKey: 'TICKET_SN' });
+    TB_ISSUE.associate = models => {
+        TB_ISSUE.belongsTo(models.TB_PJT, { foreignKey: 'PJT_SN' });
+        TB_ISSUE.belongsTo(models.TB_USER, { foreignKey: 'PRESENT_SN' });
+        TB_ISSUE.belongsTo(models.TB_WBS, { foreignKey: 'TICKET_SN' });
+        TB_ISSUE.hasMany(models.TB_MENTION, { foreignKey: 'ISSUE_SN' });
     };
 
-    return TB_WBS;
-};
+    return TB_ISSUE;
+}
