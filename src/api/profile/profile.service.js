@@ -3,59 +3,44 @@ const {logger} = require('../../utils/logger');
 const minio = require('../../middleware/minio/minio.service');
 const {QueryTypes} = require("sequelize");
 const {runPfPfolToVec} = require("../../utils/matching/spawnVectorization");
-const mutex = require('../../utils/matching/Mutex');
+const mutex = require('../../ utils/matching/Mutex');
 const {throwError} = require("../../utils/errors");
 
 class profileService {
-    async profileUpload(req, res){
-        const data = req.body;
-        const userSn = req.userSn.USER_SN
-        const t = await db.transaction(); // 트랜잭션 시작
-        try{
-            if(!data.profile && !data.portfolios){
-                return res.status(400).send('프로필과 포트폴리오 데이터가 없습니다.')
-            }
-            else if(data.profile && !data.portfolios){
-                // 프로필 입력
-                const pf = await this.profileInsert(req.body.profile, userSn, t);
-                if(pf){
-                    await t.commit(); // 모든 작업이 성공하면 트랜잭션 커밋
-                    res.status(200).send('프로필 입력 완료');
-                    await this.toVectorPfPfol(userSn)
-                }
-                else{
-                    await this.profileModifyFunc(data, userSn, t);
-                    await t.commit();
-                    res.status(200).send('프로필 수정 완료.');
-                }
-            }
-            else if(data.profile && data.portfolios){
-                // 프로필 입력
-                const pf = await this.profileInsert(req.body.profile, userSn, t);
-                if(pf){
-                    // 포트폴리오 입력
-                    for (const portfolio of req.body.portfolios) {
-                        await this.portfolioInsert(portfolio, pf, t);
-                    }
-                    await t.commit(); // 모든 작업이 성공하면 트랜잭션 커밋
-                    res.status(200).send('프로필 포트폴리오 입력 완료');
-                    await this.toVectorPfPfol(userSn)
-                }
-                else{
-                    await this.profileModifyFunc(data, userSn, t);
-                    await t.commit();
-                    res.status(200).send('프로필 포트폴리오 수정 완료.');
-                }
-            }
-
+    async profileUpload(userSn, profileData, portfolios, userImg, portfolioMedia) {
+    const t = await db.transaction();
+    try {
+      if (!profileData && !portfolios) {
+        throwError('프로필과 포트폴리오 데이터가 없습니다.');
+      } else if (profileData && !portfolios) {
+        const pf = await this.profileInsert(profileData, userSn, t, userImg);
+        if (pf) {
+          await t.commit();
+          await this.toVectorPfPfol(userSn);
+        } else {
+          await this.profileModifyFunc(profileData, portfolios, userSn, t, userImg, portfolioMedia);
+          await t.commit();
         }
-        catch (error){
-            await this.deleteFileFromMinio(req.body.profile, req.body.portfolios);
-            await t.rollback(); // 에러 발생 시 트랜잭션 롤백
-            logger.error('프로필 포트폴리오 등록 중 에러 발생:', error);
-            throw error;
+      } else if (profileData && portfolios) {
+        const pf = await this.profileInsert(profileData, userSn, t, userImg);
+        if (pf) {
+          for (const portfolio of portfolios) {
+            await this.portfolioInsert(portfolio, pf, t, portfolioMedia);
+          }
+          await t.commit();
+          await this.toVectorPfPfol(userSn);
+        } else {
+          await this.profileModifyFunc(profileData, portfolios, userSn, t, userImg, portfolioMedia);
+          await t.commit();
         }
+      }
+    } catch (error) {
+      await this.deleteFileFromMinio(profileData, portfolios);
+      await t.rollback();
+      logger.error('프로필 포트폴리오 등록 중 에러 발생:', error);
+      throw error;
     }
+  }
 
     async profileModifyFunc(data, userSn, transaction){
         try{
@@ -63,7 +48,7 @@ class profileService {
                 throwError('프로필 데이터가 없습니다.');
             }
 
-            const pf = await this.profileUpdate(data.profile, userSn, t);
+            const pf = await this.profileUpdate(data.profile, userSn, transaction);
             if(data.portfolios){
                 for (const portfolio of data.portfolios) {
                     await this.portfolioUpdate(portfolio, pf, transaction);
@@ -78,78 +63,69 @@ class profileService {
         }
     }
 
-    async profileModify(req, res){
-      const data = req.body;
-      const userSn = req.userSn.USER_SN;
-      const t = await db.transaction(); // 트랜잭션 시작
-      try{
-        if(!data.profile){
-          return res.status(400).send('프로필 데이터가 없습니다.');
-        }
-
-        const pf = await this.profileUpdate(data.profile, userSn, t);
-        if(data.portfolios){
-          for (const portfolio of data.portfolios) {
-            await this.portfolioUpdate(portfolio, pf, t);
-          }
-        }
-
-        await t.commit(); // 모든 작업이 성공하면 트랜잭션 커밋
-        res.status(200).send(data.portfolios ? '프로필 및 포트폴리오 수정 완료' : '프로필 수정 완료');
-        await this.toVectorPfPfol(userSn);
+    async profileModify(userSn, profileData, portfolios, userImg, portfolioMedia) {
+    const t = await db.transaction();
+    try {
+      if (!profileData) {
+        throwError('프로필 데이터가 없습니다.');
       }
-      catch (error){
-        await this.deleteFileFromMinio(data.profile, data.portfolios);
-        await t.rollback(); // 에러 발생 시 트랜잭션 롤백
-        logger.error('프로필 및 포트폴리오 수정 중 에러 발생:', error);
-        throw error;
+
+      const pf = await this.profileUpdate(profileData, userSn, t, userImg);
+      if (portfolios) {
+        for (const portfolio of portfolios) {
+          await this.portfolioUpdate(portfolio, pf, t, portfolioMedia);
+        }
       }
+
+      await t.commit();
+      await this.toVectorPfPfol(userSn);
+    } catch (error) {
+      await this.deleteFileFromMinio(profileData, portfolios);
+      await t.rollback();
+      logger.error('프로필 및 포트폴리오 수정 중 에러 발생:', error);
+      throw error;
     }
+  }
 
-    async profileUpdate(profile, userSn, transaction) {
-      try {
-        if (!profile.PF_INTRO) {
-          throwError('한 줄 소개가 입력되지 않았습니다.');
-        }
-        if (!profile.STACK) {
-          throwError('스킬이 입력되지 않았습니다.');
-        }
-        if (!profile.INTRST) {
-          throwError('관심 분야가 입력되지 않았습니다.');
-        }
-
-        const existingProfile = await db.TB_PF.findOne({ where: { USER_SN: userSn } });
-        if (existingProfile) {
-          // 프로필 업데이트
-          await db.TB_PF.update(
-            { PF_INTRO: profile.PF_INTRO },
-            { where: { USER_SN: userSn }, transaction }
-          );
-
-          await db.TB_USER.update(
-            { USER_IMG: profile.USER_IMG },
-            { where: { USER_SN: userSn }, transaction }
-          );
-
-          await this.updateProfileDetails(existingProfile.PF_SN, profile, transaction);
-          return existingProfile;
-        } else {
-          // 새로운 프로필 생성
-          const newProfile = await db.TB_PF.create({ PF_INTRO: profile.PF_INTRO, USER_SN: userSn }, { transaction });
-
-          await db.TB_USER.update({ USER_IMG: profile.USER_IMG }, {
-            where: { USER_SN: userSn },
-            transaction: transaction
-          });
-
-          await this.insertProfileDetails(newProfile.PF_SN, profile, transaction);
-          return newProfile;
-        }
-      } catch (error) {
-        logger.error("프로필 입력 중 에러 발생:", error);
-        throw error;
+    async profileUpdate(profile, userSn, transaction, userImg) {
+    try {
+      if (!profile.PF_INTRO) {
+        throwError('한 줄 소개가 입력되지 않았습니다.');
       }
+      if (!profile.STACK) {
+        throwError('스킬이 입력되지 않았습니다.');
+      }
+      if (!profile.INTRST) {
+        throwError('관심 분야가 입력되지 않았습니다.');
+      }
+
+      const existingProfile = await db.TB_PF.findOne({ where: { USER_SN: userSn } });
+      if (existingProfile) {
+        await db.TB_PF.update({ PF_INTRO: profile.PF_INTRO }, { where: { USER_SN: userSn }, transaction });
+
+        if (userImg) {
+          const imgUrl = await minioService.upload(userImg, 'profile', existingProfile.PF_SN, transaction);
+          await db.TB_USER.update({ USER_IMG: imgUrl }, { where: { USER_SN: userSn }, transaction });
+        }
+
+        await this.updateProfileDetails(existingProfile.PF_SN, profile, transaction);
+        return existingProfile;
+      } else {
+        const newProfile = await db.TB_PF.create({ PF_INTRO: profile.PF_INTRO, USER_SN: userSn }, { transaction });
+
+        if (userImg) {
+          const imgUrl = await minioService.upload(userImg, 'profile', newProfile.PF_SN, transaction);
+          await db.TB_USER.update({ USER_IMG: imgUrl }, { where: { USER_SN: userSn }, transaction });
+        }
+
+        await this.insertProfileDetails(newProfile.PF_SN, profile, transaction);
+        return newProfile;
+      }
+    } catch (error) {
+      logger.error("프로필 업데이트 중 에러 발생:", error);
+      throw error;
     }
+  }
 
     async insertProfileDetails(pfSn, profile, transaction) {
       if (profile.CAREER) {
@@ -208,30 +184,13 @@ class profileService {
       await this.insertProfileDetails(pfSn, profile, transaction);
     }
 
-    async portfolioUpdate(portfolio, pf, transaction) {
-      try {
-        let pfol;
-        if (portfolio.id) {
-          // 포트폴리오 업데이트
-          pfol = await db.TB_PFOL.findOne({ where: { PFOL_SN: portfolio.id } });
-          if (pfol) {
-            await db.TB_PFOL.update({
-              PFOL_NM: portfolio.PFOL_NM,
-              START_DT: portfolio.START_DT,
-              END_DT: portfolio.END_DT,
-              PERIOD: portfolio.PERIOD,
-              INTRO: portfolio.INTRO,
-              MEM_CNT: portfolio.MEM_CNT,
-              CONTRIBUTION: portfolio.CONTRIBUTION,
-              SERVICE_STTS: portfolio.SERVICE_STTS,
-              RESULT: portfolio.RESULT
-            }, { where: { PFOL_SN: portfolio.id }, transaction });
-
-            await this.updatePortfolioDetails(portfolio.id, portfolio, transaction);
-          }
-        } else {
-          // 포트폴리오 생성
-          pfol = await db.TB_PFOL.create({
+    async portfolioUpdate(portfolio, pf, transaction, portfolioMedia) {
+    try {
+      let pfol;
+      if (portfolio.id) {
+        pfol = await db.TB_PFOL.findOne({ where: { PFOL_SN: portfolio.id } });
+        if (pfol) {
+          await db.TB_PFOL.update({
             PFOL_NM: portfolio.PFOL_NM,
             START_DT: portfolio.START_DT,
             END_DT: portfolio.END_DT,
@@ -241,17 +200,30 @@ class profileService {
             CONTRIBUTION: portfolio.CONTRIBUTION,
             SERVICE_STTS: portfolio.SERVICE_STTS,
             RESULT: portfolio.RESULT
-          }, { transaction });
+          }, { where: { PFOL_SN: portfolio.id }, transaction });
 
-          await db.TB_PF_PFOL.create({ PF_SN: pf.PF_SN, PFOL_SN: pfol.PFOL_SN }, { transaction });
-          await this.insertPortfolioDetails(pfol.PFOL_SN, portfolio, transaction);
+          await db.TB_PFOL_MEDIA.destroy({ where: { PFOL_SN: portfolio.id }, transaction });
+
+          for (const media of portfolioMedia) {
+            const imgUrl = await minioService.upload(media, 'portfolio', portfolio.id, transaction);
+            await db.TB_PFOL_MEDIA.create({
+              PFOL_SN: portfolio.id,
+              URL: imgUrl,
+              MAIN_YN: media.MAIN_YN
+            }, { transaction });
+          }
+
+          await this.updatePortfolioDetails(portfolio.id, portfolio, transaction);
         }
-        return pfol;
-      } catch (error) {
-        logger.error("포트폴리오 입력 중 에러 발생:", error);
-        throw error;
+      } else {
+        pfol = await this.portfolioInsert(portfolio, pf, transaction, portfolioMedia);
       }
+      return pfol;
+    } catch (error) {
+      logger.error("포트폴리오 업데이트 중 에러 발생:", error);
+      throw error;
     }
+  }
 
     async insertPortfolioDetails(pfolSn, portfolio, transaction) {
       if (portfolio.STACK) {
@@ -310,170 +282,78 @@ class profileService {
       await this.insertPortfolioDetails(pfolSn, portfolio, transaction);
     }
 
-    async profileInsert(profile, userSn, transaction){
-      try {
-        if (!profile.PF_INTRO) {
-          throwError('한 줄 소개가 입력되지 않았습니다.');
-        }
-        if (!profile.STACK) {
-          throwError('스킬이 입력되지 않았습니다.');
-        }
-        if (!profile.INTRST) {
-          throwError('관심 분야가 입력되지 않았습니다.');
-        }
-        if(await db.TB_PF.findOne({where : {USER_SN: userSn}})){
-          logger.error('해당 유저의 프로필이 이미 존재합니다.');
-          return false;
-        }
-        else {
-          // 프로필 생성
-          const pf = await db.TB_PF.create({PF_INTRO: profile.PF_INTRO, USER_SN: userSn}, {transaction});
-
-          // 프로필 이미지 업데이트
-          await db.TB_USER.update({USER_IMG: profile.USER_IMG}, {
-            where: {USER_SN: userSn},
-            transaction: transaction
-          });
-
-          if(profile.CAREER){
-            // 경력 입력
-            for (const career of profile.CAREER) {
-              await db.TB_CAREER.create({
-                CAREER_NM: career.CAREER_NM,
-                ENTERING_DT: career.ENTERING_DT,
-                QUIT_DT: career.QUIT_DT,
-                PF_SN: pf.PF_SN
-              }, {transaction});
-            }
-          }
-
-          if(profile.STACK){
-            // 스택 입력
-            for (const stack of profile.STACK) {
-              const [st, created] = await db.TB_ST.findOrCreate({
-                where: {ST_NM: stack.ST_NM},
-                defaults: {ST_NM: stack.ST_NM},
-                transaction: transaction
-              });
-
-              await db.TB_PF_ST.create({
-                PF_SN: pf.PF_SN,
-                ST_SN: st.ST_SN,
-                ST_LEVEL: stack.LEVEL
-              }, {transaction});
-            }
-          }
-
-          if(profile.INTRST){
-            // 관심사 입력
-            for (const intrst of profile.INTRST) {
-              const [intr, created] = await db.TB_INTRST.findOrCreate({
-                where: {INTRST_NM: intrst},
-                defaults: {INTRST_NM: intrst},
-                transaction: transaction
-              });
-
-              await db.TB_PF_INTRST.create({PF_SN: pf.PF_SN, INTRST_SN: intr.INTRST_SN}, {transaction});
-            }
-          }
-
-          if(profile.URL){
-            // URL 입력
-            for (const url of profile.URL) {
-              const u = await db.TB_URL.create({URL: url.URL, URL_INTRO: url.URL_INTRO}, {transaction});
-              await db.TB_PF_URL.create({PF_SN: pf.PF_SN, URL_SN: u.URL_SN}, {transaction});
-            }
-          }
-
-          return pf;
-        }
-      } catch (error) {
-        logger.error("프로필 입력 중 에러발생:", error);
-        throw error;
+    async profileInsert(profile, userSn, transaction, userImg) {
+    try {
+      if (!profile.PF_INTRO) {
+        throwError('한 줄 소개가 입력되지 않았습니다.');
       }
+      if (!profile.STACK) {
+        throwError('스킬이 입력되지 않았습니다.');
+      }
+      if (!profile.INTRST) {
+        throwError('관심 분야가 입력되지 않았습니다.');
+      }
+      if (await db.TB_PF.findOne({ where: { USER_SN: userSn } })) {
+        logger.error('해당 유저의 프로필이 이미 존재합니다.');
+        return false;
+      } else {
+        const pf = await db.TB_PF.create({ PF_INTRO: profile.PF_INTRO, USER_SN: userSn }, { transaction });
+
+        if (userImg) {
+          const imgUrl = await minioService.upload(userImg, 'profile', pf.PF_SN, transaction);
+          await db.TB_USER.update({ USER_IMG: imgUrl }, { where: { USER_SN: userSn }, transaction });
+        }
+
+        await this.insertProfileDetails(pf.PF_SN, profile, transaction);
+        return pf;
+      }
+    } catch (error) {
+      logger.error("프로필 입력 중 에러 발생:", error);
+      throw error;
     }
+  }
 
-    async portfolioInsert(portfolio, pf, transaction){
-      try{
-        // 포트폴리오 생성
-        const pfol = await db.TB_PFOL.create({
-          PFOL_NM: portfolio.PFOL_NM,
-          START_DT: portfolio.START_DT,
-          END_DT: portfolio.END_DT,
-          PERIOD: portfolio.PERIOD,
-          INTRO: portfolio.INTRO,
-          MEM_CNT: portfolio.MEM_CNT,
-          CONTRIBUTION: portfolio.CONTRIBUTION,
-          SERVICE_STTS: portfolio.SERVICE_STTS,
-          RESULT: portfolio.RESULT
-        }, { transaction });
+    async portfolioInsert(portfolio, pf, transaction, portfolioMedia) {
+    try {
+      const pfol = await db.TB_PFOL.create({
+        PFOL_NM: portfolio.PFOL_NM,
+        START_DT: portfolio.START_DT,
+        END_DT: portfolio.END_DT,
+        PERIOD: portfolio.PERIOD,
+        INTRO: portfolio.INTRO,
+        MEM_CNT: portfolio.MEM_CNT,
+        CONTRIBUTION: portfolio.CONTRIBUTION,
+        SERVICE_STTS: portfolio.SERVICE_STTS,
+        RESULT: portfolio.RESULT
+      }, { transaction });
 
-        // 포트폴리오 - 프로필 연결
-        await db.TB_PF_PFOL.create({PF_SN:pf.PF_SN, PFOL_SN:pfol.PFOL_SN}, { transaction });
+      await db.TB_PF_PFOL.create({ PF_SN: pf.PF_SN, PFOL_SN: pfol.PFOL_SN }, { transaction });
 
-        if(portfolio.STACK){
-          // 스택 입력
-          for (const stack of portfolio.STACK) {
-            const [st, created] = await db.TB_ST.findOrCreate({
-              where: {ST_NM: stack.ST_NM},
-              defaults: {ST_NM: stack.ST_NM},
-              transaction: transaction
-            });
-
-            await db.TB_PFOL_ST.create({PFOL_SN: pfol.PFOL_SN, ST_SN: st.ST_SN}, {transaction});
-          }
+      if (portfolioMedia) {
+        for (const media of portfolioMedia) {
+          const imgUrl = await minioService.upload(media, 'portfolio', pfol.PF_SN, transaction);
+          await db.TB_PFOL_MEDIA.create({
+            PFOL_SN: pfol.PFOL_SN,
+            URL: imgUrl,
+            MAIN_YN: media.MAIN_YN
+          }, { transaction });
         }
-
-        if(portfolio.ROLE){
-          // 역할 입력
-          for (const role of portfolio.ROLE) {
-            const [r, created] = await db.TB_ROLE.findOrCreate({
-              where: {ROLE_NM: role},
-              defaults: {ROLE_NM: role},
-              transaction: transaction
-            });
-
-            await db.TB_PFOL_ROLE.create({PFOL_SN: pfol.PFOL_SN, ROLE_SN: r.ROLE_SN}, {transaction});
-          }
-        }
-
-        if(portfolio.URL){
-          // URL 입력
-          for (const url of portfolio.URL) {
-            const u = await db.TB_URL.create({URL: url.URL, URL_INTRO: url.URL_INTRO}, {transaction});
-            await db.TB_PFOL_URL.create({
-              PFOL_SN: pfol.PFOL_SN,
-              URL_SN: u.URL_SN,
-              RELEASE_YN: url.RELEASE_YN,
-              OS: url.OS
-            }, {transaction});
-          }
-        }
-
-        if(portfolio.MEDIA){
-          // 포트폴리오 미디어 입력
-          for (const media of portfolio.MEDIA) {
-            await db.TB_PFOL_MEDIA.create({
-              PFOL_SN: pfol.PFOL_SN,
-              URL: media.URL,
-              MAIN_YN: media.MAIN_YN
-            }, {transaction});
-          }
-        }
-
-        return pfol;
       }
-      catch (error){
-        logger.error("포트폴리오 입력 중 에러발생:", error);
-        throw error;
-      }
+
+      await this.insertPortfolioDetails(pfol.PFOL_SN, portfolio, transaction);
+      return pfol;
+    } catch (error) {
+      logger.error("포트폴리오 입력 중 에러 발생:", error);
+      throw error;
     }
+  }
     fileUrlParsing(url){
       const parsedUrl = new URL(url);
       const pathname = parsedUrl.pathname;
       const pathnameParts = pathname.split('/').filter(part => part.length); // 빈 문자열 제거
       return pathnameParts.slice(1).join('/');
     }
+
     async deleteFileFromMinio(profile, portfolios){
       try {
         if (profile.USER_IMG && profile.USER_IMG.trim() !== '') {
@@ -558,7 +438,7 @@ class profileService {
         }
     }
 
-    async pfPfolSelect(userSn, res){
+    async pfPfolSelect(userSn){
 
         try {
             // 프로필 조회
@@ -571,15 +451,15 @@ class profileService {
             }
             // 프로필O 포트폴리오X
             if (!portfolioInfo || portfolioInfo.length === 0) {
-              return res.status(200).send({
+              return {
                 profile: profile,
                 portfolioInfo: [],
                 message: '포트폴리오가 작성되지 않았습니다.'
-              });
+              };
             }
 
             const pfPfol = {profile: profile, portfolioInfo: portfolioInfo};
-            return res.status(200).send(pfPfol);
+            return pfPfol;
         } catch (error){
             logger.error("프로필 및 포트폴리오 조회 중 오류 발생: ", error);
             throw error;
@@ -696,14 +576,14 @@ class profileService {
                                     , pl.MEM_CNT
                                     , JSON_ARRAYAGG( DISTINCT
                                         JSON_OBJECT(
-                                        'ST_SN', st.ST_SN 
+                                        'ST_SN', st.ST_SN
                                             ,'ST_NM', st.ST_NM
                                         )
                                     ) AS stack
                                     , JSON_ARRAYAGG( DISTINCT
                                         JSON_OBJECT(
-                                        'ROLE_SN', tr.ROLE_SN 
-                                            ,'ROLE_NM', tr.ROLE_NM 
+                                        'ROLE_SN', tr.ROLE_SN
+                                            ,'ROLE_NM', tr.ROLE_NM
                                         )
                                     ) AS role
                                     , pl.CONTRIBUTION
@@ -711,27 +591,27 @@ class profileService {
                                     , tcc.CMMN_CD_VAL AS SERVICE_STTS_VAL
                                     , pl.\`RESULT\`
                                     , pl.CREATED_DT
-                                    , pl.MODIFIED_DT 
+                                    , pl.MODIFIED_DT
                                     , JSON_ARRAYAGG( DISTINCT
                                         JSON_OBJECT(
-                                        'URL_SN', tpu.URL_SN 
+                                        'URL_SN', tpu.URL_SN
                                             ,'URL', tu.URL
-                                            , 'OS', tpu.OS 
+                                            , 'OS', tpu.OS
                                         )
                                     ) AS url
-                                    , CASE 
-                                        WHEN pm.MAIN_YN = 1 THEN pm.URL 
-                                            ELSE NULL 
+                                    , CASE
+                                        WHEN pm.MAIN_YN = 1 THEN pm.URL
+                                            ELSE NULL
                                         END AS IMG
                                     , JSON_ARRAYAGG(pm.URL) AS IMG_SUB
                                 FROM TB_PFOL pl
                                 LEFT JOIN TB_PF_PFOL pp ON pl.PFOL_SN = pp.PFOL_SN
                                 LEFT JOIN TB_PFOL_ST ps ON ps.PFOL_SN = pp.PFOL_SN
                                 LEFT JOIN TB_ST st ON st.ST_SN = ps.ST_SN
-                               LEFT JOIN TB_PFOL_ROLE tpr ON tpr.PFOL_SN = pl.PFOL_SN 
-                               LEFT JOIN TB_ROLE tr ON tr.ROLE_SN = tpr.ROLE_SN 
+                               LEFT JOIN TB_PFOL_ROLE tpr ON tpr.PFOL_SN = pl.PFOL_SN
+                               LEFT JOIN TB_ROLE tr ON tr.ROLE_SN = tpr.ROLE_SN
                                 LEFT JOIN TB_PFOL_URL tpu ON tpu.PFOL_SN = pl.PFOL_SN AND tpu.DEL_YN = false
-                                LEFT JOIN TB_URL tu ON tu.URL_SN = tpu.URL_SN 
+                                LEFT JOIN TB_URL tu ON tu.URL_SN = tpu.URL_SN
                                 LEFT JOIN TB_PFOL_MEDIA pm ON pl.PFOL_SN = pm.PFOL_SN
                                 LEFT JOIN TB_CMMN_CD tcc ON tcc.CMMN_CD_TYPE = 'SERVICE_STTS' AND tcc.CMMN_CD = pl.SERVICE_STTS
                                 WHERE pp.PF_SN = ${pfSn} AND pl.DEL_YN = 'N'
