@@ -57,6 +57,7 @@ class MemberService {
           PHONE:registerDto.PHONE,
           REFRESH_TOKEN: '',
           DEVICE_TOKEN: '',
+          UID:'',
           CREATED_DT: new Date(),
           MODIFIED_DT: new Date(),
         },transaction);
@@ -168,7 +169,7 @@ class MemberService {
 
       const hashedPassword = await bcrypt.hash(newPassword, 10);
       await MemberRepository.updateUserPassword(USER_EMAIL, hashedPassword, transaction);
-      await MemberRepository.deleteEmailVerification(USER_EMAIL, 'reset_password', transaction);
+      await MemberRepository.destroyEmailVerification(USER_EMAIL, 'reset_password', transaction);
 
       await transaction.commit();
       return { message: '비밀번호가 성공적으로 변경되었습니다.' };

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const MemberService = require('./member.service');
 const {logger} = require('../../utils/logger');
-const { RegisterDto, LoginDto, EmailVerificationDto, PasswordResetDto } = require('../member/dto');
+const { GoogleRegisterDto,RegisterDto, LoginDto, EmailVerificationDto, PasswordResetDto } = require('../member/dto');
 
 //로컬 로그인
 router.post('/login', async (req, res) => {
@@ -35,10 +35,10 @@ router.post('/registration/join',async (req,res)=>{
 //구글 회원가입
 router.post('/registration/join/google',async (req,res)=>{
   try{
-    const registerDto = new RegisterDto(req.body);
-    registerDto.validate();
+    const googleRegisterDto = new GoogleRegisterDto(req.body);
+    googleRegisterDto.validate();
 
-    const result = await MemberService.register(registerDto,'google');
+    const result = await MemberService.register(googleRegisterDto,'google');
     res.status(200).json(result);
   }catch (error) {
     logger.error('회원가입 실패',error);
