@@ -19,8 +19,7 @@ const findEmailVerification = async (email, PURPOSE) => {
   return await db.TB_USER_EMAIL.findOne({
     where: {
       USER_EMAIL: email,
-      PURPOSE: PURPOSE,
-      VERIFIED: false  // 아직 인증되지 않은 레코드를 찾습니다.
+      PURPOSE: PURPOSE
     }
   });
 };
