@@ -15,14 +15,22 @@ const createUser = async (userData, transaction) => {
     return await db.TB_USER.create(userData, { transaction });
 };
 
-// 인증된 이메일 찾기
-const findEmailVerification = async (email) => {
-    return await db.TB_USER_EMAIL.findOne({ where: { USER_EMAIL:email, VERIFIED: true } });
+const findEmailVerification = async (email, PURPOSE) => {
+  return await db.TB_USER_EMAIL.findOne({
+    where: {
+      USER_EMAIL: email,
+      PURPOSE: PURPOSE,
+      VERIFIED: false  // 아직 인증되지 않은 레코드를 찾습니다.
+    }
+  });
 };
 
-// 이메일 인증 데이터베이스에 저장
 const upsertEmailVerification = async (emailData) => {
-    return await db.TB_USER_EMAIL.upsert(emailData);
+  const { USER_EMAIL, PURPOSE } = emailData;
+  return await db.TB_USER_EMAIL.upsert(emailData, {
+    where: { USER_EMAIL, PURPOSE },
+    returning: true  // 업데이트된 레코드를 반환합니다.
+  });
 };
 
 // 사용자 이름과 전화번호로 사용자 찾기
@@ -32,27 +40,27 @@ const findUserByNameAndPhone = async (name, phone) => {
 
 // 사용자 이름과 이메일로 사용자 찾기
 const findUserByNameAndEmail = async (name, email) => {
-    return await db.TB_USER.findOne({ where: { USER_NM:name, USER_EMAIL:email } });
+  return await db.TB_USER.findOne({ where: { USER_NM: name, USER_EMAIL: email } });
 };
 
 // 이메일 인증 코드 찾기
-const findEmailVerificationCode = async (email, verificationCode, purpose) => {
-    return await db.TB_USER_EMAIL.findOne({ where: { USER_EMAIL:email, VERIFICATION_CODE: verificationCode, PURPOSE:purpose } });
+const findEmailVerificationCode = async (USER_EMAIL, verificationCode, PURPOSE) => {
+  return await db.TB_USER_EMAIL.findOne({ where: { USER_EMAIL: USER_EMAIL, VERIFICATION_CODE: verificationCode, PURPOSE: PURPOSE } });
 };
 
 // 이메일 인증 상태 업데이트
-const updateEmailVerificationStatus = async (email, purpose) => {
-    return await db.TB_USER_EMAIL.update({ VERIFIED: true }, { where: { USER_EMAIL:email, PURPOSE:purpose } });
+const updateEmailVerificationStatus = async (USER_EMAIL, PURPOSE) => {
+  return await db.TB_USER_EMAIL.update({ VERIFIED: true }, { where: { USER_EMAIL: USER_EMAIL, PURPOSE: PURPOSE } });
 };
 
 // 이메일 인증 데이터 삭제
-const destroyEmailVerification = async (email, purpose) => {
-    return await db.TB_USER_EMAIL.destroy({ where: { USER_EMAIL:email, PURPOSE:purpose } });
+const destroyEmailVerification = async (USER_EMAIL, PURPOSE) => {
+  return await db.TB_USER_EMAIL.destroy({ where: { USER_EMAIL: USER_EMAIL, PURPOSE: PURPOSE } });
 };
 
 // 사용자 비밀번호 업데이트
 const updateUserPassword = async (email, hashedPassword) => {
-    return await db.TB_USER.update({ USER_PW: hashedPassword }, { where: { USER_EMAIL:email } });
+  return await db.TB_USER.update({ USER_PW: hashedPassword }, { where: { USER_EMAIL: email } });
 };
 
 module.exports = {

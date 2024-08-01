@@ -3,7 +3,7 @@ const {logger} = require('../../utils/logger');
 const minio = require('../../middleware/minio/minio.service');
 const {QueryTypes} = require("sequelize");
 const {runPfPfolToVec} = require("../../utils/matching/spawnVectorization");
-const mutex = require('../../ utils/matching/Mutex');
+const mutex = require('../../utils/matching/Mutex');
 const {throwError} = require("../../utils/errors");
 
 class profileService {
