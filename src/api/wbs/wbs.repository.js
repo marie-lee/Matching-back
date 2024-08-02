@@ -1,6 +1,6 @@
 const db = require('../../config/db/db');
 const { logger } = require("../../utils/logger");
-const { QueryTypes } = require("sequelize");
+const { QueryTypes, Sequelize, Op} = require("sequelize");
 
 const beginTransaction = async () => {
     return await db.transaction();
@@ -106,9 +106,9 @@ const findChildData = async (pjtSn, parentSn) => {
         order: [['ORDER_NUM', 'ASC']]
     });
 };
-const findTicket = async (ticketSn, pjtSn, userSn) =>{
+const findTicket = async (ticketSn, pjtSn) =>{
     return await db.TB_WBS.findOne({
-        where : {PJT_SN: pjtSn, TICKET_SN: ticketSn, WORKER: userSn, DEL_YN: false },
+        where : {PJT_SN: pjtSn, TICKET_SN: ticketSn, DEL_YN: false },
     })
 }
 const createIssue = async (issueDto, transaction)=>{
@@ -116,6 +116,25 @@ const createIssue = async (issueDto, transaction)=>{
 }
 const addMentionFromIssue = async(mentionData,transaction) => {
     await db.TB_MENTION.create(mentionData,{transaction});
+}
+
+const trackingIssue = async(pjtSn) => {
+    const query = `SELECT 
+        TB_WBS.ISSUE_TICKET_SN AS PARENT_TICKET_SN, 
+        TB_WBS.TICKET_SN, 
+        TB_WBS.CREATED_DT 
+    FROM 
+        TB_WBS 
+    INNER JOIN 
+        TB_ISSUE 
+    ON 
+        TB_ISSUE.PJT_SN = ${pjtSn}
+    WHERE 
+        TB_WBS.PJT_SN = ${pjtSn}
+        AND TB_WBS.ISSUE_TICKET_SN IS NOT NULL 
+    GROUP BY 
+        TICKET_SN`;
+    return await db.query(query, {type: QueryTypes.SELECT});
 }
 
 module.exports = {
@@ -138,5 +157,6 @@ module.exports = {
     findChildData,
     findTicket,
     createIssue,
-    addMentionFromIssue
+    addMentionFromIssue,
+    trackingIssue
 };

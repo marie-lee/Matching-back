@@ -97,17 +97,27 @@ router.post('/project/wbs/:pjtSn/:ticketSn', jwt.authenticateToken, async (req, 
             mentions: req.body.MENTIONS,
             status: 'ISSUE_OPN'
         })
-        console.log(req.params)
         issueDto.validate();
         const data = await wbsService.createIssue(issueDto);
         if(data.message){
-            return res.status(400).json(data)
+            return res.status(404).json(data)
         }
         return res.status(200).json('wbs 티켓 이슈 생성 성공.');
     } catch (error){
-        logger.error(error)
+        logger.error('wbs 티켓 이슈 생성 중 오류 발생 :' + error)
         return res.status(400).json(`wbs 티켓 이슈 생성 중 오류 발생 :  ${error.message}`);
     }
 })
+// 이슈 트레킹 조회
+router.get('/project/wbs/tracking/:pjtSn', jwt.authenticateToken, async (req, res) => {
+    const pjtSn = req.params.pjtSn;
+    try {
+        const tracking = await wbsService.trackingTicket(pjtSn);
+        return res.status(404).json(tracking);
+    } catch (error){
+        logger.error('wbs 티켓 이슈트레킹 조회 중 오류 발생 : ' + error);
+        return res.status(400).json(`wbs 티켓 이슈트레킹 조회 중 오류 발생 : ${error.message}`)
+    }
+});
 
 module.exports = router;
