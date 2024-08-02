@@ -7,6 +7,7 @@ const oneCmmnVal = require("../common/common.repository");
 const wbsRepository = require("./wbs.repository");
 const { ProjectDto, MemberDto} = require("./dto/wbs.create.dto");
 const {WbsDto, WbsTicketDto} = require("./dto/wbs.dto");
+const {createIssue} = require("./wbs.repository");
 
 class WbsService {
 
@@ -186,6 +187,31 @@ class WbsService {
         } catch (error) {
             logger.error('WBS 템플릿 조회 중 오류 발생: ', error.message);
             throw error;
+        }
+    }
+
+    async createIssue(issueDto){
+        const transaction = await wbsRepository.beginTransaction();
+        const { MENTIONS, ...createIssueData } = issueDto;
+        try {
+            const ticket = await wbsRepository.findTicket(createIssueData.TICKET_SN, createIssueData.PJT_SN, createIssueData.USER_SN);
+            if(!ticket) return {message : '티켓에 대한 정보가 없습니다.'};
+
+            const issue = await wbsRepository.createIssue(createIssue);
+
+            for (const mention of MENTIONS) {
+                const mentionData = {
+                    TARGET_SN: mention,
+                    CREATER_SN: createIssueData.WORKER,
+                    ISSUE_SN: issue.ISSUE_SN,
+                }
+                await wbsRepository.addMentionFromIssue(mentionData, transaction);
+            }
+            await wbsRepository.commitTransaction(transaction);
+            return issue
+        } catch (error){
+            await wbsRepository.rollbackTransaction(transaction);
+            throw error
         }
     }
 }

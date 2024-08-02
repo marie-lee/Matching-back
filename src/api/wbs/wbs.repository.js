@@ -106,6 +106,17 @@ const findChildData = async (pjtSn, parentSn) => {
         order: [['ORDER_NUM', 'ASC']]
     });
 };
+const findTicket = async (ticketSn, pjtSn, userSn) =>{
+    return await db.TB_WBS.findOne({
+        where : {PJT_SN: pjtSn, TICKET_SN: ticketSn, WORKER: userSn, DEL_YN: false },
+    })
+}
+const createIssue = async (issueDto, transaction)=>{
+    return await db.TB_ISSUE.create(issueDto,{transaction})
+}
+const addMentionFromIssue = async(mentionData,{transaction}) => {
+    await db.TB_MENTION.create(mentionData,{transaction});
+}
 
 module.exports = {
     beginTransaction,
@@ -124,5 +135,8 @@ module.exports = {
     updateWbsTemplate,
     findProjectMember,
     findDepth1Data,
-    findChildData
+    findChildData,
+    findTicket,
+    createIssue,
+    addMentionFromIssue
 };
