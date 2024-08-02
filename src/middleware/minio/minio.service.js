@@ -61,6 +61,29 @@ class minio {
         }
     }
 
+    async profileUpload(file, serialNum){
+        if (!file) {
+            throw new Error('파일이 존재하지 않습니다.');
+        }
+
+        const bucketName = 'matching';
+        const filePath = `profile/${serialNum}_${file.originalname}`;
+        const fileStream = new stream.PassThrough();
+        fileStream.end(file.buffer);
+
+        // 파일 스트림을 MinIO 버킷에 업로드하는 Promise 생성
+        const uploadPromise = new Promise((resolve, reject) => {
+            minioClient.putObject(bucketName, filePath, fileStream, file.size, (err, objInfo) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(objInfo);
+                }
+            });
+        });
+        return `http://${process.env.MINIO_END_POINT}:${process.env.MINIO_PORT}/matching/${filePath}`;
+    }
+
     async portfolioUpload(file, mainYn, serialNum, transaction) {
 
         if (!file) {

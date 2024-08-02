@@ -23,30 +23,19 @@ router.get('/profile', jwt.authenticateToken, async (req, res) => {
 router.post('/profile', jwt.authenticateToken, upload.fields([{ name: 'USER_IMG', maxCount: 1 }, { name: 'PORTFOLIO_MEDIA' }]), async (req, res) => {
   try {
     const userSn = req.userSn.USER_SN;
-    const profileCreateDto = new ProfileCreateDto(req.body);
+    const data = {
+      profile: JSON.parse(req.body.data).profile,
+      portfolios: JSON.parse(req.body.data).portfolios
+    };
+    const profileCreateDto = new ProfileCreateDto(data);
     profileCreateDto.validate();
-    const userImg = req.files['USER_IMG'] ? req.files['USER_IMG'][0] : null;
-    const portfolioMedia = req.files['PORTFOLIO_MEDIA'] || [];
+    const userImg = req.files.USER_IMG[0] ? req.files.USER_IMG[0] : null;
+    const portfolioMedia = req.files.PORTFOLIO_MEDIA? req.files.PORTFOLIO_MEDIA : null;
     await profileService.profileUpload(userSn, profileCreateDto.profile, profileCreateDto.portfolios, userImg, portfolioMedia);
     return res.status(200).json({ message: '프로필 및 포트폴리오 생성 완료' });
   } catch (error) {
     logger.error('프로필 및 포트폴리오 입력중 에러 발생 에러내용', error);
     return res.status(400).json('프로필 및 포트폴리오 입력중 에러 발생 에러내용 : ' + error.message);
-  }
-});
-
-router.put('/profile', jwt.authenticateToken, upload.fields([{ name: 'USER_IMG', maxCount: 1 }, { name: 'PORTFOLIO_MEDIA' }]), async (req, res) => {
-  try {
-    const userSn = req.userSn.USER_SN;
-    const profileCreateDto = new ProfileCreateDto(req.body);
-    profileCreateDto.validate();
-    const userImg = req.files['USER_IMG'] ? req.files['USER_IMG'][0] : null;
-    const portfolioMedia = req.files['PORTFOLIO_MEDIA'] || [];
-    await profileService.profileModify(userSn, profileCreateDto.profile, profileCreateDto.portfolios, userImg, portfolioMedia);
-    return res.status(200).json({ message: '프로필 및 포트폴리오 수정 완료' });
-  } catch (error) {
-    logger.error('프로필 및 포트폴리오 수정중 에러 발생 에러내용', error);
-    return res.status(400).json('프로필 및 포트폴리오 수정중 에러 발생 에러내용 : ' + error.message);
   }
 });
 
