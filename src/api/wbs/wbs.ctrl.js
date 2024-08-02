@@ -4,6 +4,7 @@ const wbsService = require('./wbs.service');
 const jwt = require('../../utils/jwt/jwt');
 const {logger} = require('../../utils/logger');
 const {ProjectDto, MemberDto, WbsDataDto} = require("./dto/wbs.create.dto");
+const CreateIssueDto = require("./dto/issue.create.dto");
 
 // wbs 템플릿 조회
 router.get('/project/wbs/template', jwt.authenticateToken, async (req, res) => {
@@ -80,6 +81,29 @@ router.get('/project/wbs/:pjtSn', jwt.authenticateToken, async (req, res)=> {
         else { return res.status(400).send('조회되는 WBS가 없습니다.'); }
     } catch (error){
         return res.status(400).send(`WBS 조회 중 에러 발생 :  ${error.message}`);
+    }
+})
+
+// 이슈생성
+router.post('/project/wbs/:pjtSn/:ticketSn', jwt.authenticateToken, async (req, res) => {
+    const issueDto = new CreateIssueDto({
+        pjtSn: req.params.pjtSn,
+        userSn: req.userSn.USER_SN,
+        ticketSn: req.params.ticketSn,
+        title: req.body.title,
+        periority: req.body.periority,
+        contents: req.body.contents,
+        mentions: req.body.mentions,
+        status: 'ISSUE_OPEN'
+    })
+    issueDto.validate();
+
+    try {
+        const data = await wbsService.createIssue(issueDto);
+        if(data.message){ return res.status(400).send(data.message)}
+        return res.status(400).send('조회되는 WBS가 없습니다.');
+    } catch (error){
+
     }
 })
 
