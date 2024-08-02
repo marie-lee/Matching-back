@@ -174,6 +174,7 @@ const issueDetail = async(issueSn,pjtSn) =>{
                                 USER_IMG AS PRESENT_IMG,
                                 ISSUE_NM,
                                 PRIORITY,
+                                STATUS,
                                 CONTENT,
                                 CREATED_DT
                             FROM (
@@ -185,13 +186,16 @@ const issueDetail = async(issueSn,pjtSn) =>{
                                     tu.USER_NM,
                                     tu.USER_IMG,
                                     ti.ISSUE_NM,
-                                    ti.PRIORITY,
+                                    tcc1.CMMN_CD_VAL AS PRIORITY,
+                                    tcc2.CMMN_CD_VAL AS STATUS,
                                     ti.CONTENT,
                                     ti.CREATED_DT,
                                     ROW_NUMBER() OVER (PARTITION BY th.ISSUE_SN, th.TICKET_SN ORDER BY ti.CREATED_DT DESC) AS rn
                                 FROM TicketHierarchy th
                                 INNER JOIN TB_ISSUE ti ON ti.TICKET_SN = th.TICKET_SN
                                 INNER JOIN TB_USER tu ON tu.USER_SN = ti.PRESENT_SN
+                                INNER JOIN TB_CMMN_CD tcc1 ON tcc1.CMMN_CD = ti.PRIORITY AND tcc1.CMMN_CD_TYPE = 'ISSUE_PRRT'
+                                INNER JOIN TB_CMMN_CD tcc2 ON tcc2.CMMN_CD = ti.STATUS AND tcc2.CMMN_CD_TYPE = 'ISSUE_STTS'
                                 WHERE th.PARENT_SN IS NULL
                             ) sub
                             WHERE rn = 1
