@@ -1,4 +1,5 @@
 const {logger} = require('../../utils/logger');
+const db = require('../../config/db/db');
 const {formatDt} = require("../common/common.service");
 const cmmnRepository = require("../common/common.repository");
 const wbsRepository = require("./wbs.repository");
@@ -187,7 +188,7 @@ class WbsService {
     }
 
     async createIssue(issueDto){
-        const transaction = await wbsRepository.beginTransaction();
+        const transaction = await db.transaction()
         const { MENTIONS, ...createIssueData } = issueDto;
         try {
             const ticket = await wbsRepository.findTicket(createIssueData.TICKET_SN, createIssueData.PJT_SN);
@@ -202,16 +203,16 @@ class WbsService {
                 if(!mem) return {message: '멘션할 수 없는 회원입니다. ', targetSn: mention}
                 const mentionData = {
                     TARGET_SN: mention,
-                    CREATER_SN: createIssueData.USER_SN,
+                    CREATER_SN: createIssueData.PRESENT_SN,
                     ISSUE_SN: issue.ISSUE_SN,
                 }
                 await wbsRepository.addMentionFromIssue(mentionData, transaction);
             }
 
-            await wbsRepository.commitTransaction(transaction);
+            await transaction.commit()
             return issue
         } catch (error){
-            await wbsRepository.rollbackTransaction(transaction);
+            await transaction.rollback()
             throw error
         }
     }
@@ -250,6 +251,16 @@ class WbsService {
             }))
         } catch(error){
             throw  error;
+        }
+    }
+
+    async issueDetail(pjtSn, userSn, issueSn){
+        try {
+            const mem = await projectRepository.findProjectMember(pjtSn, userSn);
+            if (!mem) return {message: '조회 권한이 없습니다.'}
+            const issue = await wbsRepository.findIssue(issueSn);
+        } catch (error) {
+            throw error;
         }
     }
 }

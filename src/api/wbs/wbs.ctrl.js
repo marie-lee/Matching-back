@@ -142,4 +142,15 @@ router.get('/project/wbs/tracking/:pjtSn', jwt.authenticateToken, async (req, re
     }
 });
 
+// 이슈 상세 조회
+// router.get('/project/wbs/:pjtSn/:issueSn', jwt.authenticateToken, async (req, res) => {
+//     const pjtSn = req.params.pjtSn;
+//     const userSn = req.userSn.USER_SN;
+//     const issueSn = req.params.issueSn;
+//     try {
+//         const issue = await wbsService.issueDetail(pjtSn, userSn, issueSn);
+//
+//     }
+// })
+
 module.exports = router;

@@ -123,6 +123,9 @@ const findIssue = async(issueSn,pjtSn) =>{
 const updateIssue = async(issue, transaction) =>{
     return await issue.save({transaction})
 }
+// const issueDetail = async(issueSn, pjtSn) => {
+//     return await
+// }
 const trackingIssue = async(pjtSn) => {
     const query = `SELECT 
         TB_WBS.ISSUE_TICKET_SN AS PARENT_TICKET_SN, 
