@@ -5,6 +5,7 @@ const {QueryTypes} = require("sequelize");
 const {runPfPfolToVec} = require("../../utils/matching/spawnVectorization");
 const mutex = require('../../utils/matching/Mutex');
 const {throwError} = require("../../utils/errors");
+const {DataTypes} = require("sequelize");
 
 class profileService {
   async profileUpload(userSn, profileData, portfolios, userImg, portfolioMedia) {
@@ -19,6 +20,7 @@ class profileService {
           await this.toVectorPfPfol(userSn);
         } else {
           await this.profileModify(userSn, profileData, portfolios, userImg, portfolioMedia,t);
+
           await t.commit();
         }
       } else if (profileData && portfolios) {
@@ -44,20 +46,16 @@ class profileService {
 
   async profileModify(userSn, profileData, portfolios, userImg, portfolioMedia,t) {
     try {
-      if (!profileData) {
-        throwError('프로필 데이터가 없습니다.');
-      }
-
       const pf = await this.profileUpdate(profileData, userSn, t, userImg);
       if (portfolios) {
         for (const portfolio of portfolios) {
           await this.portfolioUpdate(portfolio, pf, t, portfolioMedia);
         }
       }
+
       await this.toVectorPfPfol(userSn);
     } catch (error) {
       await this.deleteFileFromMinio(profileData, portfolios);
-      logger.error('프로필 및 포트폴리오 수정 중 에러 발생:', error);
       throw error;
     }
   }
@@ -79,25 +77,27 @@ class profileService {
         await db.TB_PF.update({ PF_INTRO: profile.PF_INTRO }, { where: { USER_SN: userSn }, transaction });
 
         if (userImg) {
-          const imgUrl = await minioService.upload(userImg, 'profile', existingProfile.PF_SN, transaction);
-          await db.TB_USER.update({ USER_IMG: imgUrl }, { where: { USER_SN: userSn }, transaction });
+          const user = await db.TB_USER.findOne({where: {USER_SN: userSn}});
+          const fileName = this.fileUrlParsing(user.USER_IMG);
+          await minio.deleteFile(fileName);
+          const url = await minio.profileUpload(userImg, userSn);
+          await db.TB_USER.update({ USER_IMG: url }, { where: { USER_SN: userSn }, transaction: transaction});
         }
-
+        console.log("1");
         await this.updateProfileDetails(existingProfile.PF_SN, profile, transaction);
         return existingProfile;
       } else {
         const newProfile = await db.TB_PF.create({ PF_INTRO: profile.PF_INTRO, USER_SN: userSn }, { transaction });
 
         if (userImg) {
-          const imgUrl = await minioService.upload(userImg, 'profile', newProfile.PF_SN, transaction);
-          await db.TB_USER.update({ USER_IMG: imgUrl }, { where: { USER_SN: userSn }, transaction });
+          const url = await minio.profileUpload(userImg, userSn);
+          await db.TB_USER.update({ USER_IMG: url }, { where: { USER_SN: userSn }, transaction: transaction});
         }
 
         await this.insertProfileDetails(newProfile.PF_SN, profile, transaction);
         return newProfile;
       }
     } catch (error) {
-      logger.error("프로필 업데이트 중 에러 발생:", error);
       throw error;
     }
   }
@@ -121,7 +121,6 @@ class profileService {
           defaults: { ST_NM: stack.ST_NM },
           transaction: transaction
         });
-
         await db.TB_PF_ST.create({
           PF_SN: pfSn,
           ST_SN: st.ST_SN,
@@ -129,7 +128,6 @@ class profileService {
         }, { transaction });
       }
     }
-
     if (profile.INTRST) {
       for (const intrst of profile.INTRST) {
         const [intr] = await db.TB_INTRST.findOrCreate({
@@ -137,11 +135,9 @@ class profileService {
           defaults: { INTRST_NM: intrst },
           transaction: transaction
         });
-
         await db.TB_PF_INTRST.create({ PF_SN: pfSn, INTRST_SN: intr.INTRST_SN }, { transaction });
       }
     }
-
     if (profile.URL) {
       for (const url of profile.URL) {
         const u = await db.TB_URL.create({ URL: url.URL, URL_INTRO: url.URL_INTRO }, { transaction });
@@ -155,15 +151,14 @@ class profileService {
     await db.TB_PF_ST.destroy({ where: { PF_SN: pfSn }, transaction });
     await db.TB_PF_INTRST.destroy({ where: { PF_SN: pfSn }, transaction });
     await db.TB_PF_URL.destroy({ where: { PF_SN: pfSn }, transaction });
-
     await this.insertProfileDetails(pfSn, profile, transaction);
   }
 
   async portfolioUpdate(portfolio, pf, transaction, portfolioMedia) {
     try {
       let pfol;
-      if (portfolio.id) {
-        pfol = await db.TB_PFOL.findOne({ where: { PFOL_SN: portfolio.id } });
+      if (portfolio.PFOL_SN) {
+        pfol = await db.TB_PFOL.findOne({ where: { PFOL_SN: portfolio.PFOL_SN } });
         if (pfol) {
           await db.TB_PFOL.update({
             PFOL_NM: portfolio.PFOL_NM,
@@ -175,27 +170,42 @@ class profileService {
             CONTRIBUTION: portfolio.CONTRIBUTION,
             SERVICE_STTS: portfolio.SERVICE_STTS,
             RESULT: portfolio.RESULT
-          }, { where: { PFOL_SN: portfolio.id }, transaction });
+          }, { where: { PFOL_SN: portfolio.PFOL_SN }, transaction });
 
-          await db.TB_PFOL_MEDIA.destroy({ where: { PFOL_SN: portfolio.id }, transaction });
-
-          for (const media of portfolioMedia) {
-            const imgUrl = await minioService.upload(media, 'portfolio', portfolio.id, transaction);
-            await db.TB_PFOL_MEDIA.create({
-              PFOL_SN: portfolio.id,
-              URL: imgUrl,
-              MAIN_YN: media.MAIN_YN
-            }, { transaction });
+          if(portfolio.MEDIA){
+            for(const media of portfolio.MEDIA){
+              if(media.fileName){
+                const file = portfolioMedia.find(f => f.originalname === media.fileName);
+                if(file){
+                  await minio.portfolioUpload(file, media.MAIN_YN, pfol.PFOL_SN, transaction);
+                }
+              }
+              else if(media.URL){
+                if(media.DEL_YN) {
+                  await db.TB_PFOL_MEDIA.update({DELETED_DT: new Date(), DEL_YN: media.DEL_YN, MAIN_YN: media.MAIN_YN}, {
+                    where: {PFOL_SN: portfolio.PFOL_SN, URL: media.URL},
+                    transaction
+                  });
+                  const fileName = this.fileUrlParsing(media.URL);
+                  await minio.deleteFile(fileName);
+                }
+              }
+              else{
+                await db.TB_PFOL_MEDIA.update({MAIN_YN: media.MAIN_YN}, {
+                  where: {PFOL_SN: portfolio.PFOL_NM, URL: media.URL},
+                  transaction
+                });
+              }
+            }
           }
 
-          await this.updatePortfolioDetails(portfolio.id, portfolio, transaction);
+          await this.updatePortfolioDetails(portfolio.PFOL_SN, portfolio, transaction);
         }
       } else {
         pfol = await this.portfolioInsert(portfolio, pf, transaction, portfolioMedia);
       }
       return pfol;
     } catch (error) {
-      logger.error("포트폴리오 업데이트 중 에러 발생:", error);
       throw error;
     }
   }
@@ -208,11 +218,9 @@ class profileService {
           defaults: { ST_NM: stack.ST_NM },
           transaction: transaction
         });
-
         await db.TB_PFOL_ST.create({ PFOL_SN: pfolSn, ST_SN: st.ST_SN }, { transaction });
       }
     }
-
     if (portfolio.ROLE) {
       for (const role of portfolio.ROLE) {
         const [r] = await db.TB_ROLE.findOrCreate({
@@ -220,11 +228,9 @@ class profileService {
           defaults: { ROLE_NM: role },
           transaction: transaction
         });
-
         await db.TB_PFOL_ROLE.create({ PFOL_SN: pfolSn, ROLE_SN: r.ROLE_SN }, { transaction });
       }
     }
-
     if (portfolio.URL) {
       for (const url of portfolio.URL) {
         const u = await db.TB_URL.create({ URL: url.URL, URL_INTRO: url.URL_INTRO }, { transaction });
@@ -236,38 +242,16 @@ class profileService {
         }, { transaction });
       }
     }
-
-    if (portfolio.MEDIA) {
-      for (const media of portfolio.MEDIA) {
-        await db.TB_PFOL_MEDIA.create({
-          PFOL_SN: pfolSn,
-          URL: media.URL,
-          MAIN_YN: media.MAIN_YN
-        }, { transaction });
-      }
-    }
   }
 
   async updatePortfolioDetails(pfolSn, portfolio, transaction) {
     await db.TB_PFOL_ST.destroy({ where: { PFOL_SN: pfolSn }, transaction });
     await db.TB_PFOL_ROLE.destroy({ where: { PFOL_SN: pfolSn }, transaction });
     await db.TB_PFOL_URL.destroy({ where: { PFOL_SN: pfolSn }, transaction });
-    await db.TB_PFOL_MEDIA.destroy({ where: { PFOL_SN: pfolSn }, transaction });
-
     await this.insertPortfolioDetails(pfolSn, portfolio, transaction);
   }
-
   async profileInsert(profile, userSn, transaction, userImg) {
     try {
-      if (!profile.PF_INTRO) {
-        throwError('한 줄 소개가 입력되지 않았습니다.');
-      }
-      if (!profile.STACK) {
-        throwError('스킬이 입력되지 않았습니다.');
-      }
-      if (!profile.INTRST) {
-        throwError('관심 분야가 입력되지 않았습니다.');
-      }
       if (await db.TB_PF.findOne({ where: { USER_SN: userSn } })) {
         logger.error('해당 유저의 프로필이 이미 존재합니다.');
         return false;
@@ -275,15 +259,14 @@ class profileService {
         const pf = await db.TB_PF.create({ PF_INTRO: profile.PF_INTRO, USER_SN: userSn }, { transaction });
 
         if (userImg) {
-          const imgUrl = await minioService.upload(userImg, 'profile', pf.PF_SN, transaction);
-          await db.TB_USER.update({ USER_IMG: imgUrl }, { where: { USER_SN: userSn }, transaction });
+          const url = await minio.profileUpload(userImg, userSn);
+          await db.TB_USER.update({ USER_IMG: url }, { where: { USER_SN: userSn }, transaction: transaction});
         }
 
         await this.insertProfileDetails(pf.PF_SN, profile, transaction);
         return pf;
       }
     } catch (error) {
-      logger.error("프로필 입력 중 에러 발생:", error);
       throw error;
     }
   }
@@ -304,21 +287,18 @@ class profileService {
 
       await db.TB_PF_PFOL.create({ PF_SN: pf.PF_SN, PFOL_SN: pfol.PFOL_SN }, { transaction });
 
-      if (portfolioMedia) {
-        for (const media of portfolioMedia) {
-          const imgUrl = await minioService.upload(media, 'portfolio', pfol.PF_SN, transaction);
-          await db.TB_PFOL_MEDIA.create({
-            PFOL_SN: pfol.PFOL_SN,
-            URL: imgUrl,
-            MAIN_YN: media.MAIN_YN
-          }, { transaction });
+      if(portfolio.MEDIA){
+        for(const media of portfolio.MEDIA){
+          const file = portfolioMedia.find(f => f.originalname === media.fileName);
+          if(file){
+            await minio.portfolioUpload(file, media.MAIN_YN, pfol.PFOL_SN, transaction);
+          }
         }
       }
 
       await this.insertPortfolioDetails(pfol.PFOL_SN, portfolio, transaction);
       return pfol;
     } catch (error) {
-      logger.error("포트폴리오 입력 중 에러 발생:", error);
       throw error;
     }
   }
@@ -335,12 +315,14 @@ class profileService {
         const profileFile = this.fileUrlParsing(profile.USER_IMG);
         await minio.deleteFile(profileFile);
       }
-      for(const portfolio of portfolios){
-        if (portfolio.MEDIA){
-          for(const media of portfolio.MEDIA){
-            if(media.URL && media.URL.trim() !== ''){
-              const fileName = this.fileUrlParsing(media.URL);
-              await minio.deleteFile(fileName);
+      if(portfolios) {
+        for (const portfolio of portfolios) {
+          if (portfolio.MEDIA) {
+            for (const media of portfolio.MEDIA) {
+              if (media.URL && media.URL.trim() !== '') {
+                const fileName = this.fileUrlParsing(media.URL);
+                await minio.deleteFile(fileName);
+              }
             }
           }
         }
@@ -351,15 +333,12 @@ class profileService {
   }
 
   async pfPfolSelectAll(snList = [], userSn = null){
-
     let whereClause = '';
     let orderByClause = '';
-
     // keys 배열이 비어있지 않다면 WHERE 조건을 추가
     if (snList.length > 0) {
       // 본인 프로필 제거
       const filteredSnList = snList.filter(sn => sn !== userSn);
-
       const pfSnList = filteredSnList.join(','); // 배열을 문자열로 변환
       whereClause = `WHERE pf.PF_SN IN (${pfSnList})`;
       orderByClause = `ORDER BY FIELD(pf.PF_SN, ${pfSnList})`
@@ -414,7 +393,6 @@ class profileService {
   }
 
   async pfPfolSelect(userSn){
-
     try {
       // 프로필 조회
       const profile = await this.profileSelect(userSn);
@@ -432,7 +410,6 @@ class profileService {
           message: '포트폴리오가 작성되지 않았습니다.'
         };
       }
-
       const pfPfol = {profile: profile, portfolioInfo: portfolioInfo};
       return pfPfol;
     } catch (error){

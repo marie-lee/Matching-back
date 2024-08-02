@@ -210,7 +210,7 @@ paths:
         프로필, 포트폴리오 입력
       requestBody:
         content:
-          application/json:
+          multipart/form-data:
             schema:
               $ref: '#/components/schemas/profileUpload'
       responses:
@@ -743,95 +743,177 @@ components:
     profileUpload:
       type: object
       properties:
-        profile:
-          $ref: '#/components/schemas/profileUpload'
-        portfolios:
+        data:
+          type: object
+          properties:
+            profile:
+              type: object
+              properties:
+                PF_INTRO:
+                  type: string
+                  description: 프로필 한줄 소개
+                  example: 설명
+                CAREER:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      CAREER_NM:
+                        type: string
+                        description: 회사 이름
+                        example: 회사
+                      ENTERING_DT:
+                        type: string
+                        description: 입사 일
+                        example: "2021-01-01"
+                      QUIT_DT:
+                        type: string
+                        description: 퇴사 일
+                        example: "2022-12-31"
+                STACK:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      ST_NM:
+                        type: string
+                        description: 스택 이름
+                        example: JAVA
+                      LEVEL:
+                        type: string
+                        description: 숙련도
+                        example: LOW
+                INTRST:
+                  type: array
+                  items:
+                    type: string
+                    description: 관심사
+                    example: JAVA
+                URL:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      URL:
+                        type: string
+                        description: URL
+                        example: www.www.www
+                      URL_INTRO:
+                        type: string
+                        description: URL 설명
+                        example: url 설명1
+            portfolios:
+              type: array
+              items:
+                type: object
+                properties:
+                  PFOL_SN:
+                    type: integer
+                    description: 포트폴리오 일련번호 (수정 시)
+                    example: 1
+                  PFOL_NM:
+                    type: string
+                    description: 포트폴리오 이름
+                    example: 포트폴리오1
+                  INTRO:
+                    type: string
+                    description: 포트폴리오 설명
+                    example: 설명
+                  PERIOD:
+                    type: integer
+                    description: 진행 기간
+                    example: 5
+                  START_DT:
+                    type: string
+                    description: 시작 일
+                    example: "2021-01-01"
+                  END_DT:
+                    type: string
+                    description: 종료 일
+                    example: "2022-01-01"
+                  MEM_CNT:
+                    type: integer
+                    description: 참여 인원 수
+                    example: 5
+                  CONTRIBUTION:
+                    type: integer
+                    description: 기여도
+                    example: 20
+                  SERVICE_STTS:
+                    type: string
+                    description: 서비스 상태
+                    example: ACTIVE
+                  RESULT:
+                    type: string
+                    description: 포트폴리오 결과
+                    example: 만족
+                  STACK:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        ST_NM:
+                          type: string
+                          description: 스택 이름
+                          example: JavaScript
+                  ROLE:
+                    type: array
+                    items:
+                      type: string
+                      description: 역할 이름
+                      example: 기획
+                  URL:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        URL:
+                          type: string
+                          description: URL
+                          example: www.url.com
+                        URL_INTRO:
+                          type: string
+                          description: URL 설명
+                          example: url1 설명
+                        RELEASE_YN:
+                          type: boolean
+                          description: 배포 여부
+                          example: 1
+                        OS:
+                          type: string
+                          description: 배포 OS
+                          example: WINDOWS
+                  MEDIA:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        fileName:
+                          type: string
+                          description: 포트폴리오 파일 이름
+                          example: img.png
+                        URL:
+                          type: string
+                          description: 포트폴리오 미디어 URL
+                          example: http://218.232.137.30:20090/matching/portfolio/video.mp4
+                        MAIN_YN:
+                          type: boolean
+                          description: 메인 사진 여부
+                          example: 1
+                        DEL_YN:
+                          type: boolean
+                          description: 삭제 여부
+                          example: 0
+        USER_IMG:
+          type: string
+          format: binary
+          description: 프로필 이미지 파일
+        PORTFOLIO_MEDIA:
           type: array
           items:
-            $ref: '#/components/schemas/profileUpload'
-      example: # 여기에 JSON 예시를 추가합니다.
-        profile:
-          PF_INTRO: 설명
-          USER_IMG: http://218.232.137.30:20090/matching/profile/img.jpg
-          CAREER:
-            - CAREER_NM: 회사
-              ENTERING_DT: "2021-01-01"
-              QUIT_DT: "2022-12-31"
-            - CAREER_NM: 회사2
-              ENTERING_DT: "2023-01-01"
-              QUIT_DT: "2024-01-31"
-          STACK:
-            - ST_NM: JAVA
-              LEVEL: LOW
-            - ST_NM: JS
-              LEVEL: LOW
-          INTRST:
-            - JAVA
-            - REACT
-          URL:
-            - URL: www.www.www
-              URL_INTRO: url 설명1
-            - URL: www.www.com
-              URL_INTRO: url 설명2
-        portfolios:
-          - PFOL_NM: 포트폴리오1
-            INTRO: 설명
-            PERIOD: "5"
-            START_DT: "2021-01-01"
-            END_DT: "2022-01-01"
-            MEM_CNT: "5"
-            CONTRIBUTION: "20"
-            SERVICE_STTS: ACTIVE
-            RESULT: 만족
-            STACK:
-              - ST_NM: JAVA
-              - ST_NM: STRING
-            ROLE:
-              - 기획
-              - 백엔드
-            URL:
-              - URL: www.url.com
-                URL_INTRO: url1 설명
-                RELEASE_YN: "1"
-                OS: WINDOWS
-              - URL: www.url2.com
-                URL_INTRO: url2 설명
-                RELEASE_YN: "0"
-                OS: MAC OS
-            MEDIA:
-              - URL: http://218.232.137.30:20090/matching/portfolio/img.png
-                MAIN_YN: "1"
-              - URL: http://218.232.137.30:20090/matching/portfolio/video.mp4
-                MAIN_YN: "0"
-          - PFOL_NM: 포트폴리오2
-            INTRO: 설명
-            PERIOD: "3"
-            START_DT: "2021-01-01"
-            END_DT: "2022-01-01"
-            MEM_CNT: "3"
-            CONTRIBUTION: "40"
-            SERVICE_STTS: STOP
-            RESULT: 아쉬움
-            STACK:
-              - ST_NM: REACT
-              - ST_NM: NEST.JS
-            ROLE:
-              - 디자인
-              - 프론트엔드
-            URL:
-              - URL: www.url4.com
-                URL_INTRO: url 설명
-                RELEASE_YN: "0"
-                OS: LINUX
-              - URL: www.url5.com
-                URL_INTRO: url 설명
-                RELEASE_YN: "1"
-                OS: IOS
-            MEDIA:
-              - URL: http://218.232.137.30:20090/matching/portfolio/portfolio.png
-                MAIN_YN: "0"
-              - URL: http://218.232.137.30:20090/matching/portfolio/media.mp4
-                MAIN_YN: "1"
+            type: string
+            format: binary
+          description: 포트폴리오 미디어 파일들
     portfolioDetail200 :
       type: object
       properties:
