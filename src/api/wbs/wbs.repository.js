@@ -199,29 +199,30 @@ const issueDetail = async(issueSn,pjtSn) =>{
     const result =  await db.query(query, {type: QueryTypes.SELECT});
     return result.length > 0 ? result[0] : {};
 }
-const mentionData = async(issueSn) => {
+const mentionData = async(issueSn, pjtSn) => {
     const query = `SELECT
-                              tm.ISSUE_SN,
                               tu.USER_SN,
                               tu.USER_NM,
-                              tu.USER_IMG
+                              tu.USER_IMG,
+                              tpr.PART
                           FROM TB_MENTION tm
                           INNER JOIN TB_USER tu ON tu.USER_SN = tm.TARGET_SN
+                          INNER JOIN TB_PJT_M tpm ON tpm.PJT_SN = ${pjtSn}
+                          INNER JOIN TB_PJT_ROLE tpr ON tpm.PJT_ROLE_SN = tpr.PJT_ROLE_SN 
                           WHERE tm.ISSUE_SN = ${issueSn}
                           GROUP BY tm.ISSUE_SN;`
     return await db.query(query, {type: QueryTypes.SELECT});
 }
 const issueCommentData = async(issueSn) => {
-    const query = `WITH MentionedUsers AS (
+    const query = `WITH MENTIONED_USERS AS (
                                 SELECT
                                     m.COMMENT_SN,
                                     JSON_ARRAYAGG(
                                         JSON_OBJECT(
                                             'USER_SN', tu.USER_SN,
-                                            'USER_NM', tu.USER_NM,
-                                            'USER_IMG', tu.USER_IMG
+                                            'USER_NM', tu.USER_NM
                                         )
-                                    ) AS MentionedUsers
+                                    ) AS MENTIONED_USERS
                                 FROM TB_MENTION m
                                 INNER JOIN TB_USER tu ON tu.USER_SN = m.TARGET_SN
                                 WHERE m.COMMENT_SN IS NOT NULL
@@ -229,14 +230,15 @@ const issueCommentData = async(issueSn) => {
                             )
                             SELECT
                                 c.COMMENT_SN,
-                                c.TEXT AS CommentText,
-                                c.CREATER_SN,
-                                tu.USER_NM AS CreatorName,
-                                tu.USER_IMG AS CreatorImg,
-                                COALESCE(mu.MentionedUsers, JSON_ARRAY()) AS MentionedUsers
+                                c.TEXT,
+                                c.CREATOR_SN,
+                                tu.USER_NM AS CREATOR_NM,
+                                tu.USER_IMG AS CREATOR_IMG,
+                                COALESCE(mu.MENTIONED_USERS, JSON_ARRAY()) AS mentions,
+                                c.CREATED_DT
                             FROM TB_COMMENT c
-                            INNER JOIN TB_USER tu ON tu.USER_SN = c.CREATER_SN
-                            LEFT JOIN MentionedUsers mu ON mu.COMMENT_SN = c.COMMENT_SN
+                            INNER JOIN TB_USER tu ON tu.USER_SN = c.CREATOR_SN
+                            LEFT JOIN MENTIONED_USERS mu ON mu.COMMENT_SN = c.COMMENT_SN
                             WHERE c.ISSUE_SN = ${issueSn};`
     return await db.query(query, {type: QueryTypes.SELECT});
 }
