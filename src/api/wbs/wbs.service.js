@@ -232,7 +232,6 @@ class WbsService {
                 const status = await cmmnRepository.oneCmmnCd('ISSUE_STTS', updateIssueData.STATUS);
                 issue.STATUS = status.CMMN_CD;
             }
-
             const update = await wbsRepository.updateIssue(issue, transaction);
 
             await wbsRepository.commitTransaction(transaction);
