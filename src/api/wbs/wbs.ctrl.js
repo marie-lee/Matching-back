@@ -113,7 +113,7 @@ router.get('/project/wbs/tracking/:pjtSn', jwt.authenticateToken, async (req, re
     const pjtSn = req.params.pjtSn;
     try {
         const tracking = await wbsService.trackingTicket(pjtSn);
-        return res.status(404).json(tracking);
+        return res.status(200).json(tracking);
     } catch (error){
         logger.error('wbs 티켓 이슈트레킹 조회 중 오류 발생 : ' + error);
         return res.status(400).json(`wbs 티켓 이슈트레킹 조회 중 오류 발생 : ${error.message}`)
