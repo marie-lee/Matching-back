@@ -217,7 +217,7 @@ class WbsService {
         }
     }
     async updateIssue(issueDto){
-        const transaction = await wbsRepository.beginTransaction();
+        const transaction = await db.transaction()
         try {
             const {
                 PJT_SN, USER_SN, ISSUE_SN, updateIssueData
@@ -235,10 +235,10 @@ class WbsService {
             }
             const update = await wbsRepository.updateIssue(issue, transaction);
 
-            await wbsRepository.commitTransaction(transaction);
+            await transaction.commit()
             return update
         } catch (error){
-            await wbsRepository.rollbackTransaction(transaction);
+            await transaction.rollback()
             throw error
         }
     }
@@ -261,6 +261,7 @@ class WbsService {
             if (!mem) return {message: '조회 권한이 없습니다.'}
             const issue = await wbsRepository.issueDetail(issueSn, pjtSn);
             if(!issue) return {message: '이슈를 찾을 수 없습니다.'}
+            console.log(issue.ISSUE_SN)
             const mentionData = await wbsRepository.mentionData(issue.ISSUE_SN, pjtSn);
             const commentData = await wbsRepository.issueCommentData(issue.ISSUE_SN);
 

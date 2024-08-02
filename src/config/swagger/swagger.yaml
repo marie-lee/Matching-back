@@ -2927,6 +2927,9 @@ components:
               PRIORITY:
                 type: string
                 description: 중요도
+              STATUS:
+                type: string
+                description: 상태
               CONTENT:
                 type: string
                 description: 이슈 상세
