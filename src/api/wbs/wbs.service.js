@@ -73,7 +73,6 @@ class WbsService {
 
             const members = await wbsRepository.findProjectMembers(pjtSn);
             let memberData = [];
-            console.log(members)
 
             for (const member of members) {
                 const user = await wbsRepository.findUserBySn(member.USER_SN);
@@ -199,15 +198,11 @@ class WbsService {
             if(!ticket) return {message : '티켓에 대한 정보가 없습니다.'};
 
             const priority = await cmmnRepository.oneCmmnCd('ISSUE_PRRT', createIssueData.PRIORITY);
-            console.log(priority.CMMN_CD)
             createIssueData.PRIORITY = priority.CMMN_CD;
-            console.log(createIssueData);
             const issue = await wbsRepository.createIssue(createIssueData);
-
 
             for (const mention of MENTIONS) {
                 const mem = await projectRepository.findProjectMember(createIssueData.PJT_SN, mention)
-                console.log(mem);
                 if(!mem) return {message: '멘션할 수 없는 회원입니다. ', targetSn: mention}
                 const mentionData = {
                     TARGET_SN: mention,
