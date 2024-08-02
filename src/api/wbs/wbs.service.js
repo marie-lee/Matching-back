@@ -1,13 +1,9 @@
-const db = require('../../config/db/db');
 const {logger} = require('../../utils/logger');
-const {QueryTypes} = require("sequelize");
-const {throwError} = require("../../utils/errors");
 const {formatDt} = require("../common/common.service");
 const cmmnRepository = require("../common/common.repository");
 const wbsRepository = require("./wbs.repository");
 const { ProjectDto, MemberDto} = require("./dto/wbs.create.dto");
 const {WbsDto, WbsTicketDto} = require("./dto/wbs.dto");
-const {createIssue} = require("./wbs.repository");
 const projectRepository = require("../project/project.repository");
 
 class WbsService {
@@ -194,7 +190,7 @@ class WbsService {
         const transaction = await wbsRepository.beginTransaction();
         const { MENTIONS, ...createIssueData } = issueDto;
         try {
-            const ticket = await wbsRepository.findTicket(createIssueData.TICKET_SN, createIssueData.PJT_SN, createIssueData.USER_SN);
+            const ticket = await wbsRepository.findTicket(createIssueData.TICKET_SN, createIssueData.PJT_SN);
             if(!ticket) return {message : '티켓에 대한 정보가 없습니다.'};
 
             const priority = await cmmnRepository.oneCmmnCd('ISSUE_PRRT', createIssueData.PRIORITY);
@@ -217,6 +213,17 @@ class WbsService {
         } catch (error){
             await wbsRepository.rollbackTransaction(transaction);
             throw error
+        }
+    }
+    async trackingTicket(pjtSn){
+        try {
+            const tracking =  await wbsRepository.trackingIssue(pjtSn);
+            return tracking.map(ticket => ({
+                ...ticket,
+                CREATED_DT: formatDt(ticket.CREATED_DT)
+            }))
+        } catch(error){
+            throw  error;
         }
     }
 }

@@ -333,7 +333,7 @@ paths:
   /project/wbs/create/{pjtSn}:
     get:
       tags:
-        - project
+        - wbs
       summary: 프로젝트 WBS 생성 시 프로젝트 조회
       description: |
         프로젝트 WBS 생성 시 프로젝트 조회
@@ -450,8 +450,30 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/createIssue200'
+        '404':
+          $ref: '#/components/responses/createIssue404'
         '400':
           $ref: '#/components/responses/createIssue400'
+      security:
+        - JWT: [ ]
+  /project/wbs/tracking/{pjtSn}:
+    get:
+      tags:
+        - wbs
+      summary: wbs 이슈 트레킹 조회
+      description: wbs 이슈 트레킹 조회
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/getTracking200'
+        '400':
+          $ref: '#/components/responses/getTracking400'
       security:
         - JWT: [ ]
   /status:
@@ -2767,6 +2789,13 @@ components:
           schema:
             type: string
             example: 'wbs 티켓 이슈 생성 성공'
+    createIssue404:
+      description: wbs 티켓 이슈 생성 실패
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: 'message: 티켓에 대한 정보가 없습니다.'
     createIssue400:
       description: wbs 티켓 이슈 생성 중 오류 발생
       content:
@@ -2774,3 +2803,38 @@ components:
           schema:
             type: string
             example: 'wbs 티켓 이슈 생성 중 오류 발생 : (에러메시지)'
+    getTracking200:
+      description: wbs 이슈 트레킹 조회 성공
+      content:
+        application/json:
+          schema:
+            type: array
+            properties:
+              PARENT_TICKET_SN:
+                type: integer
+                description: 부모 티켓 일련번호
+              TICKET_SN:
+                type: integer
+                description: 자식 티켓 일련번호
+              CREATED_DT:
+                type: string
+                description: 생성일자
+            example:
+              - PARENT_TICKET_SN: 4
+                TICKET_SN: 5
+                CREATED_DT: 2024-08-01 12:06:54
+              - PARENT_TICKET_SN: 4
+                TICKET_SN: 8
+                CREATED_DT: 2024-08-01 12:06:54
+              - PARENT_TICKET_SN: 9
+                TICKET_SN: 1
+                CREATED_DT: 2024-08-01 12:06:54
+    getTracking400:
+      description: wbs 티켓 이슈트레킹 조회 중 오류 발생
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: 'wbs 티켓 이슈 생성 중 오류 발생 : (에러메시지)'
+
+
