@@ -488,6 +488,34 @@ paths:
           $ref: '#/components/responses/updateIssue400'
       security:
         - JWT: [ ]
+  /project/wbs/{pjtSn}/{issueSn}:
+    get:
+      tags:
+        - wbs
+      summary: wbs 이슈 상세 조회
+      description: wbs 이슈 상세 조회
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+        - in: path
+          name: issueSn
+          required: true
+          description: 이슈 일련번호 일련번호
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/getIssue200'
+        '404':
+          $ref: '#/components/responses/getIssue404'
+        '400':
+          $ref: '#/components/responses/getIssue400'
+      security:
+        - JWT: [ ]
   /project/wbs/tracking/{pjtSn}:
     get:
       tags:
@@ -2868,6 +2896,61 @@ components:
           schema:
             type: string
             example: 'wbs 티켓 이슈 수정 중 오류 발생 : (에러메시지)'
+    getIssue200:
+      description: wbs 이슈 상세 조회 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              ISSUE_SN:
+                type: integer
+                description: 이슈 일련번호
+              TICKET_SN:
+                type: integer
+                description: 티켓 일련번호
+              TICKET:
+                type: string
+                description: 티켓 경로
+              PRESENT_SN:
+                type: integer
+                description: 생성자 일련번호
+              PRESENT_NM:
+                type: string
+                description: 생성자 명
+              PRESENT_IMG:
+                type: string
+                description: 생성자 이미지 url
+              ISSUE_NM:
+                type: string
+                description: 이슈명
+              PRIORITY:
+                type: string
+                description: 중요도
+              CONTENT:
+                type: string
+                description: 이슈 상세
+              CREATED_DT:
+                type: string
+                description: 생성일
+#              mentions:
+#                type: array
+#                items:
+#                  properties:
+    getIssue404:
+      description: wbs 이슈 상세 조회실패
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: 'message: 이슈에 대한 정보가 없습니다.'
+    getIssue400:
+      description: wbs 이슈 상세 조회 발생
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: 'wbs 이슈 상세 조회 중 에러 발생 : (에러메세지)'
     getTracking200:
       description: wbs 이슈 트레킹 조회 성공
       content:

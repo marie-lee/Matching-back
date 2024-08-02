@@ -256,9 +256,18 @@ class WbsService {
 
     async issueDetail(pjtSn, userSn, issueSn){
         try {
+            console.log(userSn)
             const mem = await projectRepository.findProjectMember(pjtSn, userSn);
             if (!mem) return {message: '조회 권한이 없습니다.'}
-            const issue = await wbsRepository.findIssue(issueSn);
+            const issue = await wbsRepository.issueDetail(issueSn, pjtSn);
+            if(!issue) return {message: '이슈를 찾을 수 없습니다.'}
+            console.log(issue.ISSUE_SN)
+            const mentionData = await wbsRepository.mentionData(issue.ISSUE_SN);
+            const commentData = await wbsRepository.issueCommentData(issue.ISSUE_SN);
+
+            return {
+                issue, mentions:mentionData, comments: commentData
+            }
         } catch (error) {
             throw error;
         }

@@ -123,9 +123,6 @@ const findIssue = async(issueSn,pjtSn) =>{
 const updateIssue = async(issue, transaction) =>{
     return await issue.save({transaction})
 }
-// const issueDetail = async(issueSn, pjtSn) => {
-//     return await
-// }
 const trackingIssue = async(pjtSn) => {
     const query = `SELECT 
         TB_WBS.ISSUE_TICKET_SN AS PARENT_TICKET_SN, 
@@ -144,7 +141,105 @@ const trackingIssue = async(pjtSn) => {
         TICKET_SN`;
     return await db.query(query, {type: QueryTypes.SELECT});
 }
-
+const issueDetail = async(issueSn,pjtSn) =>{
+    const query = `WITH RECURSIVE TicketHierarchy AS (
+                                SELECT
+                                    ti.ISSUE_SN,
+                                    ti.TICKET_SN,
+                                    tw.TICKET_NAME AS CurrentTicketName,
+                                    tw2.TICKET_NAME AS ParentTicketName,
+                                    tw.PARENT_SN,
+                                    CONCAT(tw.TICKET_NAME) AS FullPath
+                                FROM TB_ISSUE ti
+                                INNER JOIN TB_WBS tw ON tw.TICKET_SN = ti.TICKET_SN
+                                LEFT JOIN TB_WBS tw2 ON tw2.TICKET_SN = tw.PARENT_SN
+                                WHERE ti.ISSUE_SN = ${issueSn} AND ti.PJT_SN = ${pjtSn}
+                                UNION ALL
+                                SELECT
+                                    th.ISSUE_SN,
+                                    th.TICKET_SN,
+                                    th.ParentTicketName,
+                                    tw.TICKET_NAME AS CurrentTicketName,
+                                    tw.PARENT_SN,
+                                    CONCAT(th.FullPath, '/', tw.TICKET_NAME) AS FullPath
+                                FROM TicketHierarchy th
+                                INNER JOIN TB_WBS tw ON tw.TICKET_SN = th.PARENT_SN
+                            )
+                            SELECT
+                                ISSUE_SN,
+                                TICKET_SN,
+                                FullPath AS TICKET,
+                                USER_SN AS PRESENT_SN,
+                                USER_NM AS PRESENT_NM,
+                                USER_IMG AS PRESENT_IMG,
+                                ISSUE_NM,
+                                PRIORITY,
+                                CONTENT,
+                                CREATED_DT
+                            FROM (
+                                SELECT
+                                    th.ISSUE_SN,
+                                    th.TICKET_SN,
+                                    th.FullPath,
+                                    tu.USER_SN,
+                                    tu.USER_NM,
+                                    tu.USER_IMG,
+                                    ti.ISSUE_NM,
+                                    ti.PRIORITY,
+                                    ti.CONTENT,
+                                    ti.CREATED_DT,
+                                    ROW_NUMBER() OVER (PARTITION BY th.ISSUE_SN, th.TICKET_SN ORDER BY ti.CREATED_DT DESC) AS rn
+                                FROM TicketHierarchy th
+                                INNER JOIN TB_ISSUE ti ON ti.TICKET_SN = th.TICKET_SN
+                                INNER JOIN TB_USER tu ON tu.USER_SN = ti.PRESENT_SN
+                                WHERE th.PARENT_SN IS NULL
+                            ) sub
+                            WHERE rn = 1
+                            ORDER BY ISSUE_SN;`
+    const result =  await db.query(query, {type: QueryTypes.SELECT});
+    return result.length > 0 ? result[0] : {};
+}
+const mentionData = async(issueSn) => {
+    const query = `SELECT
+                              tm.ISSUE_SN,
+                              tu.USER_SN,
+                              tu.USER_NM,
+                              tu.USER_IMG
+                          FROM TB_MENTION tm
+                          INNER JOIN TB_USER tu ON tu.USER_SN = tm.TARGET_SN
+                          WHERE tm.ISSUE_SN = ${issueSn}
+                          GROUP BY tm.ISSUE_SN;`
+    return await db.query(query, {type: QueryTypes.SELECT});
+}
+const issueCommentData = async(issueSn) => {
+    const query = `WITH MentionedUsers AS (
+                                SELECT
+                                    m.COMMENT_SN,
+                                    JSON_ARRAYAGG(
+                                        JSON_OBJECT(
+                                            'USER_SN', tu.USER_SN,
+                                            'USER_NM', tu.USER_NM,
+                                            'USER_IMG', tu.USER_IMG
+                                        )
+                                    ) AS MentionedUsers
+                                FROM TB_MENTION m
+                                INNER JOIN TB_USER tu ON tu.USER_SN = m.TARGET_SN
+                                WHERE m.COMMENT_SN IS NOT NULL
+                                GROUP BY m.COMMENT_SN
+                            )
+                            SELECT
+                                c.COMMENT_SN,
+                                c.TEXT AS CommentText,
+                                c.CREATER_SN,
+                                tu.USER_NM AS CreatorName,
+                                tu.USER_IMG AS CreatorImg,
+                                COALESCE(mu.MentionedUsers, JSON_ARRAY()) AS MentionedUsers
+                            FROM TB_COMMENT c
+                            INNER JOIN TB_USER tu ON tu.USER_SN = c.CREATER_SN
+                            LEFT JOIN MentionedUsers mu ON mu.COMMENT_SN = c.COMMENT_SN
+                            WHERE c.ISSUE_SN = ${issueSn};`
+    return await db.query(query, {type: QueryTypes.SELECT});
+}
 module.exports = {
     beginTransaction,
     commitTransaction,
@@ -169,4 +264,7 @@ module.exports = {
     findIssue,
     updateIssue,
     trackingIssue,
+    issueDetail,
+    mentionData,
+    issueCommentData
 };
