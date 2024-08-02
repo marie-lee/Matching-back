@@ -114,7 +114,7 @@ const findTicket = async (ticketSn, pjtSn, userSn) =>{
 const createIssue = async (issueDto, transaction)=>{
     return await db.TB_ISSUE.create(issueDto,{transaction})
 }
-const addMentionFromIssue = async(mentionData,{transaction}) => {
+const addMentionFromIssue = async(mentionData,transaction) => {
     await db.TB_MENTION.create(mentionData,{transaction});
 }
 

@@ -12,6 +12,8 @@ tags:
     description: 프로젝트 관련
   - name: status
     description: 현황 관련
+  - name: wbs
+    description: wbs 관련
 paths:
   /member/login:
     post:
@@ -239,8 +241,8 @@ paths:
           name: pfolSn
           required: true
           schema:
-          type: integer
-          description: 포트폴리오의 일련번호
+            type: integer
+            description: 포트폴리오의 일련번호
       responses:
           '200':
             $ref: '#/components/schemas/portfolioDetail200'
@@ -353,7 +355,7 @@ paths:
         - JWT: [ ]
     post:
       tags:
-        - project
+        - wbs
       summary: 프로젝트 WBS 생성
       description: |
         프로젝트 WBS 생성
@@ -379,7 +381,7 @@ paths:
   /project/wbs/edit/{pjtSn}:
     post:
       tags:
-        - project
+        - wbs
       summary: 프로젝트 WBS 수정
       description: 프로젝트 WBS 수정
       parameters:
@@ -404,7 +406,7 @@ paths:
   /project/wbs/{pjtSn}:
     get:
       tags:
-        - project
+        - wbs
       summary: 프로젝트 WBS 조회
       description: 프로젝트 WBS 조회
       parameters:
@@ -419,6 +421,37 @@ paths:
           $ref: '#/components/responses/getWBS200'
         '400':
           $ref: '#/components/responses/getWBS400'
+      security:
+        - JWT: [ ]
+  /project/wbs/{pjtSn}/{ticketSn}:
+    post:
+      tags:
+        - wbs
+      summary: wbs 업무 이슈 생성
+      description: wbs 업무 이슈 생성
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+        - in: path
+          name: ticketSn
+          required: true
+          description: 티켓 일련번호
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createIssue'
+      responses:
+        '200':
+          $ref: '#/components/responses/createIssue200'
+        '400':
+          $ref: '#/components/responses/createIssue400'
       security:
         - JWT: [ ]
   /status:
@@ -1278,7 +1311,24 @@ components:
                 { "2차 테스트": [ "2차 사용자 알파 테스트", "알파 테스트 수정사항 수정진행" ] }
               ]
             }
-
+    createIssue:
+      type: object
+      properties:
+        ISSUE_NM:
+          type: string
+          description: 이슈명
+          example: 로그인 실패
+        PRIORITY:
+          type: string
+          description: 중요도
+          example: L2
+        CONTENT:
+          type: string
+          description: 이슈 상세
+          example: 구글 로그인 안돼요
+        MENTIONS:
+            type: integer
+            example: [1,5]
   securitySchemes:
     JWT:
       type: http
@@ -2628,3 +2678,17 @@ components:
           schema:
             type: string
             example: 'WBS 조회 중 오류 발생 : (에러메시지)'
+    createIssue200:
+      description: wbs 티켓 이슈 생성 성공
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: 'wbs 티켓 이슈 생성 성공'
+    createIssue400:
+      description: wbs 티켓 이슈 생성 중 오류 발생
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: 'wbs 티켓 이슈 생성 중 오류 발생 : (에러메시지)'

@@ -3,11 +3,12 @@ const {logger} = require('../../utils/logger');
 const {QueryTypes} = require("sequelize");
 const {throwError} = require("../../utils/errors");
 const {formatDt} = require("../common/common.service");
-const oneCmmnVal = require("../common/common.repository");
+const cmmnRepository = require("../common/common.repository");
 const wbsRepository = require("./wbs.repository");
 const { ProjectDto, MemberDto} = require("./dto/wbs.create.dto");
 const {WbsDto, WbsTicketDto} = require("./dto/wbs.dto");
 const {createIssue} = require("./wbs.repository");
+const projectRepository = require("../project/project.repository");
 
 class WbsService {
 
@@ -197,16 +198,25 @@ class WbsService {
             const ticket = await wbsRepository.findTicket(createIssueData.TICKET_SN, createIssueData.PJT_SN, createIssueData.USER_SN);
             if(!ticket) return {message : '티켓에 대한 정보가 없습니다.'};
 
-            const issue = await wbsRepository.createIssue(createIssue);
+            const priority = await cmmnRepository.oneCmmnCd('ISSUE_PRRT', createIssueData.PRIORITY);
+            console.log(priority.CMMN_CD)
+            createIssueData.PRIORITY = priority.CMMN_CD;
+            console.log(createIssueData);
+            const issue = await wbsRepository.createIssue(createIssueData);
+
 
             for (const mention of MENTIONS) {
+                const mem = await projectRepository.findProjectMember(createIssueData.PJT_SN, mention)
+                console.log(mem);
+                if(!mem) return {message: '멘션할 수 없는 회원입니다. ', targetSn: mention}
                 const mentionData = {
                     TARGET_SN: mention,
-                    CREATER_SN: createIssueData.WORKER,
+                    CREATER_SN: createIssueData.USER_SN,
                     ISSUE_SN: issue.ISSUE_SN,
                 }
                 await wbsRepository.addMentionFromIssue(mentionData, transaction);
             }
+
             await wbsRepository.commitTransaction(transaction);
             return issue
         } catch (error){

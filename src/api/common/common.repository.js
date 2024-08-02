@@ -6,5 +6,11 @@ const oneCmmnVal = async (cmmnCdType, cmmnCd) => {
             attributes: ['CMMN_CD_VAL'],
         })
 }
+const oneCmmnCd = async(cmmnCdType, cmmnCdVal)=>{
+    return await db.TB_CMMN_CD.findOne({
+        where: {CMMN_CD_TYPE: cmmnCdType, CMMN_CD_VAL: cmmnCdVal},
+        attributes: ['CMMN_CD'],
+    })
+}
 
-module.exports = oneCmmnVal;
+module.exports = {oneCmmnVal,oneCmmnCd};

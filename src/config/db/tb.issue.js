@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false
         },
-        TICKET_NM: {
+        ISSUE_NM: {
             type: DataTypes.STRING(2000),
             allowNull: false
         },

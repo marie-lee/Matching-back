@@ -38,8 +38,7 @@ module.exports = (sequelize, DataTypes) => {
         }
     }, {
         tableName: 'TB_MENTION',
-        timestamps: true, // 타임스탬프 활성화
-        createdAt: 'CREATED_DT', // createdAt을 CREATED_DT로 매핑
+        timestamps: false, // 타임스탬프 활성화
     });
 
     TB_MENTION.associate = models => {
