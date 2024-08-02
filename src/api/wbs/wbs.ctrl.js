@@ -143,14 +143,18 @@ router.get('/project/wbs/tracking/:pjtSn', jwt.authenticateToken, async (req, re
 });
 
 // 이슈 상세 조회
-// router.get('/project/wbs/:pjtSn/:issueSn', jwt.authenticateToken, async (req, res) => {
-//     const pjtSn = req.params.pjtSn;
-//     const userSn = req.userSn.USER_SN;
-//     const issueSn = req.params.issueSn;
-//     try {
-//         const issue = await wbsService.issueDetail(pjtSn, userSn, issueSn);
-//
-//     }
-// })
+router.get('/project/wbs/:pjtSn/:issueSn', jwt.authenticateToken, async (req, res) => {
+    const pjtSn = req.params.pjtSn;
+    const userSn = req.userSn.USER_SN;
+    const issueSn = req.params.issueSn;
+    try {
+        const issue = await wbsService.issueDetail(pjtSn, userSn, issueSn);
+        if(issue.message) return res.status(404).json(issue);
+        return res.status(200).json(issue);
+    } catch (error){
+        logger.error(`wbs 이슈 상세 조회 중 에러 발생 : ${error}`);
+        return res.status(400).json(`wbs 이슈 상세 조회 중 에러 발생 : ${error.message}`)
+    }
+})
 
 module.exports = router;
