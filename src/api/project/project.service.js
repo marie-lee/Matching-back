@@ -137,11 +137,11 @@ class projectService {
         PJT_SN: newProject.PJT_SN, USER_SN: user, PJT_ROLE_SN: constructorRole.PJT_ROLE_SN
       }, transaction);
 
-      // if (file) {
-      //   const type = 'project';
-      //   const serialNum = newProject.PJT_SN;
-      //   await minioService.upload(file, 'project', serialNum, transaction);
-      // }
+      if (file) {
+        const type = 'project';
+        const serialNum = newProject.PJT_SN;
+        await minioService.upload(file, 'project', serialNum, transaction);
+      }
 
       await transaction.commit();
 
