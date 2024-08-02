@@ -7,7 +7,7 @@ const stream = require('stream');
 class minio {
     async deleteFile(fileName){
         try {
-            await minioClient.removeObject('recommendation', fileName);
+            await minioClient.removeObject('matching', fileName);
         } catch (error) {
             throw error;
         }
@@ -24,7 +24,7 @@ class minio {
             return res.status(400).send('Invalid upload type.');
         }
 
-        const bucketName = 'recommendation';
+        const bucketName = 'matching';
         const filePath = `${type}/${serialNum}_${file.originalname}`;
         const fileStream = new stream.PassThrough();
         fileStream.end(file.buffer);
@@ -67,7 +67,7 @@ class minio {
             return res.status(400).send('No file uploaded.');
         }
 
-        const bucketName = 'recommendation';
+        const bucketName = 'matching';
         const filePath = `portfolio/${serialNum}_${file.originalname}`;
         const fileStream = new stream.PassThrough();
         fileStream.end(file.buffer);
