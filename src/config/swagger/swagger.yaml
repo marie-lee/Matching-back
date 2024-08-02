@@ -456,6 +456,38 @@ paths:
           $ref: '#/components/responses/createIssue400'
       security:
         - JWT: [ ]
+    put:
+      tags:
+        - wbs
+      summary: wbs 업무 이슈 수정
+      description: wbs 업무 이슈 수정
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+        - in: path
+          name: ticketSn
+          required: true
+          description: 티켓 일련번호
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateIssue'
+      responses:
+        '200':
+          $ref: '#/components/responses/updateIssue200'
+        '404':
+          $ref: '#/components/responses/updateIssue404'
+        '400':
+          $ref: '#/components/responses/updateIssue400'
+      security:
+        - JWT: [ ]
   /project/wbs/tracking/{pjtSn}:
     get:
       tags:
@@ -1433,6 +1465,18 @@ components:
         MENTIONS:
             type: integer
             example: [1,5]
+    updateIssue:
+      type: object
+      properties:
+        PRIORITY:
+          type: string
+          description: 이슈 중요도
+          required: false
+          example: L1
+        STATUS:
+          type: string
+          description: 이슈 상태
+          example: IN PROGRESS
   securitySchemes:
     JWT:
       type: http
@@ -2803,6 +2847,27 @@ components:
           schema:
             type: string
             example: 'wbs 티켓 이슈 생성 중 오류 발생 : (에러메시지)'
+    updateIssue200:
+      description: wbs 티켓 이슈 수정 성공
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: 'wbs 티켓 이슈 수정 성공'
+    updateIssue404:
+      description: wbs 티켓 이슈 수정 실패
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: 'message: 티켓에 대한 정보가 없습니다.'
+    updateIssue400:
+      description: wbs 티켓 이슈 수정 중 오류 발생
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: 'wbs 티켓 이슈 수정 중 오류 발생 : (에러메시지)'
     getTracking200:
       description: wbs 이슈 트레킹 조회 성공
       content:

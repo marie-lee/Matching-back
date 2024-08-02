@@ -215,6 +215,33 @@ class WbsService {
             throw error
         }
     }
+    async updateIssue(issueDto){
+        const transaction = await wbsRepository.beginTransaction();
+        try {
+            const {
+                PJT_SN, USER_SN, ISSUE_SN, updateIssueData
+            } = issueDto
+            const issue = await wbsRepository.findIssue(ISSUE_SN, PJT_SN);
+            if(!issue) return {message : '이슈에 대한 정보가 없습니다.'};
+
+            if(updateIssueData.PRIORITY !== null){
+                const priority = await cmmnRepository.oneCmmnCd('ISSUE_PRRT', updateIssueData.PRIORITY);
+                issue.PRIORITY = priority.CMMN_CD;
+            }
+            if(updateIssueData.STATUS !== null){
+                const status = await cmmnRepository.oneCmmnCd('ISSUE_STTS', updateIssueData.STATUS);
+                issue.STATUS = status.CMMN_CD;
+            }
+
+            const update = await wbsRepository.updateIssue(issue, transaction);
+
+            await wbsRepository.commitTransaction(transaction);
+            return update
+        } catch (error){
+            await wbsRepository.rollbackTransaction(transaction);
+            throw error
+        }
+    }
     async trackingTicket(pjtSn){
         try {
             const tracking =  await wbsRepository.trackingIssue(pjtSn);
