@@ -5,7 +5,7 @@ const jwt = require('../../utils/jwt/jwt');
 const {logger} = require('../../utils/logger');
 const {ProjectDto, MemberDto, WbsDataDto} = require("./dto/wbs.create.dto");
 const CreateIssueDto = require("./dto/issue.create.dto");
-
+const IssueDto = require('./dto/issue.dto')
 // wbs 템플릿 조회
 router.get('/project/wbs/template', jwt.authenticateToken, async (req, res) => {
     try {
@@ -106,6 +106,28 @@ router.post('/project/wbs/:pjtSn/:ticketSn', jwt.authenticateToken, async (req, 
     } catch (error){
         logger.error('wbs 티켓 이슈 생성 중 오류 발생 :' + error)
         return res.status(400).json(`wbs 티켓 이슈 생성 중 오류 발생 :  ${error.message}`);
+    }
+})
+// 이슈수정
+router.put('/project/wbs/:pjtSn/:issueSn', jwt.authenticateToken, async (req, res) => {
+    try {
+        const issueDto = new IssueDto({
+            pjtSn: req.params.pjtSn,
+            userSn: req.userSn.USER_SN,
+            issueSn: req.params.issueSn,
+            priority: req.body.PRIORITY,
+            status: req.body.STATUS,
+        });
+        issueDto.validation();
+
+        const data = await wbsService.updateIssue(issueDto);
+        if(data.message){
+            return res.status(404).json(data)
+        }
+        return res.status(200).json('wbs 티켓 이슈 수정 성공.');
+    } catch (error){
+        logger.error('wbs 티켓 이슈 수정 중 오류 발생 :' + error)
+        return res.status(400).json(`wbs 티켓 이슈 수정 중 오류 발생 :  ${error.message}`);
     }
 })
 // 이슈 트레킹 조회

@@ -117,7 +117,12 @@ const createIssue = async (issueDto, transaction)=>{
 const addMentionFromIssue = async(mentionData,transaction) => {
     await db.TB_MENTION.create(mentionData,{transaction});
 }
-
+const findIssue = async(issueSn,pjtSn) =>{
+    return await db.TB_ISSUE.findOne({where:{ISSUE_SN: issueSn, PJT_SN: pjtSn, DEL_YN: false}})
+}
+const updateIssue = async(issue, transaction) =>{
+    return await issue.save({transaction})
+}
 const trackingIssue = async(pjtSn) => {
     const query = `SELECT 
         TB_WBS.ISSUE_TICKET_SN AS PARENT_TICKET_SN, 
@@ -158,5 +163,7 @@ module.exports = {
     findTicket,
     createIssue,
     addMentionFromIssue,
-    trackingIssue
+    findIssue,
+    updateIssue,
+    trackingIssue,
 };
