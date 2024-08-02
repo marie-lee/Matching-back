@@ -158,7 +158,7 @@ class projectService {
       const pjtData = await this.myProject(userSn, pjtSn);
       const pjtJson = JSON.stringify(pjtData);
       await runPjtToVec(pjtJson).then(() => {
-        logger.log("프로젝트 벡터화 완료")
+        console.log("프로젝트 벡터화 완료")
       })
     } catch (error) {
       logger.error(error)
