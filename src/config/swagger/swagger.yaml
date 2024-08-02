@@ -423,7 +423,7 @@ paths:
           $ref: '#/components/responses/getWBS400'
       security:
         - JWT: [ ]
-  /project/wbs/{pjtSn}/{ticketSn}:
+  /project/wbs/issue/{pjtSn}/{ticketSn}:
     post:
       tags:
         - wbs
@@ -488,7 +488,7 @@ paths:
           $ref: '#/components/responses/updateIssue400'
       security:
         - JWT: [ ]
-  /project/wbs/{pjtSn}/{issueSn}:
+  /project/wbs/issue/{pjtSn}/{issueSn}:
     get:
       tags:
         - wbs
@@ -2933,10 +2933,54 @@ components:
               CREATED_DT:
                 type: string
                 description: 생성일
-#              mentions:
-#                type: array
-#                items:
-#                  properties:
+              mentions:
+                type: array
+                items:
+                  properties:
+                    USER_SN:
+                      type: integer
+                      description: 멘션한 유저 일련번호
+                    USER_NM:
+                      type: string
+                      description: 멘션한 유저명
+                    USER_IMG:
+                      type: string
+                      description: 멘션한 유저 이미지 url
+                    PART:
+                      type: string
+                      description: 멘션한 유저 파트
+              comments:
+                type: array
+                items:
+                  properties:
+                    COMMENT_SN:
+                      type: integer
+                      description: 댓글 일련번호
+                    TEXT:
+                      type: string
+                      description: 댓글 텍스트
+                    CREATOR_SN:
+                      type: integer
+                      description: 멘션한 유저 일련번호
+                    CREATOR_NM:
+                      type: string
+                      description: 멘션한 유저명
+                    CREATOR_IMG:
+                      type: string
+                      description: 멘션한 유저 이미지 url
+                    mentions:
+                      type: array
+                      items:
+                        properties:
+                          USER_SN:
+                            type: integer
+                            description: 멘션한 유저 일련번호
+                          USER_NM:
+                            type: string
+                            description: 멘션한 유저명
+                          USER_IMG:
+                            type: string
+                            description: 멘션한 유저 이미지 url
     getIssue404:
       description: wbs 이슈 상세 조회실패
       content:

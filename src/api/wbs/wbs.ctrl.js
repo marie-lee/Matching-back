@@ -85,7 +85,7 @@ router.get('/project/wbs/:pjtSn', jwt.authenticateToken, async (req, res)=> {
 })
 
 // 이슈생성
-router.post('/project/wbs/:pjtSn/:ticketSn', jwt.authenticateToken, async (req, res) => {
+router.post('/project/wbs/issue/:pjtSn/:ticketSn', jwt.authenticateToken, async (req, res) => {
     try {
         const issueDto = new CreateIssueDto({
             pjtSn: req.params.pjtSn,
@@ -109,7 +109,7 @@ router.post('/project/wbs/:pjtSn/:ticketSn', jwt.authenticateToken, async (req, 
     }
 })
 // 이슈수정
-router.put('/project/wbs/:pjtSn/:issueSn', jwt.authenticateToken, async (req, res) => {
+router.put('/project/wbs/issue/:pjtSn/:issueSn', jwt.authenticateToken, async (req, res) => {
     try {
         const issueDto = new IssueDto({
             pjtSn: req.params.pjtSn,
@@ -143,7 +143,7 @@ router.get('/project/wbs/tracking/:pjtSn', jwt.authenticateToken, async (req, re
 });
 
 // 이슈 상세 조회
-router.get('/project/wbs/:pjtSn/:issueSn', jwt.authenticateToken, async (req, res) => {
+router.get('/project/wbs/issue/:pjtSn/:issueSn', jwt.authenticateToken, async (req, res) => {
     const pjtSn = req.params.pjtSn;
     const userSn = req.userSn.USER_SN;
     const issueSn = req.params.issueSn;

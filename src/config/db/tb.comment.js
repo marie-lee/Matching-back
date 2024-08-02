@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(2000),
             allowNull: false
         },
-        CREATER_SN: {
+        CREATOR_SN: {
             type: DataTypes.INTEGER,
             allowNull: false
         },
