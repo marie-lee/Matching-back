@@ -120,4 +120,17 @@ router.post('/project/rate/:pjtSn/:targetSn',jwt.authenticateToken,async(req,res
     return res.status(400).json({ message: '평가 실패: ' + error.message });
   }
 });
+
+//나에대한 평가조회
+router.get('/project/myRate/:pjtSn', jwt.authenticateToken, async (req, res) => {
+  const userSn = req.userSn.USER_SN;
+  const pjtSn = req.params.pjtSn;
+  try {
+    const myRates = await projectService.getMyRates(userSn,pjtSn);
+    return res.status(200).json(myRates);
+  } catch (error) {
+    logger.error('나에 대한 평가 조회 실패:', error);
+    return res.status(400).json('나에 대한 평가 조회 실패: ' + error.message);
+  }
+});
 module.exports = router;

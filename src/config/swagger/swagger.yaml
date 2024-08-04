@@ -345,7 +345,7 @@ paths:
             type: integer
       responses:
         '200':
-          $ref: '/#/components/responses/rateMemberList200'
+          $ref: '#/components/responses/rateMemberList200'
         '403':
           description: 접근 권한 없음
           content:
@@ -393,6 +393,24 @@ paths:
           $ref: '#/components/responses/rate400'
       security:
         - JWT: []
+  /project/myRate/{pjtSn}:
+    get:
+      tags:
+        - project
+      summary: 나에 대한 평가 조회
+      description: 나에 대한 평가 조회
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          schema:
+            type: integer
+          description: 프로젝트 일련번호
+      responses:
+        '200':
+          $ref: '#/components/responses/myRate200'
+      security:
+        - JWT: [ ]
   /project/wbs/create/{pjtSn}:
     get:
       tags:
@@ -2232,6 +2250,39 @@ components:
           schema:
             type: string
             example: 프로젝트 멤버 평가 실패 error =
+    myRate200:
+      description: 나에 대한 평가 조회 성공
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                RATE_1:
+                  type: integer
+                  description: 기술적 역할 수행 평가 점수
+                  example: 5
+                RATE_2:
+                  type: integer
+                  description: 커뮤니케이션 평가 점수
+                  example: 4
+                RATE_3:
+                  type: integer
+                  description: 작업 완수 평가 점수
+                  example: 3
+                RATE_4:
+                  type: integer
+                  description: 문제 해결 평가 점수
+                  example: 2
+                RATE_5:
+                  type: integer
+                  description: 함께 일하고 싶은 의사 평가 점수
+                  example: 1
+                RATE_TEXT:
+                  type: string
+                  description: 총평
+                  example: "열정적으로 프로젝트에 참가하여 다양한 문제를 잘 해결하는 모습이 보기 좋았습니다."
     status200:
       description: 현황 조회 성공
       content:
