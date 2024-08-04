@@ -8,6 +8,7 @@ const minioService = require('../../middleware/minio/minio.service');
 const {runPjtToVec} = require("../../utils/matching/spawnVectorization");
 const {throwError} = require("../../utils/errors");
 const oneCmmnVal = require("../common/common.repository");
+const {transport} = require("winston");
 
 
 class projectService {
@@ -297,12 +298,42 @@ class projectService {
     }
   }
 
-  async getRateMember(pjtSn,userSn){
+  async getRateMemberList(pjtSn,userSn){
     try{
-      const rate = await projectRepository.findRateMember(pjtSn,userSn);
-      return rate;
+      const rateMemberList = await projectRepository.findRateMember(pjtSn,userSn);
+      return rateMemberList;
     }catch (error){
       logger.error('평가자 목록 조회 중 오류 발생:',error);
+      throw error;
+    }
+  }
+
+  async rateMember(userSn,pjtSn,targetSn,rateData){
+    const transaction = await db.transaction();
+    try{
+      const existingRate = await projectRepository.findExistingRate(pjtSn, targetSn, userSn);
+      if (existingRate) {
+        throw new Error('이미 평가한 멤버입니다.');
+      }
+      const{RATE_1,RATE_2,RATE_3,RATE_4,RATE_5,RATE_TEXT}=rateData;
+      const newRate = await projectRepository.rateMember(
+        {
+          PJT_SN: pjtSn,
+          TARGET_SN: targetSn,
+          RATER_SN: userSn,
+          RATE_1,
+          RATE_2,
+          RATE_3,
+          RATE_4,
+          RATE_5,
+          RATE_TEXT
+        },transaction);
+
+      await transaction.commit();
+      return newRate;
+    }catch (error) {
+      logger.error('평가 중 오류 발생:',error);
+      await transaction.rollback();
       throw error;
     }
   }

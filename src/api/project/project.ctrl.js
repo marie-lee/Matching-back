@@ -5,7 +5,8 @@ const projectService = require('./project.service');
 const jwt = require('../../utils/jwt/jwt');
 const {logger} = require('../../utils/logger');
 const ProjectCreateDto = require("./dto/project.create.dto");
-
+const ProjectRateDto = require("./dto/project.rate.dto");
+const db = require("../../config/db/db");
 const upload = multer();
 
 router.get('/project/all', async (req,res) => {
@@ -94,16 +95,29 @@ router.get('/project/rate/:pjtSn',jwt.authenticateToken,async(req,res)=>{
   const pjt = req.params.pjtSn;
   const user = req.userSn.USER_SN;
   try {
-    const rate = await projectService.getRateMember(pjt, user);
-    if (rate.length === 0) {
+    const rateMemberList = await projectService.getRateMemberList(pjt, user);
+    if (rateMemberList.length === 0) {
       return res.status(403).json({ message: '해당 프로젝트에 대한 접근 권한이 없습니다.' });
     }
-    return res.status(200).json(rate);
-  } catch (error) { 
+    return res.status(200).json(rateMemberList);
+  } catch (error) {
     logger.error('평가자 목록 조회 실패:', error);
     return res.status(400).json('평가자 목록 조회 실패: ' + error.message );
   }
 
-})
+});
 
+//평가하기
+router.post('/project/rate/:pjtSn/:targetSn',jwt.authenticateToken,async(req,res)=>{
+  const {pjtSn, targetSn} = req.params;
+  const userSn = req.userSn.USER_SN;
+  const rateData = req.body;
+  try {
+    const rateMember = await projectService.rateMember(userSn, pjtSn, targetSn, rateData);
+    return res.status(200).json({ message: '평가 성공', data: rateMember });
+  } catch (error) {
+    logger.error('평가 실패:', error);
+    return res.status(400).json({ message: '평가 실패: ' + error.message });
+  }
+});
 module.exports = router;
