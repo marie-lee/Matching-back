@@ -545,7 +545,7 @@ class profileService {
                                         WHEN pm.MAIN_YN = 1 THEN pm.URL
                                             ELSE NULL
                                         END AS IMG
-                                    , JSON_ARRAYAGG(pm.URL) AS IMG_SUB
+                                    , JSON_ARRAYAGG(DISTINCT pm.URL) AS IMG_SUB
                                     , GROUP_CONCAT( DISTINCT tr2.RATE_TEXT) AS RATE
                                 FROM TB_PFOL pl
                                 LEFT JOIN TB_PF_PFOL pp ON pl.PFOL_SN = pp.PFOL_SN
@@ -558,6 +558,7 @@ class profileService {
                                 LEFT JOIN TB_PFOL_MEDIA pm ON pl.PFOL_SN = pm.PFOL_SN
                                 LEFT JOIN TB_CMMN_CD tcc ON tcc.CMMN_CD_TYPE = 'SERVICE_STTS' AND tcc.CMMN_CD = pl.SERVICE_STTS
                                 LEFT JOIN TB_RATE tr2 ON tr2.PJT_SN = pl.PJT_SN
+                                WHERE pp.PF_SN = ${pfSn} AND pl.DEL_YN = 'N'
                                 GROUP BY pl.PFOL_SN
                                 ORDER BY pl.START_DT ASC`;
     try{
