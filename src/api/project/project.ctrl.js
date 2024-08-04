@@ -89,5 +89,21 @@ router.get('/project/member/:pjtSn', jwt.authenticateToken, async (req, res) => 
     }
 });
 
+//평가자 목록 조회
+router.get('/project/rate/:pjtSn',jwt.authenticateToken,async(req,res)=>{
+  const pjt = req.params.pjtSn;
+  const user = req.userSn.USER_SN;
+  try {
+    const rate = await projectService.getRateMember(pjt, user);
+    if (rate.length === 0) {
+      return res.status(403).json({ message: '해당 프로젝트에 대한 접근 권한이 없습니다.' });
+    }
+    return res.status(200).json(rate);
+  } catch (error) { 
+    logger.error('평가자 목록 조회 실패:', error);
+    return res.status(400).json('평가자 목록 조회 실패: ' + error.message );
+  }
+
+})
 
 module.exports = router;
