@@ -3028,22 +3028,46 @@ components:
               PARENT_TICKET_SN:
                 type: integer
                 description: 부모 티켓 일련번호
-              TICKET_SN:
+              ISSUE_SN:
                 type: integer
-                description: 자식 티켓 일련번호
-              CREATED_DT:
+                description: 이슈 일련번호
+              ISSUE_CREATED_DT:
                 type: string
                 description: 생성일자
+              TICKETS:
+                type: array
+                properties:
+                  TICKET_SN:
+                    type: integer
+                    description: 자식 티켓 일련번호
+                  CREATED_DT:
+                    type: string
+                    description: 생성일자
             example:
               - PARENT_TICKET_SN: 4
-                TICKET_SN: 5
-                CREATED_DT: 2024-08-01 12:06:54
-              - PARENT_TICKET_SN: 4
-                TICKET_SN: 8
-                CREATED_DT: 2024-08-01 12:06:54
-              - PARENT_TICKET_SN: 9
-                TICKET_SN: 1
-                CREATED_DT: 2024-08-01 12:06:54
+                ISSUE_SN: 2
+                ISSUE_CREATED_DT: 2024-08-01 12:06:54
+                TICKETS:
+                  - TICKET_SN: 5
+                    CREATED_DT: 2024-08-01 12:06:54
+                  - TICKET_SN: 9
+                    CREATED_DT: 2024-08-01 12:06:54
+              - PARENT_TICKET_SN: 10
+                ISSUE_SN: 9
+                ISSUE_CREATED_DT: 2024-08-01 12:06:54
+                TICKETS:
+                  - TICKET_SN: 213
+                    CREATED_DT: 2024-08-01 12:06:54
+                  - TICKET_SN: 99
+                    CREATED_DT: 2024-08-01 12:06:54
+              - PARENT_TICKET_SN: 299
+                ISSUE_SN: 34
+                ISSUE_CREATED_DT: 2024-08-01 12:06:54
+                TICKETS:
+                  - TICKET_SN: 123
+                    CREATED_DT: 2024-08-01 12:06:54
+                  - TICKET_SN: 121
+                    CREATED_DT: 2024-08-01 12:06:54
     getTracking400:
       description: wbs 티켓 이슈트레킹 조회 중 오류 발생
       content:

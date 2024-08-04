@@ -134,19 +134,20 @@ const updateIssue = async(issue, transaction) =>{
 }
 const trackingIssue = async(pjtSn) => {
     const query = `SELECT 
-                            TB_WBS.ISSUE_TICKET_SN AS PARENT_TICKET_SN, 
-                            TB_WBS.TICKET_SN, 
-                            TB_WBS.CREATED_DT 
-                        FROM TB_WBS 
-                        INNER JOIN 
-                            TB_ISSUE 
-                        ON 
-                            TB_ISSUE.PJT_SN = ${pjtSn}
-                        WHERE 
-                            TB_WBS.PJT_SN = ${pjtSn}
-                            AND TB_WBS.ISSUE_TICKET_SN IS NOT NULL 
-                        GROUP BY 
-                            TICKET_SN`;
+                            tw.ISSUE_TICKET_SN AS PARENT_TICKET_SN, 
+                            ti.ISSUE_SN AS ISSUE_SN,
+                            ti.CREATED_DT AS ISSUE_CREATED_DT,
+                            JSON_ARRAYAGG(
+                                JSON_OBJECT(
+                                    'TICKET_SN', tw.TICKET_SN,
+                                    'CREATED_DT', tw.CREATED_DT
+                                )
+                            ) AS TICKETS
+                        FROM TB_WBS tw
+                        INNER JOIN TB_ISSUE ti ON tw.PJT_SN = ti.PJT_SN AND ti.TICKET_SN = tw.ISSUE_TICKET_SN
+                        WHERE tw.PJT_SN = ${pjtSn} AND tw.ISSUE_TICKET_SN IS NOT NULL 
+                        GROUP BY PARENT_TICKET_SN, ISSUE_SN, ISSUE_CREATED_DT
+                        ORDER BY PARENT_TICKET_SN;`;
     return await db.query(query, {type: QueryTypes.SELECT});
 }
 const issueDetail = async(issueSn,pjtSn) =>{

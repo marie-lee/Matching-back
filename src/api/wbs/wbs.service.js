@@ -266,7 +266,11 @@ class WbsService {
             const tracking =  await wbsRepository.trackingIssue(pjtSn);
             return tracking.map(ticket => ({
                 ...ticket,
-                CREATED_DT: formatDt(ticket.CREATED_DT)
+                ISSUE_CREATED_DT: formatDt(ticket.ISSUE_CREATED_DT),
+                TICKETS: ticket.TICKETS.map(t => ({
+                    ...t,
+                    CREATED_DT: formatDt(t.CREATED_DT)
+                }))
             }))
         } catch(error){
             throw  error;
