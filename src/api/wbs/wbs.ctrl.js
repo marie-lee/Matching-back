@@ -108,6 +108,7 @@ router.post('/project/wbs/issue/:pjtSn/:ticketSn', jwt.authenticateToken, async 
         return res.status(400).json(`wbs 티켓 이슈 생성 중 오류 발생 :  ${error.message}`);
     }
 })
+
 // 이슈수정
 router.put('/project/wbs/issue/:pjtSn/:issueSn', jwt.authenticateToken, async (req, res) => {
     try {
@@ -117,6 +118,7 @@ router.put('/project/wbs/issue/:pjtSn/:issueSn', jwt.authenticateToken, async (r
             issueSn: req.params.issueSn,
             priority: req.body.PRIORITY,
             status: req.body.STATUS,
+            mentions: req.body.MENTIONS,
         });
         issueDto.validation();
 
