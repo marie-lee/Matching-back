@@ -294,6 +294,35 @@ class WbsService {
             throw error;
         }
     }
+
+    async createComment(createCommentDto){
+        const transaction =  await db.transaction();
+        const { MENTIONS, ...COMMENT } = createCommentDto;
+        try {
+            const mem = await projectRepository.findProjectMember(COMMENT.PJT_SN, COMMENT.CREATER_SN);
+            if (!mem) return {message: '조회 권한이 없습니다.'}
+            const issue = await wbsRepository.issueDetail(COMMENT.ISSUE_SN, COMMENT.PJT_SN);
+            if(!issue) return {message: '이슈를 찾을 수 없습니다.'}
+            const comment = await wbsRepository.createComment(COMMENT);
+            for (const mention of MENTIONS) {
+                const mem = await projectRepository.findProjectMember(COMMENT.PJT_SN, mention)
+                if(!mem) return {message: '멘션할 수 없는 회원입니다. ', targetSn: mention}
+                const mentionData = {
+                    TARGET_SN: mention,
+                    CREATER_SN: COMMENT.CREATER_SN,
+                    ISSUE_SN: COMMENT.ISSUE_SN,
+                    COMMENT_SN: comment.COMMENT_SN
+                }
+                const result = await wbsRepository.addMentionFromIssue(mentionData, transaction);
+                console.log(result)
+            }
+            await transaction.commit()
+            return comment
+        } catch (error) {
+            await transaction.rollback()
+            throw error;
+        }
+    }
 }
 
 module.exports = new WbsService();

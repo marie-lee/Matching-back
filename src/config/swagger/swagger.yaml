@@ -548,6 +548,39 @@ paths:
           $ref: '#/components/responses/getIssue400'
       security:
         - JWT: [ ]
+  /project/wbs/issue/comment/{pjtSn}/{issueSn}:
+    post:
+      tags:
+        - wbs
+      summary: wbs 이슈 댓글 생성
+      description: wbs 이슈 댓글 생성
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+        - in: path
+          name: issueSn
+          required: true
+          description: 이슈 일련번호
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createIssueComment'
+      responses:
+        '200':
+          $ref: '#/components/responses/createIssueComment200'
+        '404':
+          $ref: '#/components/responses/createIssueComment404'
+        '400':
+          $ref: '#/components/responses/createIssueComment400'
+      security:
+        - JWT: [ ]
   /project/wbs/tracking/{pjtSn}:
     get:
       tags:
@@ -1549,7 +1582,17 @@ components:
               type: integer
               description: 멘션할 회원 일련번호
               example: [ 9 ]
-
+    createIssueComment:
+      type: object
+      properties:
+        TEXT:
+          type: string
+          description: 댓글 내용
+          example: 어쩌구저쩌구랄랄라랄
+        MENTIONS:
+          type: integer
+          description: 멘션할 회원 일련번호
+          example: [ 1,5 ]
 
   securitySchemes:
     JWT:
@@ -2018,6 +2061,9 @@ components:
               userNm:
                 type: string
                 description: 회원명
+              userImg:
+                type: string
+                description: 회원 이미지
               pjtRoleSn:
                 type: integer
                 description: 프로젝트 파트 일련번호
@@ -2037,6 +2083,7 @@ components:
             - pjtMemSn: 1
               userSn: 1
               userNm: 김기기
+              userImg: http://218.232.137.30:20090/matching/profile/img.png
               pjtRoleSn: 1
               part: front
               firstDt: 2024-05-01
@@ -2045,6 +2092,7 @@ components:
             - pjtMemSn: 2
               userSn: 2
               userNm: 박기이
+              userImg: http://218.232.137.30:20090/matching/profile/img.png
               pjtRoleSn: 1
               part: front
               firstDt: 2024-05-01
@@ -2053,6 +2101,7 @@ components:
             - pjtMemSn: 3
               userSn: 3
               userNm: 이아앙
+              userImg: http://218.232.137.30:20090/matching/profile/img.png
               pjtRoleSn: 2
               part: end
               firstDt: 2024-05-01
@@ -3057,13 +3106,13 @@ components:
                     TEXT:
                       type: string
                       description: 댓글 텍스트
-                    CREATOR_SN:
+                    CREATER_SN:
                       type: integer
                       description: 멘션한 유저 일련번호
-                    CREATOR_NM:
+                    CREATER_NM:
                       type: string
                       description: 멘션한 유저명
-                    CREATOR_IMG:
+                    CREATER_IMG:
                       type: string
                       description: 멘션한 유저 이미지 url
                     MENTIONS:
@@ -3153,4 +3202,25 @@ components:
           schema:
             type: string
             example: 'wbs 티켓 이슈 생성 중 오류 발생 : (에러메시지)'
+    createIssueComment200:
+      description: wbs 이슈 댓글 작성 성공
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: '댓글이 작성되었습니다.'
+    createIssueComment404:
+      description: wbs 이슈 댓글 작성 실패
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: 'message: 이슈에 대한 정보가 없습니다.'
+    createIssueComment400:
+      description: wbs 이슈 댓글 작성 오류 발생
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: 'wbs 이슈 댓글 작성 중 에러 발생 : (에러메세지)'
 

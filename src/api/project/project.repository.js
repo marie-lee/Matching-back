@@ -148,6 +148,7 @@ const findProjectMembers = async(user, pjt) => {
             ['PJT_MEM_SN', 'pjtMemSn'],
             ['USER_SN', 'userSn'],
             [db.Sequelize.col('TB_USER.USER_NM'), 'userNm'],
+            [db.Sequelize.col('TB_USER.USER_IMG'), 'userImg'],
             ['PJT_ROLE_SN', 'pjtRoleSn'],
             [db.Sequelize.col('TB_PJT_ROLE.PART'), 'part'],
             ['FIRST_DT', 'firstDt'],
