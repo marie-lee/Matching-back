@@ -245,7 +245,7 @@ paths:
             description: 포트폴리오의 일련번호
       responses:
         '200':
-          $ref: '#/components/schemas/portfolioDetail200'
+          $ref: '#/components/responses/portfolioDetail200'
       security:
         - JWT: [ ]
   /project:
@@ -1143,108 +1143,6 @@ components:
             type: string
             format: binary
           description: 포트폴리오 미디어 파일들
-    portfolioDetail200 :
-      type: object
-      properties:
-        PFOL_SN:
-          type: integer
-          description: 포트폴리오 일련번호
-        PFOL_NM:
-          type: string
-          description: 포트폴리오 이름
-        START_DT:
-          type: string
-          format: date
-          description: 시작일
-        END_DT:
-          type: string
-          format: date
-          description: 종료일
-        PERIOD:
-          type: integer
-          description: 기간
-        INTRO:
-          type: string
-          description: 소개
-        MEM_CNT:
-          type: integer
-          description: 멤버 수
-        CONTRIBUTION:
-          type: integer
-          description: 기여도
-        SERVICE_STTS:
-          type: string
-          description: 서비스 상태
-        RESULT:
-          type: string
-          description: 결과
-        stack:
-          type: array
-          items:
-            type: object
-            properties:
-              ST_NM:
-                type: string
-                description: 기술 스택 이름
-        roles:
-          type: array
-          items:
-            type: object
-            properties:
-              ROLE_NM:
-                type: string
-                description: 역할 이름
-        urls:
-          type: array
-          items:
-            type: object
-            properties:
-              URL:
-                type: string
-                description: URL 주소
-              URL_INTRO:
-                type: string
-                description: URL 소개
-              RELEASE_YN:
-                type: boolean
-                description: 공개 여부
-              OS:
-                type: string
-                description: 운영 체제
-        media:
-          type: array
-          items:
-            type: object
-            properties:
-              URL:
-                type: string
-                description: 미디어 URL
-              MAIN_YN:
-                type: boolean
-                description: 메인 여부
-      example:
-        PFOL_SN: 1
-        PFOL_NM: 포트폴리오 이름
-        START_DT: 2023-01-01
-        END_DT: 2023-12-31
-        PERIOD: 365
-        INTRO: 포트폴리오 소개
-        MEM_CNT: 5
-        CONTRIBUTION: 20
-        SERVICE_STTS: ACTIVE
-        RESULT:
-        stack:
-          - ST_NM: JavaScript
-        roles:
-          - ROLE_NM: 백엔드 개발자
-        urls:
-          - URL: http://example.com
-            URL_INTRO: 프로젝트 소개 페이지
-            RELEASE_YN: true
-            OS: Web
-        media:
-          - URL: http://example.com/image.jpg
-            MAIN_YN: true
     registerProject:
       type: object
       properties:
@@ -1883,6 +1781,9 @@ components:
                 type: string
                 description: 프로젝트명
                 example: project1
+              INTRO:
+                type: string
+                description: 프로젝트 소개
               START_DT:
                 type: string
                 description: 프로젝트 시작일
@@ -1895,16 +1796,23 @@ components:
                 type: integer
                 description: 프로젝트 진행 기간
                 example: 121
+              MEM_CNT:
+                type: integer
+                description: 프로젝트 참여 멤버
               IMG:
                 type: string
                 description: 프로젝트 메인 이미지
                 example: http://000.000.000/image1.jps
+              IMG_SUB:
+                type: array
+                description: 포트폴리오 이미지 리스트
             example:
               profile:
                 - PF_SN: 1
                   USER_SN: 1
                   USER_NM: 홍길동
                   USER_IMG: http://218.232.137.30:20090/matching/profile/img.jpg
+                  PF_INTRO: 안녕하신가요
                   career:
                     - CAREER_NM: 회사1
                       ENTERING_DT: 2023-01-01
@@ -1926,19 +1834,170 @@ components:
               portfolioInfo:
                 - PFOL_SN: 1
                   PFOL_NM: 프로젝트1
+                  INTRO: 프로젝트1 소개
                   START_DT: 2023-01-01
                   END_DT: 2023-05-01
-                  IMG: http://218.232.137.30:20090/matching/portfolio/portfolio.png
                   PERIOD: 121
+                  MEM_CNT: 3
+                  stack:
+                    - ST_SN: 3
+                      ST_NM: JAVA
+                    - ST_SN: 1
+                    - ST_NM: REACT
+                  role:
+                    - ROLE_SN: 3
+                      ROLE_NM: backend
+                    - ROLE_SN: 1
+                      ROLE_NM: 기획
+                  CONTRIBUTION: 30
+                  SERVICE_STTS: ACTIVE
+                  SERVICE_STTS_VAL: 배포
+                  CREATED_DT: 2023-01-01
+                  MODIFIED_DT: 2023-01-01
+                  url:
+                    - URL_SN: 2
+                      URL: https://www.naver.com
+                      OS: WINDOW
+                  IMG: http://218.232.137.30:20090/matching/portfolio/portfolio.png
+                  IMG_SUB: ['http://218.232.137.30:20090/matching/portfolio/portfolio.png','http://218.232.137.30:20090/matching/portfolio/portfolio.png']
                 - PFOL_SN: 2
                   PFOL_NM: 프로젝트2
-                  START_DT: 2024-07-01
-                  END_DT: 2023-07-31
-                  PERIOD: 31
+                  INTRO: 프로젝트2 소개
+                  START_DT: 2023-01-01
+                  END_DT: 2023-05-01
+                  PERIOD: 121
+                  MEM_CNT: 3
                   stack:
-                    - ST_NM: JAVA
+                    - ST_SN: 3
+                      ST_NM: JAVA
+                    - ST_SN: 1
                     - ST_NM: REACT
+                  role:
+                    - ROLE_SN: 3
+                      ROLE_NM: backend
+                    - ROLE_SN: 1
+                      ROLE_NM: 기획
+                  CONTRIBUTION: 30
+                  SERVICE_STTS: ACTIVE
+                  SERVICE_STTS_VAL: 배포
+                  CREATED_DT: 2023-01-01
+                  MODIFIED_DT: 2023-01-01
+                  url:
+                    - URL_SN: 2
+                      URL: https://www.naver.com
+                      OS: WINDOW
                   IMG: http://218.232.137.30:20090/matching/portfolio/portfolio.png
+                  IMG_SUB: [ 'http://218.232.137.30:20090/matching/portfolio/portfolio.png','http://218.232.137.30:20090/matching/portfolio/portfolio.png' ]
+    portfolioDetail200:
+      description: 내 프트폴리오 조회 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              PFOL_SN:
+                type: integer
+                description: 포트폴리오 일련번호
+              PFOL_NM:
+                type: string
+                description: 포트폴리오 이름
+              START_DT:
+                type: string
+                format: date
+                description: 시작일
+              END_DT:
+                type: string
+                format: date
+                description: 종료일
+              PERIOD:
+                type: integer
+                description: 기간
+              INTRO:
+                type: string
+                description: 소개
+              MEM_CNT:
+                type: integer
+                description: 멤버 수
+              CONTRIBUTION:
+                type: integer
+                description: 기여도
+              SERVICE_STTS:
+                type: string
+                description: 서비스 상태
+              RESULT:
+                type: string
+                description: 결과
+              stack:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ST_NM:
+                      type: string
+                      description: 기술 스택 이름
+              roles:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ROLE_NM:
+                      type: string
+                      description: 역할 이름
+              urls:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    URL:
+                      type: string
+                      description: URL 주소
+                    URL_INTRO:
+                      type: string
+                      description: URL 소개
+                    RELEASE_YN:
+                      type: boolean
+                      description: 공개 여부
+                    OS:
+                      type: string
+                      description: 운영 체제
+              media:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    URL:
+                      type: string
+                      description: 미디어 URL
+                    MAIN_YN:
+                      type: boolean
+                      description: 메인 여부
+              RATE:
+                type: array
+                description: 프로젝트 평가내용
+            example:
+              PFOL_SN: 1
+              PFOL_NM: 포트폴리오 이름
+              START_DT: 2023-01-01
+              END_DT: 2023-12-31
+              PERIOD: 365
+              INTRO: 포트폴리오 소개
+              MEM_CNT: 5
+              CONTRIBUTION: 20
+              SERVICE_STTS: ACTIVE
+              RESULT:
+              stack:
+                - ST_NM: JavaScript
+              roles:
+                - ROLE_NM: 백엔드 개발자
+              urls:
+                - URL: http://example.com
+                  URL_INTRO: 프로젝트 소개 페이지
+                  RELEASE_YN: true
+                  OS: Web
+              media:
+                - URL: http://example.com/image.jpg
+                  MAIN_YN: true
+              RATE: [ '평가1','평가2','평가3','평가4' ]
     myProjects200:
       description: 내 프로젝트 리스트 조회 성공
       content:
