@@ -385,7 +385,7 @@ class profileService {
     try {
       // 프로필 조회
       const profile = await this.profileSelect(userSn);
-      // 포트폴리오정보 조회
+      // 포트폴리오정보 조회(평가 내역있을 시 추가)
       const portfolioInfo = await this.portfolioInfoSelect(profile[0].PF_SN);
 
       // 프로필 데이터가 없을 때
