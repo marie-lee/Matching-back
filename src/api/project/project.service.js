@@ -296,6 +296,16 @@ class projectService {
       throw e;
     }
   }
+
+  async getRateMember(pjtSn,userSn){
+    try{
+      const rate = await projectRepository.findRateMember(pjtSn,userSn);
+      return rate;
+    }catch (error){
+      logger.error('평가자 목록 조회 중 오류 발생:',error);
+      throw error;
+    }
+  }
 }
 
 
