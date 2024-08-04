@@ -215,7 +215,12 @@ const findExistingRate = async (pjtSn, targetSn, userSn) => {
     }
   });
 };
-
+const findMyRates = async (userSn,pjtSn) => {
+  return await db.TB_RATE.findAll({
+    where: { TARGET_SN: userSn, PJT_SN: pjtSn, DEL_YN: false },
+    attributes: ['RATE_1', 'RATE_2', 'RATE_3', 'RATE_4', 'RATE_5', 'RATE_TEXT'],
+  });
+};
 module.exports = {
     createProject,
     findOrCreateStack,
@@ -237,5 +242,6 @@ module.exports = {
     myCreatedProjectList,
     findRateMember,
     rateMember,
-    findExistingRate
+    findExistingRate,
+    findMyRates
 };

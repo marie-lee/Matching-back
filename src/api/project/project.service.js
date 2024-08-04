@@ -337,6 +337,15 @@ class projectService {
       throw error;
     }
   }
+  async getMyRates(userSn,pjtSn) {
+    try {
+      const myRates = await projectRepository.findMyRates(userSn,pjtSn);
+      return myRates;
+    } catch (error) {
+      logger.error('나에 대한 평가 조회 중 오류 발생:', error);
+      throw error;
+    }
+  }
 }
 
 
