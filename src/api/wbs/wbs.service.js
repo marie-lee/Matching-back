@@ -331,6 +331,60 @@ class WbsService {
             throw error;
         }
     }
+
+    async createTask(createTaskDto) {
+        const transaction =  await db.transaction();
+        try {
+            const mem = await projectRepository.findProjectMember(createTaskDto.PJT_SN, createTaskDto.USER_SN);
+            if (!mem) return {message: '업무 등록 권한이 없습니다.'}
+            let orderNum = await wbsRepository.findOrderNum(createTaskDto.taskData.PARENT_SN);
+            if(!orderNum) orderNum = 1;
+            if(createTaskDto.taskData.PRIORITY){
+                const priority = await cmmnRepository.oneCmmnCd('TICKET_PRRT', createTaskDto.taskData.PRIORITY);
+                createTaskDto.taskData.PRIORITY = priority.CMMN_CD;
+            }
+            if(createTaskDto.taskData.LEVEL){
+                const level = await cmmnRepository.oneCmmnCd('TICKET_LEVEL', createTaskDto.taskData.LEVEL);
+                createTaskDto.taskData.LEVEL = level.CMMN_CD;
+            }
+            const task = await wbsRepository.createTask(createTaskDto.taskData, orderNum, transaction);
+            await transaction.commit();
+            return task;
+
+        }catch (error){
+            await transaction.rollback();
+            throw error;
+        }
+    }
+
+    async issuedCreateTask(issuedTaskCreateDto) {
+        const transaction =  await db.transaction();
+        try {
+            const mem = await projectRepository.findProjectMember(issuedTaskCreateDto.PJT_SN, issuedTaskCreateDto.USER_SN);
+            if (!mem) return {message: '업무 등록 권한이 없습니다.'}
+            const issue = await wbsRepository.findIssue(issuedTaskCreateDto.ISSUE_SN, issuedTaskCreateDto.PJT_SN);
+            if (!issue) return {message: '이슈가 존재하지 않습니다.'}
+            issuedTaskCreateDto.taskData.ISSUE_TICKET_SN = issue.TICKET_SN;
+            let orderNum = await wbsRepository.findOrderNum(issuedTaskCreateDto.taskData.PARENT_SN);
+            if(!orderNum) orderNum = 1;
+            if(issuedTaskCreateDto.taskData.PRIORITY){
+                const priority = await cmmnRepository.oneCmmnCd('TICKET_PRRT', issuedTaskCreateDto.taskData.PRIORITY);
+                issuedTaskCreateDto.taskData.PRIORITY = priority.CMMN_CD;
+            }
+            if(issuedTaskCreateDto.taskData.LEVEL){
+                const level = await cmmnRepository.oneCmmnCd('TICKET_LEVEL', issuedTaskCreateDto.taskData.LEVEL);
+                issuedTaskCreateDto.taskData.LEVEL = level.CMMN_CD;
+            }
+            const task = await wbsRepository.createTask(issuedTaskCreateDto.taskData, orderNum, transaction);
+            await transaction.commit();
+            return task;
+
+        }catch (error){
+            await transaction.rollback();
+            throw error;
+        }
+    }
+
 }
 
 module.exports = new WbsService();

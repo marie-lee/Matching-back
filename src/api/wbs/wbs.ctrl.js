@@ -7,6 +7,7 @@ const {ProjectDto, MemberDto, WbsDataDto} = require("./dto/wbs.create.dto");
 const CreateIssueDto = require("./dto/issue.create.dto");
 const IssueDto = require('./dto/issue.dto')
 const CreateCommentDto = require("./dto/comment.create.dto");
+const {TaskCreateDto, IssuedTaskCreateDto} = require("./dto/task.create.dto");
 // wbs 템플릿 조회
 router.get('/project/wbs/template', jwt.authenticateToken, async (req, res) => {
     try {
@@ -179,4 +180,36 @@ router.post('/project/wbs/issue/comment/:pjtSn/:issueSn', jwt.authenticateToken,
         return res.status(400).json(`wbs 이슈 댓글작성 중 에러 발생 : ${error.message}`)
     }
 })
+
+router.post('/project/wbs/task/create/:pjtSn', jwt.authenticateToken, async (req, res) => {
+    const taskCreateDto = new TaskCreateDto({
+        pjtSn: req.params.pjtSn, userSn: req.userSn.USER_SN, depth: req.body.DEPTH, title: req.body.TICKET_NAME, priority: req.body.PRIORITY,
+        level: req.body.LEVEL, status: "TICKET_WAIT", endDt: req.body.END_DT, startDt: req.body.START_DT, worker: req.body.WORKER
+    });
+    taskCreateDto.validate();
+    try {
+        const task = await wbsService.createTask(taskCreateDto);
+        if(task.message) return res.status(404).json(task);
+        return res.status(200).json('업무가 등록되었습니다.')
+    } catch (error) {
+        logger.error(`업무 등록 중 에러 발생 : ${error}`);
+        return res.status(400).json(`업무 등록 중 에러 발생 : ${error.message}`);
+    }
+});
+
+router.post('/project/wbs/task/create/:pjtSn/:issueSn', jwt.authenticateToken, async (req, res) => {
+    const issuedTaskCreateDto = new IssuedTaskCreateDto({
+        pjtSn: req.params.pjtSn, userSn: req.userSn.USER_SN, issueSn: req.params.issueSn, depth: req.body.DEPTH, title: req.body.TICKET_NAME,
+        priority: req.body.PRIORITY, level: req.body.LEVEL, status: "TICKET_WAIT", endDt: req.body.END_DT, startDt: req.body.START_DT, worker: req.body.WORKER
+    });
+    issuedTaskCreateDto.validate();
+    try {
+        const task = await wbsService.issuedCreateTask(issuedTaskCreateDto);
+        if(task.message) return res.status(404).json(task);
+        return res.status(200).json('업무가 등록되었습니다.')
+    } catch (error) {
+        logger.error(`업무 등록 중 에러 발생 : ${error}`);
+        return res.status(400).json(`업무 등록 중 에러 발생 : ${error.message}`);
+    }
+});
 module.exports = router;

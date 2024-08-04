@@ -650,6 +650,62 @@ paths:
           $ref: '#/components/responses/getTracking400'
       security:
         - JWT: [ ]
+  /project/wbs/task/create/{pjtSn}:
+    post:
+      tags:
+        - wbs
+      summary: wbs 업무 추가
+      description: wbs 업무 추가
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createTask'
+      responses:
+        '200':
+          $ref: '#/components/responses/createTask200'
+        '400':
+          $ref: '#/components/responses/createTask400'
+      security:
+        - JWT: [ ]
+  /project/wbs/task/create/{pjtSn}/{issueSn}:
+    post:
+      tags:
+        - wbs
+      summary: wbs 업무 추가
+      description: wbs 업무 추가
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+        - in: path
+          name: issueSn
+          required: true
+          description: 이슈 일련번호
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createTask'
+      responses:
+        '200':
+          $ref: '#/components/responses/createTask200'
+        '400':
+          $ref: '#/components/responses/createTask400'
+      security:
+        - JWT: [ ]
   /status:
     get:
       tags:
@@ -1574,7 +1630,37 @@ components:
           type: integer
           description: 멘션할 회원 일련번호
           example: [ 1,5 ]
-
+    createTask:
+      type: object
+      properties:
+        DEPTH:
+          type: integer
+          description: 상위 티켓 일련번호 (depth)
+          example: 1
+        TICKET_NAME:
+          type: string
+          description: 업무 이름
+          example: DB 설계
+        PRIORITY:
+          type: string
+          description: 중요도
+          example: L0
+        LEVEL:
+          type: string
+          description: 업무 난이도
+          example: HIGH
+        WORKER:
+          type: integer
+          description: 업무 담당자 일련번호
+          example: 2
+        START_DT:
+          type: string
+          description: 업무 시작일
+          example: '2024-01-01'
+        END_DT:
+          type: string
+          description: 업무 마감일
+          example: '2024-01-31'
   securitySchemes:
     JWT:
       type: http
@@ -3412,4 +3498,17 @@ components:
           schema:
             type: string
             example: 'wbs 이슈 댓글 작성 중 에러 발생 : (에러메세지)'
-
+    createTask200:
+      description: wbs 업무 추가 완료
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: '업무가 등록되었습니다.'
+    createTask400:
+      description: wbs 업무 추가 오류 발생
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: '업무 등록 중 에러 발생 : (에러메세지)'

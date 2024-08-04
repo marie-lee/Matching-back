@@ -1,6 +1,6 @@
 const db = require('../../config/db/db');
 const { logger } = require("../../utils/logger");
-const { QueryTypes, Sequelize, Op} = require("sequelize");
+const { QueryTypes, Sequelize, Op, or} = require("sequelize");
 
 const beginTransaction = async () => {
     return await db.transaction();
@@ -262,6 +262,19 @@ const createComment = async(commentData, transaction) => {
     return await db.TB_COMMENT.create(commentData, {transaction})
 }
 
+const findOrderNum = async (parentSn) => {
+    const result = await db.TB_WBS.findAll({
+        where: { PARENT_SN: parentSn },
+        order: [['ORDER_NUM', 'DESC']],
+        limit: 1
+    });
+    return result[0].ORDER_NUM + 1;
+};
+
+const createTask = async(taskData, orderNum, transaction) => {
+    return await db.TB_WBS.create({...taskData, ORDER_NUM: orderNum}, {transaction});
+};
+
 module.exports = {
     beginTransaction,
     commitTransaction,
@@ -291,5 +304,7 @@ module.exports = {
     issueDetail,
     mentionData,
     issueCommentData,
-    createComment
+    createComment,
+    findOrderNum,
+    createTask
 };
