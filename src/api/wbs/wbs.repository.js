@@ -249,7 +249,7 @@ const issueCommentData = async(issueSn) => {
                                 c.CREATOR_SN,
                                 tu.USER_NM AS CREATOR_NM,
                                 tu.USER_IMG AS CREATOR_IMG,
-                                COALESCE(mu.MENTIONED_USERS, JSON_ARRAY()) AS mentions,
+                                COALESCE(mu.MENTIONED_USERS, JSON_ARRAY()) AS MENTIONS,
                                 c.CREATED_DT
                             FROM TB_COMMENT c
                             INNER JOIN TB_USER tu ON tu.USER_SN = c.CREATOR_SN
