@@ -387,6 +387,7 @@ class profileService {
       const profile = await this.profileSelect(userSn);
       // 포트폴리오정보 조회
       const portfolioInfo = await this.portfolioInfoSelect(profile[0].PF_SN);
+
       // 프로필 데이터가 없을 때
       if (!profile || profile.length === 0) {
         return res.status(404).send('프로필이 입력되지 않았습니다.');
@@ -545,17 +546,18 @@ class profileService {
                                             ELSE NULL
                                         END AS IMG
                                     , JSON_ARRAYAGG(pm.URL) AS IMG_SUB
+                                    , GROUP_CONCAT( DISTINCT tr2.RATE_TEXT) AS RATE
                                 FROM TB_PFOL pl
                                 LEFT JOIN TB_PF_PFOL pp ON pl.PFOL_SN = pp.PFOL_SN
                                 LEFT JOIN TB_PFOL_ST ps ON ps.PFOL_SN = pp.PFOL_SN
                                 LEFT JOIN TB_ST st ON st.ST_SN = ps.ST_SN
-                               LEFT JOIN TB_PFOL_ROLE tpr ON tpr.PFOL_SN = pl.PFOL_SN
-                               LEFT JOIN TB_ROLE tr ON tr.ROLE_SN = tpr.ROLE_SN
+                                LEFT JOIN TB_PFOL_ROLE tpr ON tpr.PFOL_SN = pl.PFOL_SN
+                                LEFT JOIN TB_ROLE tr ON tr.ROLE_SN = tpr.ROLE_SN
                                 LEFT JOIN TB_PFOL_URL tpu ON tpu.PFOL_SN = pl.PFOL_SN AND tpu.DEL_YN = false
                                 LEFT JOIN TB_URL tu ON tu.URL_SN = tpu.URL_SN
                                 LEFT JOIN TB_PFOL_MEDIA pm ON pl.PFOL_SN = pm.PFOL_SN
                                 LEFT JOIN TB_CMMN_CD tcc ON tcc.CMMN_CD_TYPE = 'SERVICE_STTS' AND tcc.CMMN_CD = pl.SERVICE_STTS
-                                WHERE pp.PF_SN = ${pfSn} AND pl.DEL_YN = 'N'
+                                LEFT JOIN TB_RATE tr2 ON tr2.PJT_SN = pl.PJT_SN
                                 GROUP BY pl.PFOL_SN
                                 ORDER BY pl.START_DT ASC`;
     try{
@@ -603,6 +605,7 @@ class profileService {
                                               'MAIN_YN', pm.MAIN_YN
                                           )
                                       ) AS media
+                                      , JSON_ARRAYAGG(DISTINCT tr.RATE_TEXT) AS RATE
                                   FROM TB_PFOL pl
                                   LEFT JOIN TB_PFOL_ST ps ON pl.PFOL_SN = ps.PFOL_SN
                                   LEFT JOIN TB_ST st ON st.ST_SN = ps.ST_SN
@@ -611,6 +614,7 @@ class profileService {
                                   LEFT JOIN TB_PFOL_URL pu ON pl.PFOL_SN = pu.PFOL_SN
                                   LEFT JOIN TB_URL u ON pu.URL_SN = u.URL_SN
                                   LEFT JOIN TB_PFOL_MEDIA pm ON pl.PFOL_SN = pm.PFOL_SN
+                                  LEFT JOIN TB_RATE tr ON tr.PJT_SN = pl.PJT_SN
                                   WHERE pl.PFOL_SN = ${pfolSn} AND pl.DEL_YN = 'N'
                                   GROUP BY pl.PFOL_SN;`;
     try {
