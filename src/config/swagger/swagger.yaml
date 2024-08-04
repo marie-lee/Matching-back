@@ -2029,6 +2029,9 @@ components:
               userNm:
                 type: string
                 description: 회원명
+              userImg:
+                type: string
+                description: 회원 이미지
               pjtRoleSn:
                 type: integer
                 description: 프로젝트 파트 일련번호
@@ -2048,6 +2051,7 @@ components:
             - pjtMemSn: 1
               userSn: 1
               userNm: 김기기
+              userImg: http://218.232.137.30:20090/matching/profile/img.png
               pjtRoleSn: 1
               part: front
               firstDt: 2024-05-01
@@ -2056,6 +2060,7 @@ components:
             - pjtMemSn: 2
               userSn: 2
               userNm: 박기이
+              userImg: http://218.232.137.30:20090/matching/profile/img.png
               pjtRoleSn: 1
               part: front
               firstDt: 2024-05-01
@@ -2064,6 +2069,7 @@ components:
             - pjtMemSn: 3
               userSn: 3
               userNm: 이아앙
+              userImg: http://218.232.137.30:20090/matching/profile/img.png
               pjtRoleSn: 2
               part: end
               firstDt: 2024-05-01
