@@ -1,6 +1,6 @@
 const db = require('../../config/db/db');
 const { logger } = require("../../utils/logger");
-const { QueryTypes, Sequelize, Op} = require("sequelize");
+const { QueryTypes, Sequelize, Op, where} = require("sequelize");
 
 const beginTransaction = async () => {
     return await db.transaction();
@@ -114,9 +114,18 @@ const findTicket = async (ticketSn, pjtSn) =>{
 const createIssue = async (issueDto, transaction)=>{
     return await db.TB_ISSUE.create(issueDto,{transaction})
 }
+const findMention = async(mentionSn, userSn) =>{
+    return await db.TB_MENTION.findOne({where:{MENTION_SN: mentionSn, CREATER_SN: userSn}});
+}
 const addMentionFromIssue = async(mentionData,transaction) => {
     await db.TB_MENTION.create(mentionData,{transaction});
 }
+const deleteMentionFromIssue = async(mentionSn, transaction)=>{
+    return await db.TB_MENTION.update(
+        {DELETED_DT: db.Sequelize.fn('NOW'), DEL_YN: true},
+        {where:{MENTION_SN: mentionSn}}, {transaction});
+}
+
 const findIssue = async(issueSn,pjtSn) =>{
     return await db.TB_ISSUE.findOne({where:{ISSUE_SN: issueSn, PJT_SN: pjtSn, DEL_YN: false}})
 }
@@ -125,20 +134,20 @@ const updateIssue = async(issue, transaction) =>{
 }
 const trackingIssue = async(pjtSn) => {
     const query = `SELECT 
-        TB_WBS.ISSUE_TICKET_SN AS PARENT_TICKET_SN, 
-        TB_WBS.TICKET_SN, 
-        TB_WBS.CREATED_DT 
-    FROM 
-        TB_WBS 
-    INNER JOIN 
-        TB_ISSUE 
-    ON 
-        TB_ISSUE.PJT_SN = ${pjtSn}
-    WHERE 
-        TB_WBS.PJT_SN = ${pjtSn}
-        AND TB_WBS.ISSUE_TICKET_SN IS NOT NULL 
-    GROUP BY 
-        TICKET_SN`;
+                            tw.ISSUE_TICKET_SN AS PARENT_TICKET_SN, 
+                            ti.ISSUE_SN AS ISSUE_SN,
+                            ti.CREATED_DT AS ISSUE_CREATED_DT,
+                            JSON_ARRAYAGG(
+                                JSON_OBJECT(
+                                    'TICKET_SN', tw.TICKET_SN,
+                                    'CREATED_DT', tw.CREATED_DT
+                                )
+                            ) AS TICKETS
+                        FROM TB_WBS tw
+                        INNER JOIN TB_ISSUE ti ON tw.PJT_SN = ti.PJT_SN AND ti.TICKET_SN = tw.ISSUE_TICKET_SN
+                        WHERE tw.PJT_SN = ${pjtSn} AND tw.ISSUE_TICKET_SN IS NOT NULL 
+                        GROUP BY PARENT_TICKET_SN, ISSUE_SN, ISSUE_CREATED_DT
+                        ORDER BY PARENT_TICKET_SN;`;
     return await db.query(query, {type: QueryTypes.SELECT});
 }
 const issueDetail = async(issueSn,pjtSn) =>{
@@ -205,6 +214,7 @@ const issueDetail = async(issueSn,pjtSn) =>{
 }
 const mentionData = async(issueSn, pjtSn) => {
     const query = `SELECT
+                              tm.MENTION_SN,
                               tu.USER_SN,
                               tu.USER_NM,
                               tu.USER_IMG,
@@ -213,8 +223,8 @@ const mentionData = async(issueSn, pjtSn) => {
                           INNER JOIN TB_USER tu ON tu.USER_SN = tm.TARGET_SN
                           INNER JOIN TB_PJT_M tpm ON tpm.PJT_SN = ${pjtSn}
                           INNER JOIN TB_PJT_ROLE tpr ON tpm.PJT_ROLE_SN = tpr.PJT_ROLE_SN 
-                          WHERE tm.ISSUE_SN = ${issueSn}
-                          GROUP BY tm.ISSUE_SN;`
+                          WHERE tm.ISSUE_SN = ${issueSn} AND tm.COMMENT_SN IS NULL AND tm.DEL_YN = FALSE 
+                          GROUP BY tm.MENTION_SN;`
     return await db.query(query, {type: QueryTypes.SELECT});
 }
 const issueCommentData = async(issueSn) => {
@@ -223,13 +233,14 @@ const issueCommentData = async(issueSn) => {
                                     m.COMMENT_SN,
                                     JSON_ARRAYAGG(
                                         JSON_OBJECT(
+                                            'MENTIONS_SN', m.MENTION_SN,
                                             'USER_SN', tu.USER_SN,
                                             'USER_NM', tu.USER_NM
                                         )
                                     ) AS MENTIONED_USERS
                                 FROM TB_MENTION m
                                 INNER JOIN TB_USER tu ON tu.USER_SN = m.TARGET_SN
-                                WHERE m.COMMENT_SN IS NOT NULL
+                                WHERE m.COMMENT_SN IS NOT NULL AND m.DEL_YN = false
                                 GROUP BY m.COMMENT_SN
                             )
                             SELECT
@@ -246,6 +257,7 @@ const issueCommentData = async(issueSn) => {
                             WHERE c.ISSUE_SN = ${issueSn};`
     return await db.query(query, {type: QueryTypes.SELECT});
 }
+
 module.exports = {
     beginTransaction,
     commitTransaction,
@@ -266,7 +278,9 @@ module.exports = {
     findChildData,
     findTicket,
     createIssue,
+    findMention,
     addMentionFromIssue,
+    deleteMentionFromIssue,
     findIssue,
     updateIssue,
     trackingIssue,

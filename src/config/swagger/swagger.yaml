@@ -233,7 +233,7 @@ paths:
   /member/profile/{pfolSn}:
     get:
       tags:
-       - member
+        - member
       summary: 포트폴리오 상세 조회
       description: 포트폴리오의 상세 조회
       parameters:
@@ -244,8 +244,8 @@ paths:
             type: integer
             description: 포트폴리오의 일련번호
       responses:
-          '200':
-            $ref: '#/components/schemas/portfolioDetail200'
+        '200':
+          $ref: '#/components/schemas/portfolioDetail200'
       security:
         - JWT: [ ]
   /project:
@@ -1032,105 +1032,105 @@ components:
     portfolioDetail200 :
       type: object
       properties:
-          PFOL_SN:
-            type: integer
-            description: 포트폴리오 일련번호
-          PFOL_NM:
-            type: string
-            description: 포트폴리오 이름
-          START_DT:
-            type: string
-            format: date
-            description: 시작일
-          END_DT:
-            type: string
-            format: date
-            description: 종료일
-          PERIOD:
-            type: integer
-            description: 기간
-          INTRO:
-            type: string
-            description: 소개
-          MEM_CNT:
-            type: integer
-            description: 멤버 수
-          CONTRIBUTION:
-            type: integer
-            description: 기여도
-          SERVICE_STTS:
-            type: string
-            description: 서비스 상태
-          RESULT:
-            type: string
-            description: 결과
-          stack:
-            type: array
-            items:
-              type: object
-              properties:
-                ST_NM:
-                  type: string
-                  description: 기술 스택 이름
-          roles:
-            type: array
-            items:
-              type: object
-              properties:
-                ROLE_NM:
-                  type: string
-                  description: 역할 이름
-          urls:
-            type: array
-            items:
-              type: object
-              properties:
-                URL:
-                  type: string
-                  description: URL 주소
-                URL_INTRO:
-                  type: string
-                  description: URL 소개
-                RELEASE_YN:
-                  type: boolean
-                  description: 공개 여부
-                OS:
-                  type: string
-                  description: 운영 체제
-          media:
-            type: array
-            items:
-              type: object
-              properties:
-                URL:
-                  type: string
-                  description: 미디어 URL
-                MAIN_YN:
-                  type: boolean
-                  description: 메인 여부
+        PFOL_SN:
+          type: integer
+          description: 포트폴리오 일련번호
+        PFOL_NM:
+          type: string
+          description: 포트폴리오 이름
+        START_DT:
+          type: string
+          format: date
+          description: 시작일
+        END_DT:
+          type: string
+          format: date
+          description: 종료일
+        PERIOD:
+          type: integer
+          description: 기간
+        INTRO:
+          type: string
+          description: 소개
+        MEM_CNT:
+          type: integer
+          description: 멤버 수
+        CONTRIBUTION:
+          type: integer
+          description: 기여도
+        SERVICE_STTS:
+          type: string
+          description: 서비스 상태
+        RESULT:
+          type: string
+          description: 결과
+        stack:
+          type: array
+          items:
+            type: object
+            properties:
+              ST_NM:
+                type: string
+                description: 기술 스택 이름
+        roles:
+          type: array
+          items:
+            type: object
+            properties:
+              ROLE_NM:
+                type: string
+                description: 역할 이름
+        urls:
+          type: array
+          items:
+            type: object
+            properties:
+              URL:
+                type: string
+                description: URL 주소
+              URL_INTRO:
+                type: string
+                description: URL 소개
+              RELEASE_YN:
+                type: boolean
+                description: 공개 여부
+              OS:
+                type: string
+                description: 운영 체제
+        media:
+          type: array
+          items:
+            type: object
+            properties:
+              URL:
+                type: string
+                description: 미디어 URL
+              MAIN_YN:
+                type: boolean
+                description: 메인 여부
       example:
-          PFOL_SN: 1
-          PFOL_NM: 포트폴리오 이름
-          START_DT: 2023-01-01
-          END_DT: 2023-12-31
-          PERIOD: 365
-          INTRO: 포트폴리오 소개
-          MEM_CNT: 5
-          CONTRIBUTION: 20
-          SERVICE_STTS: ACTIVE
-          RESULT:
-          stack:
-            - ST_NM: JavaScript
-          roles:
-            - ROLE_NM: 백엔드 개발자
-          urls:
-            - URL: http://example.com
-              URL_INTRO: 프로젝트 소개 페이지
-              RELEASE_YN: true
-              OS: Web
-          media:
-            - URL: http://example.com/image.jpg
-              MAIN_YN: true
+        PFOL_SN: 1
+        PFOL_NM: 포트폴리오 이름
+        START_DT: 2023-01-01
+        END_DT: 2023-12-31
+        PERIOD: 365
+        INTRO: 포트폴리오 소개
+        MEM_CNT: 5
+        CONTRIBUTION: 20
+        SERVICE_STTS: ACTIVE
+        RESULT:
+        stack:
+          - ST_NM: JavaScript
+        roles:
+          - ROLE_NM: 백엔드 개발자
+        urls:
+          - URL: http://example.com
+            URL_INTRO: 프로젝트 소개 페이지
+            RELEASE_YN: true
+            OS: Web
+        media:
+          - URL: http://example.com/image.jpg
+            MAIN_YN: true
     registerProject:
       type: object
       properties:
@@ -1307,14 +1307,14 @@ components:
           START_DT: 2024-01-01
           END_DT: 2024-01-31
         memberData:
-            - USER_SN: 1
-              USER_NM: 홍길동
-              PART: F.E
-              ROLE: owner
-            - USER_SN: 2
-              USER_NM: 김미영
-              PART: B.E
-              ROLE: member
+          - USER_SN: 1
+            USER_NM: 홍길동
+            PART: F.E
+            ROLE: owner
+          - USER_SN: 2
+            USER_NM: 김미영
+            PART: B.E
+            ROLE: member
         wbsData:
           - name: 기획
             child:
@@ -1491,8 +1491,9 @@ components:
           description: 이슈 상세
           example: 구글 로그인 안돼요
         MENTIONS:
-            type: integer
-            example: [1,5]
+          type: integer
+          description: 멘션할 회원 일련번호
+          example: [1,5]
     updateIssue:
       type: object
       properties:
@@ -1505,6 +1506,19 @@ components:
           type: string
           description: 이슈 상태
           example: IN PROGRESS
+        MENTIONS:
+          type: object
+          properties:
+            deleteMention:
+              type: integer
+              description: 멘션할 일련번호
+              example: [ 27 ]
+            addMention:
+              type: integer
+              description: 멘션할 회원 일련번호
+              example: [ 9 ]
+
+
   securitySchemes:
     JWT:
       type: http
@@ -2095,22 +2109,22 @@ components:
                               description: 요청 상태코드 값
           example:
             - myReqList:
-              - REQ_SN: 1
-                PJT_SN: 1
-                PJT_IMG: http://218.232.137.30:20090/matching/project/img.png
-                PJT_NM: project1
-                TOTAL_CNT: 11
-                PART: 프론트엔드
-                REQ_STTS: REQ
-                REQ_STTS_VAL: 요청
-              - REQ_SN: 2
-                PJT_SN: 2
-                PJT_IMG: http://218.232.137.30:20090/matching/project/img.png
-                PJT_NM: project2
-                TOTAL_CNT: 7
-                PART: 기획
-                REQ_STTS: AGREE
-                REQ_STTS_VAL: 수락
+                - REQ_SN: 1
+                  PJT_SN: 1
+                  PJT_IMG: http://218.232.137.30:20090/matching/project/img.png
+                  PJT_NM: project1
+                  TOTAL_CNT: 11
+                  PART: 프론트엔드
+                  REQ_STTS: REQ
+                  REQ_STTS_VAL: 요청
+                - REQ_SN: 2
+                  PJT_SN: 2
+                  PJT_IMG: http://218.232.137.30:20090/matching/project/img.png
+                  PJT_NM: project2
+                  TOTAL_CNT: 7
+                  PART: 기획
+                  REQ_STTS: AGREE
+                  REQ_STTS_VAL: 수락
             - projectReqList:
                 - PJT_SN: 3
                   PJT_NM: project3
@@ -2248,37 +2262,37 @@ components:
             - pjtSn: 3
               pjtNm: project3
               rqList:
-              - reqSn: 3
-                userSn: 1
-                userNm: 홍길동
-                userImg: http://218.232.137.30:20090/matching/profile/img.png
-                part: 백엔드
-                reqStts: 거절
-                rqSttsCd: REJECTIOM
-              - reqSn: 4
-                userSn: 2
-                userNm: 김철수
-                userImg: http://218.232.137.30:20090/matching/profile/img.png
-                part: 디자인
-                reqStts: 요청
-                rqSttsCd: REQ
+                - reqSn: 3
+                  userSn: 1
+                  userNm: 홍길동
+                  userImg: http://218.232.137.30:20090/matching/profile/img.png
+                  part: 백엔드
+                  reqStts: 거절
+                  rqSttsCd: REJECTIOM
+                - reqSn: 4
+                  userSn: 2
+                  userNm: 김철수
+                  userImg: http://218.232.137.30:20090/matching/profile/img.png
+                  part: 디자인
+                  reqStts: 요청
+                  rqSttsCd: REQ
             - pjtSn: 4
               pjtNm: project4
               reqList:
-              - reqSn: 5
-                userSn: 5
-                userNm: 김영희
-                userImg: http://218.232.137.30:20090/matching/profile/img.png
-                part: 프론트앤드
-                reqStts: REQ
-                reqSttsCd: REQ
-              - reqSn: 6
-                userSn: 6
-                userNm: 아무개
-                userImg: http://218.232.137.30:20090/matching/profile/img.png
-                part: 디자인
-                reqStts: 1차 수락
-                reqSttsCd: AGREE
+                - reqSn: 5
+                  userSn: 5
+                  userNm: 김영희
+                  userImg: http://218.232.137.30:20090/matching/profile/img.png
+                  part: 프론트앤드
+                  reqStts: REQ
+                  reqSttsCd: REQ
+                - reqSn: 6
+                  userSn: 6
+                  userNm: 아무개
+                  userImg: http://218.232.137.30:20090/matching/profile/img.png
+                  part: 디자인
+                  reqStts: 1차 수락
+                  reqSttsCd: AGREE
     recommendation200:
       description: 프로젝트와 유사도가 높은 회원 정보 반환
       content:
@@ -2940,6 +2954,9 @@ components:
                 type: array
                 items:
                   properties:
+                    MENTION_SN:
+                      type: integer
+                      description: 멘션 일련번호
                     USER_SN:
                       type: integer
                       description: 멘션한 유저 일련번호
@@ -2975,6 +2992,9 @@ components:
                       type: array
                       items:
                         properties:
+                          MENTION_SN:
+                            type: integer
+                            description: 멘션 일련번호
                           USER_SN:
                             type: integer
                             description: 멘션한 유저 일련번호
@@ -3008,22 +3028,46 @@ components:
               PARENT_TICKET_SN:
                 type: integer
                 description: 부모 티켓 일련번호
-              TICKET_SN:
+              ISSUE_SN:
                 type: integer
-                description: 자식 티켓 일련번호
-              CREATED_DT:
+                description: 이슈 일련번호
+              ISSUE_CREATED_DT:
                 type: string
                 description: 생성일자
+              TICKETS:
+                type: array
+                properties:
+                  TICKET_SN:
+                    type: integer
+                    description: 자식 티켓 일련번호
+                  CREATED_DT:
+                    type: string
+                    description: 생성일자
             example:
               - PARENT_TICKET_SN: 4
-                TICKET_SN: 5
-                CREATED_DT: 2024-08-01 12:06:54
-              - PARENT_TICKET_SN: 4
-                TICKET_SN: 8
-                CREATED_DT: 2024-08-01 12:06:54
-              - PARENT_TICKET_SN: 9
-                TICKET_SN: 1
-                CREATED_DT: 2024-08-01 12:06:54
+                ISSUE_SN: 2
+                ISSUE_CREATED_DT: 2024-08-01 12:06:54
+                TICKETS:
+                  - TICKET_SN: 5
+                    CREATED_DT: 2024-08-01 12:06:54
+                  - TICKET_SN: 9
+                    CREATED_DT: 2024-08-01 12:06:54
+              - PARENT_TICKET_SN: 10
+                ISSUE_SN: 9
+                ISSUE_CREATED_DT: 2024-08-01 12:06:54
+                TICKETS:
+                  - TICKET_SN: 213
+                    CREATED_DT: 2024-08-01 12:06:54
+                  - TICKET_SN: 99
+                    CREATED_DT: 2024-08-01 12:06:54
+              - PARENT_TICKET_SN: 299
+                ISSUE_SN: 34
+                ISSUE_CREATED_DT: 2024-08-01 12:06:54
+                TICKETS:
+                  - TICKET_SN: 123
+                    CREATED_DT: 2024-08-01 12:06:54
+                  - TICKET_SN: 121
+                    CREATED_DT: 2024-08-01 12:06:54
     getTracking400:
       description: wbs 티켓 이슈트레킹 조회 중 오류 발생
       content:
@@ -3031,5 +3075,4 @@ components:
           schema:
             type: string
             example: 'wbs 티켓 이슈 생성 중 오류 발생 : (에러메시지)'
-
 

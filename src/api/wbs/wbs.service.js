@@ -216,6 +216,7 @@ class WbsService {
             throw error
         }
     }
+    // 이슈 수정
     async updateIssue(issueDto){
         const transaction = await db.transaction()
         try {
@@ -225,16 +226,33 @@ class WbsService {
             const issue = await wbsRepository.findIssue(ISSUE_SN, PJT_SN);
             if(!issue) return {message : '이슈에 대한 정보가 없습니다.'};
 
-            if(updateIssueData.PRIORITY !== null){
+            if(updateIssueData.PRIORITY){
                 const priority = await cmmnRepository.oneCmmnCd('ISSUE_PRRT', updateIssueData.PRIORITY);
                 issue.PRIORITY = priority.CMMN_CD;
             }
-            if(updateIssueData.STATUS !== null){
+            if(updateIssueData.STATUS){
                 const status = await cmmnRepository.oneCmmnCd('ISSUE_STTS', updateIssueData.STATUS);
                 issue.STATUS = status.CMMN_CD;
             }
             const update = await wbsRepository.updateIssue(issue, transaction);
 
+            if (updateIssueData.MENTIONS) {
+                const {deleteMention, addMention} = updateIssueData.MENTIONS;
+                if (deleteMention.length > 0) {
+                    for (const mention of deleteMention) {
+                        const data = await wbsRepository.findMention(mention, USER_SN);
+                        if(data) await wbsRepository.deleteMentionFromIssue(mention, transaction);
+                    }
+                }
+                if (addMention.length > 0) {
+                    for (const mention of addMention) {
+                        const mem = await projectRepository.findProjectMember(PJT_SN, mention)
+                        if(!mem) return {message: '멘션할 수 없는 회원입니다. ', targetSn: mention}
+                        const mentionData = {TARGET_SN: mention, CREATER_SN: USER_SN, ISSUE_SN: ISSUE_SN}
+                        await wbsRepository.addMentionFromIssue(mentionData, transaction);
+                    }
+                }
+            }
             await transaction.commit()
             return update
         } catch (error){
@@ -247,7 +265,11 @@ class WbsService {
             const tracking =  await wbsRepository.trackingIssue(pjtSn);
             return tracking.map(ticket => ({
                 ...ticket,
-                CREATED_DT: formatDt(ticket.CREATED_DT)
+                ISSUE_CREATED_DT: formatDt(ticket.ISSUE_CREATED_DT),
+                TICKETS: ticket.TICKETS.map(t => ({
+                    ...t,
+                    CREATED_DT: formatDt(t.CREATED_DT)
+                }))
             }))
         } catch(error){
             throw  error;
@@ -256,7 +278,6 @@ class WbsService {
 
     async issueDetail(pjtSn, userSn, issueSn){
         try {
-            console.log(userSn)
             const mem = await projectRepository.findProjectMember(pjtSn, userSn);
             if (!mem) return {message: '조회 권한이 없습니다.'}
             const issue = await wbsRepository.issueDetail(issueSn, pjtSn);
