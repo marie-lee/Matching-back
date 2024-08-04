@@ -1,6 +1,6 @@
 const db = require('../../config/db/db');
 const { logger } = require("../../utils/logger");
-const { QueryTypes, Sequelize, Op, where} = require("sequelize");
+const { QueryTypes, Sequelize, Op} = require("sequelize");
 
 const beginTransaction = async () => {
     return await db.transaction();
