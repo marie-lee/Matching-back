@@ -6,6 +6,7 @@ const {logger} = require('../../utils/logger');
 const {ProjectDto, MemberDto, WbsDataDto} = require("./dto/wbs.create.dto");
 const CreateIssueDto = require("./dto/issue.create.dto");
 const IssueDto = require('./dto/issue.dto')
+const CreateCommentDto = require("./dto/comment.create.dto");
 // wbs 템플릿 조회
 router.get('/project/wbs/template', jwt.authenticateToken, async (req, res) => {
     try {
@@ -159,4 +160,23 @@ router.get('/project/wbs/issue/:pjtSn/:issueSn', jwt.authenticateToken, async (r
     }
 })
 
+// 이슈댓글
+router.post('/project/wbs/issue/comment/:pjtSn/:issueSn', jwt.authenticateToken, async (req, res) => {
+    const pjtSn = req.params.pjtSn;
+    const userSn = req.userSn.USER_SN;
+    const issueSn = req.params.issueSn;
+
+    const createCommentDto = new CreateCommentDto({
+        pjtSn: req.params.pjtSn, userSn: req.userSn.USER_SN, issueSn: req.params.issueSn, commentData: req.body,
+    });
+    createCommentDto.validate()
+    try {
+        const comment = await wbsService.createComment(createCommentDto);
+        if(comment.message) return res.status(404).json(comment);
+        return res.status(200).json('댓글이 작성되었습니다.');
+    } catch (error){
+        logger.error(`wbs 이슈 댓글작성 중 에러 발생 : ${error}`);
+        return res.status(400).json(`wbs 이슈 댓글작성 중 에러 발생 : ${error.message}`)
+    }
+})
 module.exports = router;

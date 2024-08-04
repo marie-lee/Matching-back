@@ -246,16 +246,20 @@ const issueCommentData = async(issueSn) => {
                             SELECT
                                 c.COMMENT_SN,
                                 c.TEXT,
-                                c.CREATOR_SN,
-                                tu.USER_NM AS CREATOR_NM,
-                                tu.USER_IMG AS CREATOR_IMG,
+                                c.CREATER_SN,
+                                tu.USER_NM AS CREATER_NM,
+                                tu.USER_IMG AS CREATER_IMG,
                                 COALESCE(mu.MENTIONED_USERS, JSON_ARRAY()) AS mentions,
                                 c.CREATED_DT
                             FROM TB_COMMENT c
-                            INNER JOIN TB_USER tu ON tu.USER_SN = c.CREATOR_SN
+                            INNER JOIN TB_USER tu ON tu.USER_SN = c.CREATER_SN
                             LEFT JOIN MENTIONED_USERS mu ON mu.COMMENT_SN = c.COMMENT_SN
                             WHERE c.ISSUE_SN = ${issueSn};`
     return await db.query(query, {type: QueryTypes.SELECT});
+}
+
+const createComment = async(commentData, transaction) => {
+    return await db.TB_COMMENT.create(commentData, {transaction})
 }
 
 module.exports = {
@@ -286,5 +290,6 @@ module.exports = {
     trackingIssue,
     issueDetail,
     mentionData,
-    issueCommentData
+    issueCommentData,
+    createComment
 };
