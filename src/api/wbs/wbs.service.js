@@ -283,12 +283,20 @@ class WbsService {
             const issue = await wbsRepository.findIssue(issueSn, pjtSn);
             if(!issue) return {message: '이슈를 찾을 수 없습니다.'}
 
-            const issueDetail = await wbsRepository.issueDetail(issueSn, pjtSn);
+            let issueDetail = await wbsRepository.issueDetail(issueSn, pjtSn);
             const mentionData = await wbsRepository.mentionData(issue.ISSUE_SN, pjtSn);
             const commentData = await wbsRepository.issueCommentData(issue.ISSUE_SN);
 
+            const { CREATED_DT, ...restIssueDetail } = issueDetail = {...issueDetail ,CREATED_DT: formatDt(issueDetail.CREATED_DT)}
+            commentData.map(c => ({
+                ...c, CREATED_DT: formatDt(c.CREATED_DT),
+            }))
             return {
-                ...issueDetail, MENTIONS:mentionData, COMMENTS: commentData
+                ...issueDetail,
+                MENTIONS:mentionData,
+                COMMENTS: commentData.map(c => ({
+                ...c, CREATED_DT: formatDt(c.CREATED_DT),
+            }))
             }
         } catch (error) {
             throw error;
