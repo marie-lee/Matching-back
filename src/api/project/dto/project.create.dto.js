@@ -44,10 +44,10 @@ class ProjectCreateDto {
                 throw new Error(message);
             }
         }
-
-        if (this.SELECTED_DT_YN && !this.START_DT) {
-            throw new Error('시작날짜가 입력되지 않았습니다.');
+        if (this.SELECTED_DT_YN === 'true' && !this.START_DT) {
+            throw Error('시작날짜가 입력되지 않았습니다.');
         }
+        if(this.SELECTED_DT_YN === 'false') this.START_DT = null;
 
         if (!this.DURATION_UNIT || !this.PERIOD) {
             throw new Error('프로젝트 예상 기간을 입력하세요.');
