@@ -2950,7 +2950,7 @@ components:
               CREATED_DT:
                 type: string
                 description: 생성일
-              mentions:
+              MENTIONS:
                 type: array
                 items:
                   properties:
@@ -2969,7 +2969,7 @@ components:
                     PART:
                       type: string
                       description: 멘션한 유저 파트
-              comments:
+              COMMENTS:
                 type: array
                 items:
                   properties:
@@ -2988,7 +2988,7 @@ components:
                     CREATOR_IMG:
                       type: string
                       description: 멘션한 유저 이미지 url
-                    mentions:
+                    MENTIONS:
                       type: array
                       items:
                         properties:
