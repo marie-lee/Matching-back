@@ -1,6 +1,6 @@
 const db = require('../../config/db/db');
 const {logger} = require("../../utils/logger");
-const {QueryTypes} = require("sequelize");
+const {QueryTypes,Op} = require("sequelize");
 
 // 프로젝트 생성
 const createProject = async(projectData, transaction) => {
@@ -163,7 +163,6 @@ const findProjectMembers = async(user, pjt) => {
     });
 }
 
-
 const myOneProject = async(userSn, pjtSn) => {
         return await db.TB_PJT.findOne({where: {PJT_SN: pjtSn, CREATED_USER_SN: userSn, DEL_YN: false}});
 }
@@ -183,6 +182,25 @@ const myCreatedProjectList = async(user) => {
     return await db.TB_PJT.findAll({where: {CREATED_USER_SN: user, DEL_YN:false}});
 }
 
+const findRateMember = async (pjt,user)=>{
+  return await db.TB_PJT_M.findAll({
+    where: { PJT_SN: pjt, DEL_YN: false,USER_SN: { [Op.ne]: user }},
+    attributes: [
+      ['PJT_MEM_SN', 'pjtMemSn'],
+      ['USER_SN', 'userSn'],
+      [db.Sequelize.col('TB_USER.USER_NM'), 'userNm'],
+      [db.Sequelize.col('TB_PJT_ROLE.PART'), 'part'],
+      ['CONTRIBUTION', 'contribution'],
+      [db.Sequelize.literal(`(SELECT IF(COUNT(*) > 0, 1, 0) FROM TB_RATE WHERE TARGET_SN = TB_PJT_M.USER_SN AND PJT_SN = ${pjt} AND RATER_SN = ${user})`), 'isRated']
+    ],
+    include: [
+      { model: db.TB_USER, attributes: [] },
+      { model: db.TB_PJT_ROLE, attributes: [] }
+    ],
+    having: db.Sequelize.literal(`EXISTS(SELECT 1 FROM TB_PJT_M pm WHERE pm.PJT_SN = ${pjt} AND pm.USER_SN = ${user})`)
+  });
+};
+
 module.exports = {
     createProject,
     findOrCreateStack,
@@ -201,5 +219,6 @@ module.exports = {
     pjtRoleInfo,
     pjtRoleMem,
     updatePjtMemCnt,
-    myCreatedProjectList
+    myCreatedProjectList,
+    findRateMember
 };
