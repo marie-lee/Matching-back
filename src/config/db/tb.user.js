@@ -74,6 +74,7 @@ module.exports = (sequelize, DataTypes) => {
     TB_USER.hasMany(models.TB_PJT, { foreignKey: 'CREATED_USER_SN' });
     TB_USER.hasMany(models.TB_REQ, { foreignKey: 'USER_SN' });
     TB_USER.hasMany(models.TB_PJT_M, { foreignKey: 'USER_SN' });
+    TB_USER.hasMany(models.TB_WBS, { foreignKey: 'CREATER_SN' });
     TB_USER.hasMany(models.TB_WBS, { foreignKey: 'WORKER' });
     TB_USER.hasMany(models.TB_RATE, { foreignKey: 'TARGET_SN' });
     TB_USER.hasMany(models.TB_RATE, { foreignKey: 'RATER_SN' });

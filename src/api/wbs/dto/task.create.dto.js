@@ -47,6 +47,7 @@ class IssuedTaskCreateDto {
         this.taskData = {
             PJT_SN: pjtSn,
             PARENT_SN: depth,
+            CREATER_SN: userSn,
             TICKET_NAME: title,
             PRIORITY: priority,
             STATUS: status,

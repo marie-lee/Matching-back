@@ -196,7 +196,9 @@ class WbsService {
 
             const priority = await cmmnRepository.oneCmmnCd('ISSUE_PRRT', createIssueData.PRIORITY);
             createIssueData.PRIORITY = priority.CMMN_CD;
-            const issue = await wbsRepository.createIssue(createIssueData);
+
+            const issueCnt = await wbsRepository.findIssueCnt(issueDto.PJT_SN);
+            const issue = await wbsRepository.createIssue(createIssueData, issueCnt, transaction);
 
             for (const mention of MENTIONS) {
                 const mem = await projectRepository.findProjectMember(createIssueData.PJT_SN, mention)
