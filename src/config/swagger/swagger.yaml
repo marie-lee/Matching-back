@@ -537,6 +537,7 @@ paths:
           $ref: '#/components/responses/createIssue400'
       security:
         - JWT: [ ]
+  /project/wbs/issue/{pjtSn}/{issue}:
     put:
       tags:
         - wbs
@@ -550,9 +551,9 @@ paths:
           schema:
             type: integer
         - in: path
-          name: ticketSn
+          name: issue
           required: true
-          description: 티켓 일련번호
+          description: 이슈 일련번호
           schema:
             type: integer
       requestBody:
