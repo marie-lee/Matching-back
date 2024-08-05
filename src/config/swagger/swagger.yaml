@@ -634,8 +634,8 @@ paths:
     get:
       tags:
         - wbs
-      summary: wbs 이슈 트레킹 조회
-      description: wbs 이슈 트레킹 조회
+      summary: wbs 이슈 트래킹 조회
+      description: wbs 이슈 트래킹 조회
       parameters:
         - in: path
           name: pjtSn
@@ -3421,7 +3421,7 @@ components:
             type: string
             example: 'wbs 이슈 상세 조회 중 에러 발생 : (에러메세지)'
     getTracking200:
-      description: wbs 이슈 트레킹 조회 성공
+      description: wbs 이슈 트래킹 조회 성공
       content:
         application/json:
           schema:
@@ -3471,7 +3471,7 @@ components:
                   - TICKET_SN: 121
                     CREATED_DT: 2024-08-01 12:06:54
     getTracking400:
-      description: wbs 티켓 이슈트레킹 조회 중 오류 발생
+      description: wbs 티켓 이슈트래킹 조회 중 오류 발생
       content:
         text/plain:
           schema:
