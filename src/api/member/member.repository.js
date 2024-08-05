@@ -62,6 +62,10 @@ const updateUserPassword = async (email, hashedPassword) => {
   return await db.TB_USER.update({ USER_PW: hashedPassword }, { where: { USER_EMAIL: email } });
 };
 
+const findUser = async (userSn) => {
+  return await db.TB_USER.findOne({where: {USER_SN: userSn}});
+};
+
 module.exports = {
   findUserByEmail,
   findUserByNameAndPhone,
@@ -74,4 +78,5 @@ module.exports = {
   updateEmailVerificationStatus,
   destroyEmailVerification,
   updateUserPassword,
+  findUser
 };

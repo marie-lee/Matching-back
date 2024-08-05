@@ -212,4 +212,19 @@ router.post('/project/wbs/task/create/:pjtSn/:issueSn', jwt.authenticateToken, a
         return res.status(400).json(`업무 등록 중 에러 발생 : ${error.message}`);
     }
 });
+
+router.get('/project/wbs/dashboard/:pjtSn', jwt.authenticateToken, async (req, res) => {
+    const userSn = req.userSn.USER_SN;
+    const pjtSn = req.params.pjtSn;
+
+    try{
+        const result = await wbsService.getDashboard(userSn, pjtSn);
+        if(result.message) return res.status(403).json(result);
+        return res.status(200).json(result);
+    }
+    catch (error) {
+        logger.error(`대시보드 조회 중 에러 발생 : ${error}`);
+        return res.status(400).json(`대시보드 조회 중 에러 발생 : ${error.message}`);
+    }
+});
 module.exports = router;
