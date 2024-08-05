@@ -14,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(1500),
             allowNull: false
         },
+        CREATER_SN:{
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
         WORKER: {
             type: DataTypes.INTEGER,
             allowNull: true
@@ -78,6 +82,7 @@ module.exports = (sequelize, DataTypes) => {
 
     TB_WBS.associate = models => {
         TB_WBS.belongsTo(models.TB_PJT, { foreignKey: 'PJT_SN' });
+        TB_WBS.belongsTo(models.TB_USER, { foreignKey: 'CREATER_SN' });
         TB_WBS.belongsTo(models.TB_USER, { foreignKey: 'WORKER' });
         TB_WBS.hasMany(models.TB_ISSUE, { foreignKey: 'TICKET_SN' });
     };

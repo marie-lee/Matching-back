@@ -111,8 +111,8 @@ const findTicket = async (ticketSn, pjtSn) =>{
         where : {PJT_SN: pjtSn, TICKET_SN: ticketSn, DEL_YN: false },
     })
 }
-const createIssue = async (issueDto, transaction)=>{
-    return await db.TB_ISSUE.create(issueDto,{transaction})
+const createIssue = async (issueDto, issueCnt, transaction)=>{
+    return await db.TB_ISSUE.create({...issueDto, ISSUE_CNT: issueCnt},{transaction})
 }
 const findMention = async(mentionSn, userSn) =>{
     return await db.TB_MENTION.findOne({where:{MENTION_SN: mentionSn, CREATER_SN: userSn}});
@@ -262,6 +262,16 @@ const createComment = async(commentData, transaction) => {
     return await db.TB_COMMENT.create(commentData, {transaction})
 }
 
+const findIssueCnt = async (pjtSn) => {
+    const result = await db.TB_ISSUE.findAll({
+        where: { PJT_SN: pjtSn },
+        order: [['ISSUE_CNT', 'DESC']],
+        limit: 1
+    });
+    if(!result[0].ISSUE_CNT) return 1;
+    else return result[0].ISSUE_CNT + 1;
+};
+
 const findOrderNum = async (parentSn) => {
     const result = await db.TB_WBS.findAll({
         where: { PARENT_SN: parentSn },
@@ -305,6 +315,7 @@ module.exports = {
     mentionData,
     issueCommentData,
     createComment,
+    findIssueCnt,
     findOrderNum,
     createTask
 };
