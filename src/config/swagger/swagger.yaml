@@ -551,7 +551,7 @@ paths:
           schema:
             type: integer
         - in: path
-          name: issue
+          name: issueSn
           required: true
           description: 이슈 일련번호
           schema:
