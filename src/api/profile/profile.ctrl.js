@@ -42,8 +42,8 @@ router.post('/profile', jwt.authenticateToken, upload.fields([{ name: 'USER_IMG'
 router.post('/profile/test', jwt.authenticateToken, upload.any(), async (req, res) => {
   try {
     const userSn = req.userSn.USER_SN;
-    const profile = req.body.profile; // 일반 데이터
-    const portfolios = req.body.portfolios;
+    const profile = JSON.parse(req.body.profile); // 일반 데이터
+    const portfolios = JSON.parse(req.body.portfolios);
     const userImg = req.files.find(file => file.fieldname === 'profile[USER_IMG]'); // 사용자 이미지 찾기
 
     // 포트폴리오 미디어 파일 수집

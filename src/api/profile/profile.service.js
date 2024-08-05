@@ -5,7 +5,7 @@ const {QueryTypes} = require("sequelize");
 const {runPfPfolToVec} = require("../../utils/matching/spawnVectorization");
 const mutex = require('../../utils/matching/Mutex');
 const {throwError} = require("../../utils/errors");
-const {DataTypes} = require("sequelize");
+const {Op} = require("sequelize");
 
 class profileService {
   async profileUpload(userSn, profileData, portfolios, userImg, portfolioMedia) {
@@ -674,9 +674,24 @@ class profileService {
       const pf = await this.profileUpdateTest(profileData, userSn, t, userImg);
       if (portfolios) {
         let pfolCnt = 0;
+        let pfolList = [];
         for (const portfolio of portfolios) {
+          if(portfolio.PFOL_SN){
+            pfolList.push(portfolio.PFOL_SN);
+          }
           await this.portfolioUpdateTest(portfolio, pf, t, portfolioMedia, pfolCnt);
           pfolCnt++;
+        }
+        const deletePfolList = await db.TB_PF_PFOL.findAll({where:{
+          PF_SN: pf.PF_SN, PFOL_SN: {[Op.notIn]: pfolList}
+          }});
+        for (const delPfol of deletePfolList){
+          await this.deletePortfolioDetailsTest(delPfol.PFOL_SN, t);
+          await db.TB_PFOL.update({DEL_YN: true, DELETE_DT: new Date()}, {
+            where: {PFOL_SN: delPfol.PFOL_SN},
+            t
+          });
+          await db.TB_PF_PFOL.destroy({where: {PFOL_SN : delPfol.PFOL_SN},t});
         }
       }
 
@@ -860,6 +875,12 @@ class profileService {
         }, { transaction });
       }
     }
+  }
+
+  async deletePortfolioDetailsTest(pfolSn, transaction){
+    await db.TB_PFOL_ST.destroy({ where: { PFOL_SN: pfolSn }, transaction });
+    await db.TB_PFOL_ROLE.destroy({ where: { PFOL_SN: pfolSn }, transaction });
+    await db.TB_PFOL_URL.destroy({ where: { PFOL_SN: pfolSn }, transaction });
   }
 
   async updatePortfolioDetailsTest(pfolSn, portfolio, transaction) {
