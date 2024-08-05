@@ -537,7 +537,7 @@ paths:
           $ref: '#/components/responses/createIssue400'
       security:
         - JWT: [ ]
-  /project/wbs/issue/{pjtSn}/{issue}:
+  /project/wbs/issue/{pjtSn}/{issueSn}:
     put:
       tags:
         - wbs
@@ -570,7 +570,6 @@ paths:
           $ref: '#/components/responses/updateIssue400'
       security:
         - JWT: [ ]
-  /project/wbs/issue/{pjtSn}/{issueSn}:
     get:
       tags:
         - wbs
