@@ -7,7 +7,7 @@ const minioService = require('../../middleware/minio/minio.service');
 
 const {runPjtToVec} = require("../../utils/matching/spawnVectorization");
 const {throwError} = require("../../utils/errors");
-const oneCmmnVal = require("../common/common.repository");
+const commonRepository = require("../common/common.repository");
 const {transport} = require("winston");
 
 
@@ -23,7 +23,7 @@ class projectService {
       if (!project) {
         return {message:'해당 프로젝트를 찾을 수 없습니다.'};
       }
-      const sttsVal = await oneCmmnVal('PJT_STTS', project.dataValues.pjtStts);
+      const sttsVal = await commonRepository.oneCmmnVal('PJT_STTS', project.dataValues.pjtStts);
       const { pjtStts, ...rest } = project.dataValues;
       return {
         ...rest,
@@ -179,7 +179,7 @@ class projectService {
         await db.TB_PJT.update(
             {START_DT: pjtData.START_DT, END_DT: pjtData.END_DT},
             {where:{PJT_SN: pjtSn},
-            transaction: t
+              transaction: t
             });
 
         // 멤버 권한, 담당 설정
@@ -187,7 +187,7 @@ class projectService {
           await db.TB_PJT_M.update(
               {ROLE: member.ROLE, PART: member.PART},
               {where:{PJT_SN: pjtSn, USER_SN: member.USER_SN},
-              transaction: t}
+                transaction: t}
           );
         }
 
@@ -317,17 +317,17 @@ class projectService {
       }
       const{RATE_1,RATE_2,RATE_3,RATE_4,RATE_5,RATE_TEXT}=rateData;
       const newRate = await projectRepository.rateMember(
-        {
-          PJT_SN: pjtSn,
-          TARGET_SN: targetSn,
-          RATER_SN: userSn,
-          RATE_1,
-          RATE_2,
-          RATE_3,
-          RATE_4,
-          RATE_5,
-          RATE_TEXT
-        },transaction);
+          {
+            PJT_SN: pjtSn,
+            TARGET_SN: targetSn,
+            RATER_SN: userSn,
+            RATE_1,
+            RATE_2,
+            RATE_3,
+            RATE_4,
+            RATE_5,
+            RATE_TEXT
+          },transaction);
 
       await transaction.commit();
       return newRate;
