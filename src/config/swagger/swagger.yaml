@@ -732,6 +732,28 @@ paths:
           $ref: '#/components/responses/createTask400'
       security:
         - JWT: [ ]
+  /project/wbs/dashboard/{pjtSn}:
+    get:
+      tags:
+        - wbs
+      summary: wbs 대시보드 조회
+      description: wbs 대시보드 조회
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/getDashboard200'
+        '400':
+          $ref: '#/components/responses/getDashboard400'
+        '403':
+          $ref: '#/components/responses/getDashboard403'
+      security:
+        - JWT: [ ]
   /status:
     get:
       tags:
@@ -3538,3 +3560,169 @@ components:
           schema:
             type: string
             example: '업무 등록 중 에러 발생 : (에러메세지)'
+    getDashboard200:
+      description: wbs 대시보드 조회 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              today:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ticketSn:
+                      type: integer
+                      description: 티켓 일련번호
+                    ticketNum:
+                      type: string
+                      description: 티켓 번호
+                    priority:
+                      type: string
+                      description: 티켓 중요도
+                    title:
+                      type: string
+                      description: 티켓 제목
+                    present:
+                      type: string
+                      description: 티켓 발제자 이름
+                    dueDate:
+                      type: string
+                      description: 티켓 마감일
+              task:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ticketSn:
+                      type: integer
+                      description: 티켓 일련번호
+                    ticketNum:
+                      type: string
+                      description: 티켓 번호
+                    priority:
+                      type: string
+                      description: 티켓 중요도
+                    title:
+                      type: string
+                      description: 티켓 제목
+                    present:
+                      type: string
+                      description: 티켓 발제자 이름
+                    dueDate:
+                      type: string
+                      description: 티켓 마감일
+              issue:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    issueSn:
+                      type: integer
+                      description: 이슈 일련번호
+                    issueNum:
+                      type: string
+                      description: 이슈 번호
+                    priority:
+                      type: string
+                      description: 이슈 중요도
+                    title:
+                      type: string
+                      description: 이슈 제목
+                    present:
+                      type: string
+                      description: 이슈 발제자 이름
+                    dueDate:
+                      type: string
+                      description: 이슈 마감일
+            example:
+              - today:
+                  - ticketSn: 2
+                    ticketNum: F.E-2
+                    priority: L0
+                    title: 업무 이름
+                    present: 홍길동
+                    dueDate: 2024-08-07
+                  - ticketSn: 1
+                    ticketNum: F.E-1
+                    priority: L1
+                    title: 업무 이름
+                    present: 홍길동
+                    dueDate: 2024-08-07
+                task:
+                  - ticketSn: 5
+                    ticketNum: F.E-5
+                    priority: L0
+                    title: 업무 이름
+                    present: 홍길동
+                    dueDate: 2024-08-01
+                  - ticketSn: 8
+                    ticketNum: F.E-8
+                    priority: L1
+                    title: 업무 이름
+                    present: 홍길동
+                    dueDate: 2024-08-01
+                  - ticketSn: 7
+                    ticketNum: F.E-7
+                    priority: L0
+                    title: 업무 이름
+                    present: 홍길동
+                    dueDate: 2024-08-31
+                  - ticketSn: 3
+                    ticketNum: F.E-3
+                    priority: L2
+                    title: 업무 이름
+                    present: 홍길동
+                    dueDate: 2024-08-01
+                  - ticketSn: 6
+                    ticketNum: F.E-6
+                    priority: L2
+                    title: 업무 이름
+                    present: 홍길동
+                    dueDate: 2024-08-01
+                  - ticketSn: 5
+                    ticketNum: F.E-5
+                    priority: L3
+                    title: 업무 이름
+                    present: 홍길동
+                    dueDate: 2024-08-01
+                issue:
+                  - issueSn: 23
+                    issueNum: F.E-i2-23
+                    priority: L0
+                    title: 이슈 이름
+                    present: 홍길동
+                    dueDate: 2024-08-01
+                  - issueSn: 42
+                    issueNum: F.E-i4-42
+                    priority: L1
+                    title: 이슈 이름
+                    present: 홍길동
+                    dueDate: 2024-08-01
+                  - issueSn: 11
+                    issueNum: F.E-i1-11
+                    priority: L1
+                    title: 이슈 이름
+                    present: 홍길동
+                    dueDate: 2024-08-31
+                  - issueSn: 34
+                    issueNum: F.E-i1-34
+                    priority: null
+                    title: 이슈 이름
+                    present: 홍길동
+                    dueDate: 2024-08-01
+    getDashboard400:
+      description: wbs 대시보드 조회 오류 발생
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: '대시보드 조회 중 에러 발생 : (에러메세지)'
+    getDashboard403:
+      description: 프로젝트 멤버가 아닙니다.
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: '프로젝트 멤버가 아닙니다.'

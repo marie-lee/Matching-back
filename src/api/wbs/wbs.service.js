@@ -1,8 +1,9 @@
 const {logger} = require('../../utils/logger');
 const db = require('../../config/db/db');
-const {formatDt} = require("../common/common.service");
+const {formatDt, sortTasks} = require("../common/common.service");
 const cmmnRepository = require("../common/common.repository");
 const wbsRepository = require("./wbs.repository");
+const userRepository = require("../member/member.repository");
 const { ProjectDto, MemberDto} = require("./dto/wbs.create.dto");
 const {WbsDto, WbsTicketDto} = require("./dto/wbs.dto");
 const projectRepository = require("../project/project.repository");
@@ -31,14 +32,14 @@ class WbsService {
             let depth1Count = 1;
             for (const depth1 of pjtData.wbsData) {
                 const depth1Data = await wbsRepository.createWbs(
-                    { PJT_SN: pjtSn, TICKET_NAME: depth1.name, ORDER_NUM: depth1Count },
+                    { PJT_SN: pjtSn, TICKET_NAME: depth1.name, ORDER_NUM: depth1Count, CREATER_SN: userSn },
                     t
                 );
 
                 let depth2Count = 1;
                 if (depth1.child && Array.isArray(depth1.child)) {
                     for (const depth2 of depth1.child) {
-                        await wbsRepository.insertWbs(depth2, pjtSn, depth1Data.TICKET_SN, depth2Count, t);
+                        await wbsRepository.insertWbs(depth2, pjtSn, userSn, depth1Data.TICKET_SN, depth2Count, t);
                         depth2Count++;
                     }
                 }
@@ -387,6 +388,69 @@ class WbsService {
         }
     }
 
+    async getDashboard(userSn, pjtSn){
+        const today = formatDt(new Date());
+        const todayDate = today.split(' ')[0];
+        try{
+            const mem = await projectRepository.findProjectMember(pjtSn, userSn);
+            if (!mem) return {message: '프로젝트 멤버가 아닙니다.'}
+
+            const result = {
+                today: [],
+                task: [],
+                issue: []
+            };
+            const myTask = await wbsRepository.findMyTask(pjtSn, userSn);
+            for(const task of myTask){
+                const taskResult = {
+                    ticketSn: task.TICKET_SN,
+                    ticketNum: mem.PART+'-'+task.TICKET_SN,
+                    priority: task.PRIORITY,
+                    title: task.TICKET_NAME,
+                    present: task.CREATER_NM,
+                    dueDate: formatDt(task.END_DT)
+                }
+                if(taskResult.dueDate){
+                    if (taskResult.dueDate.split(' ')[0] === todayDate) {
+                        result.today.push(taskResult);
+                    }else {
+                        result.task.push(taskResult);
+                    }
+                }
+                else{
+                    result.task.push(taskResult);
+                }
+            }
+            // 현재는 멘션된 이슈만 가져옴 추후 댓글에 멘션된 이슈들도 포함해야되는지 결정할 예정
+            const myMention = await wbsRepository.findMentionByIssue(userSn);
+            for(const mention of myMention){
+                if(mention.ISSUE_SN){
+                    const issue = await wbsRepository.findIssue(mention.ISSUE_SN, pjtSn);
+                    const [issuePriority,issuePresent] = await Promise.all([
+                        cmmnRepository.oneCmmnVal('ISSUE_PRRT', issue.PRIORITY),
+                        userRepository.findUser(issue.PRESENT_SN)
+                    ])
+                    const issueResult = {
+                        issueSn: issue.ISSUE_SN,
+                        issueNum: mem.PART+'-i'+issue.ISSUE_CNT+'-'+issue.ISSUE_SN,
+                        priority: issuePriority.CMMN_CD_VAL,
+                        title: issue.ISSUE_NM,
+                        present: issuePresent.USER_NM,
+                        dueDate: formatDt(issue.END_DT)
+                    }
+                    result.issue.push(issueResult);
+                }
+            }
+            sortTasks(result.today);
+            sortTasks(result.task);
+            sortTasks(result.issue);
+
+            return result;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
 }
 
 module.exports = new WbsService();

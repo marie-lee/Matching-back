@@ -44,16 +44,16 @@ const createWbs = async (wbsData, transaction) => {
     return await db.TB_WBS.create(wbsData, { transaction });
 };
 
-const insertWbs = async (depth, pjtSn, parentSn, orderNum, transaction) => {
+const insertWbs = async (depth, pjtSn, userSn, parentSn, orderNum, transaction) => {
     const depthData = await createWbs(
-        { PJT_SN: pjtSn, TICKET_NAME: depth.name, PARENT_SN: parentSn, ORDER_NUM: orderNum },
+        { PJT_SN: pjtSn, TICKET_NAME: depth.name, PARENT_SN: parentSn, ORDER_NUM: orderNum, CREATER_SN: userSn },
         transaction
     );
 
     let childOrderNum = 1;
     if (depth.child && Array.isArray(depth.child)) { // depth.child가 배열인지 확인
         for (const child of depth.child) {
-            await insertWbs(child, pjtSn, depthData.TICKET_SN, childOrderNum, transaction);
+            await insertWbs(child, pjtSn, userSn, depthData.TICKET_SN, childOrderNum, transaction);
             childOrderNum++;
         }
     }
@@ -285,6 +285,28 @@ const createTask = async(taskData, orderNum, transaction) => {
     return await db.TB_WBS.create({...taskData, ORDER_NUM: orderNum}, {transaction});
 };
 
+const findMentionByIssue = async (userSn) => {
+    return await db.TB_MENTION.findAll({where: {TARGET_SN : userSn, DEL_YN: false}});
+};
+
+const findMyTask = async (pjtSn, userSn) => {
+    const myTask = await db.TB_WBS.findAll({where: {PJT_SN: pjtSn, WORKER: userSn, DEL_YN: false}});
+    for(const task of myTask){
+        const [priorityRecord, creater] = await Promise.all([
+            db.TB_CMMN_CD.findOne({
+                where: { CMMN_CD_TYPE: 'TICKET_PRRT', CMMN_CD: task.PRIORITY }
+            }),
+            db.TB_USER.findOne({
+                where: { USER_SN: task.CREATER_SN }
+            })
+        ]);
+
+        task.PRIORITY = priorityRecord ? priorityRecord.CMMN_CD_VAL : null;
+        task.CREATER_NM = creater ? creater.USER_NM : null;
+    }
+    return myTask;
+};
+
 module.exports = {
     beginTransaction,
     commitTransaction,
@@ -317,5 +339,7 @@ module.exports = {
     createComment,
     findIssueCnt,
     findOrderNum,
-    createTask
+    createTask,
+    findMentionByIssue,
+    findMyTask
 };
