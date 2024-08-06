@@ -141,7 +141,10 @@ class MemberService {
         PURPOSE
       });
 
-      return { message: '이메일 인증 성공' };
+      return {
+        success: true,
+        message: '이메일 인증 성공'
+      };
     } catch (error) {
       throw error;
     }
@@ -187,7 +190,10 @@ class MemberService {
       await MemberRepository.destroyEmailVerification(USER_EMAIL, 'reset_password', transaction);
 
       await transaction.commit();
-      return { message: '비밀번호가 성공적으로 변경되었습니다.' };
+      return {
+        success: true,
+        message: '비밀번호가 성공적으로 변경되었습니다.'
+      };
     } catch (error) {
       await transaction.rollback();
       throw error;

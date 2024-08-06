@@ -11,7 +11,12 @@ router.post('/login', async (req, res) => {
       loginDto.validate();
 
       const result = await MemberService.login(loginDto);
-      res.status(200).json(result);
+      if(result) {
+        if(result.message){ res.status(400).json(result.message); }
+        else {
+          res.status(200).json(result);
+        }
+      }
     } catch (error) {
       logger.error('로그인 실패:', error);
       return res.status(400).json('로그인 실패:'+ error.message );
@@ -25,7 +30,10 @@ router.post('/registration/join',async (req,res)=>{
     registerDto.validate();
 
     const result = await MemberService.register(registerDto,'local');
-    res.status(200).json(result);
+    if(result) {
+      if(result.message){ res.status(400).json(result.message); }
+      else res.status(200).json(result);
+    }
   }catch (error) {
     logger.error('회원가입 실패',error);
     return res.status(400).json('회원가입 실패 : ' + error.message);
@@ -39,7 +47,10 @@ router.post('/registration/join/google',async (req,res)=>{
     googleRegisterDto.validate();
 
     const result = await MemberService.register(googleRegisterDto,'google');
-    res.status(200).json(result);
+    if(result) {
+      if(result.message){ res.status(400).json(result.message); }
+      else res.status(200).json(result);
+    }
   }catch (error) {
     logger.error('회원가입 실패',error);
     return res.status(400).json('회원가입 실패 : ' + error.message);
@@ -82,7 +93,10 @@ router.post('/registration/confirmation',async (req,res)=>{
     emailVerificationDto.validate();
 
     const result = await MemberService.verifyEmailCode(emailVerificationDto.USER_EMAIL, emailVerificationDto.verificationCode, 'register');
-    res.status(200).json(result);
+    if(result) {
+      if(!result.success){ res.status(400).json(result.message); }
+      else res.status(200).json(result.message);
+    }
   } catch (error) {
     logger.error('이메일 인증 확인 실패:', error);
     return res.status(400).json('이메일 인증 확인 실패:'+ error.message );
@@ -95,7 +109,10 @@ router.post('/find/id',async (req,res)=>{
     const { USER_NM, PHONE } = req.body;
 
     const result = await MemberService.findId(USER_NM, PHONE);
-    res.status(200).json(result);
+    if(result) {
+      if(result.message){ res.status(400).json(result.message); }
+      else res.status(200).json(result);
+    }
   } catch (error){
     logger.error('아이디 찾기 실패:',error);
     return res.status(400).json('아이디 찾기 실패:'+error.message);
@@ -122,7 +139,10 @@ router.post('/find/pw/certification', async (req, res) => {
     emailVerificationDto.validate();
 
     const result = await MemberService.verifyEmailCode(emailVerificationDto.USER_EMAIL, emailVerificationDto.verificationCode, 'reset_password');
-    res.status(200).json(result);
+    if(result) {
+      if(!result.success){ res.status(400).json(result.message); }
+      else res.status(200).json(result.message);
+    }
   } catch (error) {
     logger.error('비밀번호 찾기 인증 실패:', error);
     res.status(400).json('비밀번호 찾기 인증 실패:'+ error.message);
@@ -136,7 +156,10 @@ router.post('/find/pw/confirmation', async (req, res) => {
       passwordResetDto.validate();
 
       const result = await MemberService.confirmPasswordReset(passwordResetDto.USER_EMAIL, passwordResetDto.newPassword, passwordResetDto.confirmPassword);
-      res.status(200).json(result);
+      if(result) {
+        if(!result.success){ res.status(400).json(result.message); }
+        else res.status(200).json(result.message);
+      }
     } catch (error) {
       logger.error('비밀번호 재설정 실패:', error);
       res.status(400).json('비밀번호 재설정 실패:'+ error.message );
