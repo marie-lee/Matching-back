@@ -308,35 +308,36 @@ class projectService {
     }
   }
 
-  async rateMember(userSn,pjtSn,targetSn,rateData){
+  async rateMember(rateData) {
     const transaction = await db.transaction();
-    try{
-      const existingRate = await projectRepository.findExistingRate(pjtSn, targetSn, userSn);
+    try {
+      const { PJT_SN, TARGET_SN, RATER_SN, RATE_1, RATE_2, RATE_3, RATE_4, RATE_5, RATE_TEXT } = rateData;
+      const existingRate = await projectRepository.findExistingRate(PJT_SN, TARGET_SN, RATER_SN);
       if (existingRate) {
         throw new Error('이미 평가한 멤버입니다.');
       }
-      const{RATE_1,RATE_2,RATE_3,RATE_4,RATE_5,RATE_TEXT}=rateData;
-      const newRate = await projectRepository.rateMember(
-          {
-            PJT_SN: pjtSn,
-            TARGET_SN: targetSn,
-            RATER_SN: userSn,
-            RATE_1,
-            RATE_2,
-            RATE_3,
-            RATE_4,
-            RATE_5,
-            RATE_TEXT
-          },transaction);
+      const newRate = await projectRepository.rateMember({
+        PJT_SN,
+        TARGET_SN,
+        RATER_SN,
+        RATE_1,
+        RATE_2,
+        RATE_3,
+        RATE_4,
+        RATE_5,
+        RATE_TEXT
+      }, transaction);
 
       await transaction.commit();
       return newRate;
-    }catch (error) {
-      logger.error('평가 중 오류 발생:',error);
+    } catch (error) {
+      logger.error('평가 중 오류 발생:', error);
       await transaction.rollback();
       throw error;
     }
   }
+
+
   async getMyRates(userSn,pjtSn) {
     try {
       const myRates = await projectRepository.findMyRates(userSn,pjtSn);
@@ -346,8 +347,82 @@ class projectService {
       throw error;
     }
   }
+
+  async calContribution(pjtSn) {
+    const transaction = await db.transaction();
+    try {
+      const projectMember = await projectRepository.findProjectMembersByProject(pjtSn);
+      const existingContribution = projectMember.every(member => member.CONTRIBUTION !== 0);
+
+      if (existingContribution) {
+        throw new Error ('이미 기여도 계산이 완료되었습니다.');
+      }
+
+      const allWbsTickets = await projectRepository.findWbsTicketsByProject(pjtSn);
+
+      const allTasksClosed = allWbsTickets.every(item => item.STATUS === 'TICKET_CLS');
+      if (!allTasksClosed) {
+        throw new Error ('모든 업무가 완료되지 않았습니다. 기여도 계산을 진행할 수 없습니다.');
+      }
+
+      const workerData = {};
+      const totalTasks = allWbsTickets.length;
+      const totalDifficulty = allWbsTickets.reduce((acc, item) => acc +
+        (item.LEVEL === 'TICKET_HIGH' ? 12 : item.LEVEL === 'TICKET_MEDIUM' ? 5 : item.LEVEL === 'TICKET_LOW' ? 2 : 0), 0);
+
+      if (totalTasks === 0 || totalDifficulty === 0) {
+        throw new Error ('유효한 작업 또는 난이도가 없습니다. 기여도 계산을 진행할 수 없습니다.');
+      }
+
+      allWbsTickets.forEach(item => {
+        if (!workerData[item.WORKER]) {
+          workerData[item.WORKER] = {
+            taskCount: 0,
+            totalDifficulty: 0,
+            totalDelay: 0
+          };
+        }
+        workerData[item.WORKER].taskCount += 1;
+        workerData[item.WORKER].totalDifficulty += item.LEVEL === 'TICKET_HIGH' ? 12 : item.LEVEL === 'TICKET_MEDIUM' ? 5 : item.LEVEL === 'TICKET_LOW' ? 2 : 0;
+
+        const endDt = new Date(item.END_DT);
+        const cpltDt = new Date(item.CPLT_DT);
+        const delay = isNaN(cpltDt) || isNaN(endDt) ? 0 : Math.max(0, (cpltDt - endDt) / (1000 * 60 * 60 * 24));
+        workerData[item.WORKER].totalDelay += delay;
+      });
+
+      let totalContribution = 0;
+      const contributions = {};
+
+      for (const worker in workerData) {
+        const task = workerData[worker].taskCount / totalTasks;
+        const difficulty = workerData[worker].totalDifficulty / totalDifficulty;
+        const delay = (100 - workerData[worker].totalDelay) / 100;
+
+        const contribution = (task * 0.4) * (difficulty * 0.4) * (delay * 0.2);
+
+        if (isNaN(contribution) || !isFinite(contribution)) {
+          contributions[worker] = 0;
+        } else {
+          contributions[worker] = contribution;
+        }
+
+        totalContribution += contributions[worker];
+      }
+
+
+      for (const worker in contributions) {
+        const adjustedContribution = (totalContribution > 0) ? (contributions[worker] / totalContribution) * 100 : 0;
+        await projectRepository.updateContribution(pjtSn, worker, adjustedContribution, transaction);
+      }
+
+      await transaction.commit();
+      return { message: '기여도 계산 완료' };
+    } catch (error) {
+      await transaction.rollback();
+      logger.error('기여도 계산 중 오류 발생:', error);
+      throw error;
+    }
+  }
 }
-
-
-
 module.exports = new projectService();

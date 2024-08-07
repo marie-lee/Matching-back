@@ -68,7 +68,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: false
-        }
+        },
+        CPLT_DT: {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
     }, {
         tableName: 'TB_WBS',
         timestamps: true, // 타임스탬프 활성화

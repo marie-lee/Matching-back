@@ -411,6 +411,32 @@ paths:
           $ref: '#/components/responses/myRate200'
       security:
         - JWT: [ ]
+  /project/contribution/{pjtSn}:
+   get:
+     tags:
+       - project
+     summary: 기여도 계산
+     description: 기여도 계산
+     parameters:
+       - in: path
+         name: pjtSn
+         required: true
+         schema:
+           type: integer
+         description: 프로젝트 일련번호
+     responses:
+       200:
+         description: 응답
+         content:
+           application/json:
+             schema:
+               type: object
+               properties:
+                 message:
+                   type: string
+                   example: 기여도 계산 완료
+     security:
+       - JWT: [ ]
   /project/wbs/create/{pjtSn}:
     get:
       tags:
