@@ -107,19 +107,36 @@ router.get('/project/rate/:pjtSn',jwt.authenticateToken,async(req,res)=>{
 
 });
 
-//평가하기
-router.post('/project/rate/:pjtSn/:targetSn',jwt.authenticateToken,async(req,res)=>{
-  const {pjtSn, targetSn} = req.params;
+// 평가하기
+router.post('/project/rate/:pjtSn/:targetSn', jwt.authenticateToken, async (req, res) => {
+  const { pjtSn, targetSn } = req.params;
   const userSn = req.userSn.USER_SN;
-  const rateData = req.body;
+  const { RATE_1, RATE_2, RATE_3, RATE_4, RATE_5, RATE_TEXT } = req.body;
+
   try {
-    const rateMember = await projectService.rateMember(userSn, pjtSn, targetSn, rateData);
-    return res.status(200).json({ message: '평가 성공', data: rateMember });
+    const rateData = {
+      PJT_SN: pjtSn,
+      TARGET_SN: targetSn,
+      RATER_SN: userSn,
+      RATE_1,
+      RATE_2,
+      RATE_3,
+      RATE_4,
+      RATE_5,
+      RATE_TEXT
+    };
+
+    const projectRateDto = new ProjectRateDto(rateData);
+    projectRateDto.validate();
+
+    const newRate = await projectService.rateMember(projectRateDto);
+    return res.status(200).json({ message: '평가 성공', data: newRate });
   } catch (error) {
     logger.error('평가 실패:', error);
     return res.status(400).json({ message: '평가 실패: ' + error.message });
   }
 });
+
 
 //나에대한 평가조회
 router.get('/project/myRate/:pjtSn', jwt.authenticateToken, async (req, res) => {
@@ -133,4 +150,17 @@ router.get('/project/myRate/:pjtSn', jwt.authenticateToken, async (req, res) => 
     return res.status(400).json('나에 대한 평가 조회 실패: ' + error.message);
   }
 });
+
+//기여도 계산
+router.get('/project/contribution/:pjtSn',jwt.authenticateToken,async (req,res)=>{
+  const pjtSn = req.params.pjtSn;
+  try{
+    const contributions = await projectService.calContribution(pjtSn);
+    return res.status(200).json(contributions);
+  }catch (error) {
+    logger.error('기여도 계산 중 오류 발생:',error);
+    return res.status(400).json('기여도 계산 중 오류 발생:'+error.message);
+  }
+});
+
 module.exports = router;

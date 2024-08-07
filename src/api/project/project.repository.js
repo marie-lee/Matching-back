@@ -215,12 +215,38 @@ const findExistingRate = async (pjtSn, targetSn, userSn) => {
     }
   });
 };
+
 const findMyRates = async (userSn,pjtSn) => {
   return await db.TB_RATE.findAll({
     where: { TARGET_SN: userSn, PJT_SN: pjtSn, DEL_YN: false },
     attributes: ['RATE_1', 'RATE_2', 'RATE_3', 'RATE_4', 'RATE_5', 'RATE_TEXT'],
   });
 };
+
+// 기여도 계산 - WBS 정보 조회
+const findWbsTicketsByProject = async (pjtSn) => {
+  return db.TB_WBS.findAll({
+    where: { PJT_SN: pjtSn, DEL_YN: false },
+    attributes: ['WORKER', 'LEVEL', 'START_DT', 'END_DT','STATUS']
+  });
+};
+
+// 기여도 계산
+const updateContribution = async (pjtSn, workerSn, contribution, transaction) => {
+  return db.TB_PJT_M.update(
+    { CONTRIBUTION: contribution },
+    { where: { PJT_SN: pjtSn, USER_SN: workerSn }, transaction }
+  );
+};
+
+// 프로젝트 멤버 조회
+const findProjectMembersByProject = async (pjtSn) => {
+  return db.TB_PJT_M.findAll({
+    where: { PJT_SN: pjtSn, DEL_YN: false },
+    attributes: ['USER_SN', 'CONTRIBUTION']
+  });
+};
+
 module.exports = {
     createProject,
     findOrCreateStack,
@@ -243,5 +269,8 @@ module.exports = {
     findRateMember,
     rateMember,
     findExistingRate,
-    findMyRates
+    findMyRates,
+    findWbsTicketsByProject,
+    updateContribution,
+    findProjectMembersByProject
 };
