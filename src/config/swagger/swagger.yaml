@@ -705,8 +705,8 @@ paths:
     post:
       tags:
         - wbs
-      summary: wbs 업무 추가
-      description: wbs 업무 추가
+      summary: wbs 이슈 파생 업무 추가
+      description: wbs 이슈 파생 업무 추가
       parameters:
         - in: path
           name: pjtSn
@@ -752,6 +752,36 @@ paths:
           $ref: '#/components/responses/getDashboard400'
         '403':
           $ref: '#/components/responses/getDashboard403'
+      security:
+        - JWT: [ ]
+  /project/wbs/task/{pjtSn}/{taskSn}:
+    get:
+      tags:
+        - wbs
+      summary: wbs 업무 상세 조회
+      description: wbs 업무 상세 조회
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+        - in: path
+          name: taskSn
+          required: true
+          description: 업무 일련번호
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/getTaskDetail200'
+        '400':
+          $ref: '#/components/responses/getTaskDetail400'
+        '403':
+          $ref: '#/components/responses/getTaskDetail403'
+        '404':
+          $ref: '#/components/responses/getTaskDetail404'
       security:
         - JWT: [ ]
   /status:
@@ -3726,3 +3756,102 @@ components:
           schema:
             type: string
             example: '프로젝트 멤버가 아닙니다.'
+    getTaskDetail200:
+      description: 업무 상세 조회 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              taskSn:
+                type: integer
+                description: 업무 일련번호
+              workPackage:
+                type: string
+                description: depth 1 이름
+              depth:
+                type: string
+                description: depth 2 이름
+              title:
+                type: string
+                description: 업무 이름
+              priority:
+                type: string
+                description: 중요도
+              level:
+                type: string
+                description: 난이도
+              present:
+                type: string
+                description: 업무 담당자
+              startDt:
+                type: string
+                description: 업무 시작 일
+              endDt:
+                type: string
+                description: 업무 마감 일
+              status:
+                type: string
+                description: 업무 상태
+              issues:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    issueSn:
+                      type: integer
+                      description: 이슈 일련번호
+                    createDate:
+                      type: string
+                      description: 이슈 발행일
+                    issueTitle:
+                      type: string
+                      description: 이슈 이름
+                    creater:
+                      type: string
+                      description: 이슈 생성자
+            example:
+              - taskSn: 1
+                workPackage: 백엔드
+                depth: DB
+                title: ERD 설계
+                priority: L0
+                level: HIGH
+                present: 홍길동
+                startDt: 2024-01-01 06:00:00
+                endDt: 2024-01-07 16:00:00
+                status: IN PROGRESS
+                issues:
+                  - issueSn: 11
+                    createDate: 2024-01-05 13:00:00
+                    issueTitle: DB 컬럼 추가
+                    creater: 아무개
+                  - issueSn: 13
+                    createDate: 2024-01-07 13:00:00
+                    issueTitle: DB 컬럼명 변경
+                    creater: 누군가
+                  - issueSn: 28
+                    createDate: 2024-01-09 13:00:00
+                    issueTitle: 테이블 추가
+                    creater: 김철수
+    getTaskDetail400:
+      description: 업무 상세 조회 에러
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: '업무 상세 조회 중 에러 발생 : (에러메시지)'
+    getTaskDetail403:
+      description: 프로젝트 멤버가 아닙니다.
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: '프로젝트 멤버가 아닙니다.'
+    getTaskDetail404:
+      description: 존재하지 않는 (삭제된) 업무에 접근
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: '존재하지 않는 업무입니다.'

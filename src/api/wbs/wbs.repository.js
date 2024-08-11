@@ -307,6 +307,10 @@ const findMyTask = async (pjtSn, userSn) => {
     return myTask;
 };
 
+const findIssuesByTicket = async (ticketSn, pjtSn) => {
+    return await db.TB_ISSUE.findAll({where: {PJT_SN: pjtSn, TICKET_SN: ticketSn, DEL_YN: false},order:[['CREATED_DT', 'ASC']]});
+};
+
 module.exports = {
     beginTransaction,
     commitTransaction,
@@ -341,5 +345,6 @@ module.exports = {
     findOrderNum,
     createTask,
     findMentionByIssue,
-    findMyTask
+    findMyTask,
+    findIssuesByTicket
 };
