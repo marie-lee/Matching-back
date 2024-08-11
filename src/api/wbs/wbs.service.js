@@ -389,8 +389,8 @@ class WbsService {
     }
 
     async getDashboard(userSn, pjtSn){
-        const today = formatDt(new Date());
-        const todayDate = today.split(' ')[0];
+        const today = new Date();
+        const todayDate = today.setHours(0, 0, 0, 0);
         try{
             const mem = await projectRepository.findProjectMember(pjtSn, userSn);
             if (!mem) return {message: '프로젝트 멤버가 아닙니다.'}
@@ -411,7 +411,8 @@ class WbsService {
                     dueDate: formatDt(task.END_DT)
                 }
                 if(taskResult.dueDate){
-                    if (taskResult.dueDate.split(' ')[0] === todayDate) {
+                    const endDt = new Date(task.END_DT);
+                    if (endDt.setHours(0, 0, 0, 0) <= todayDate) {
                         result.today.push(taskResult);
                     }else {
                         result.task.push(taskResult);
@@ -445,6 +446,72 @@ class WbsService {
             sortTasks(result.task);
             sortTasks(result.issue);
 
+            return result;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+
+    async getTask(userSn, pjtSn, taskSn){
+        try{
+            const mem = await projectRepository.findProjectMember(pjtSn, userSn);
+            if (!mem) return {
+                status: 403,
+                message: '프로젝트 멤버가 아닙니다.'
+            };
+
+            const task = await wbsRepository.findTicket(taskSn, pjtSn);
+            if(!task) return {
+                status: 404,
+                message: '존재하지 않는 업무입니다.'
+            };
+
+            const [
+                priority,
+                level,
+                presentUser,
+                status,
+            ] = await Promise.all([
+                cmmnRepository.oneCmmnVal('TICKET_PRRT', task.PRIORITY),
+                cmmnRepository.oneCmmnVal('TICKET_LEVEL', task.LEVEL),
+                userRepository.findUser(task.WORKER),
+                cmmnRepository.oneCmmnVal('TICKET_STTS', task.STATUS)
+            ]);
+            const result = {
+                taskSn: task.TICKET_SN,
+                workPackage: null,
+                depth: null,
+                title: task.TICKET_NAME,
+                priority: priority.CMMN_CD_VAL,
+                level: level.CMMN_CD_VAL,
+                present: presentUser.USER_NM,
+                startDt: formatDt(task.START_DT),
+                endDt: formatDt(task.END_DT),
+                status: status.CMMN_CD_VAL,
+                issues: []
+            }
+            if(task.PARENT_SN){
+                const depth2 = await wbsRepository.findTicket(task.PARENT_SN, pjtSn);
+                result.depth = depth2.TICKET_NAME;
+                if(depth2.PARENT_SN){
+                    const depth1 = await wbsRepository.findTicket(depth2.PARENT_SN, pjtSn);
+                    result.workPackage = depth1.TICKET_NAME;
+                }
+            }
+            const issues = await wbsRepository.findIssuesByTicket(taskSn, pjtSn);
+            if(issues){
+                for(const issue of issues){
+                    const issueCreater = await userRepository.findUser(issue.PRESENT_SN);
+                    const issueResult = {
+                        issueSn: issue.ISSUE_SN,
+                        createDate: formatDt(issue.CREATED_DT),
+                        issueTitle: issue.ISSUE_NM,
+                        creater: issueCreater.USER_NM
+                    }
+                    result.issues.push(issueResult);
+                }
+            }
             return result;
         }
         catch (error) {
