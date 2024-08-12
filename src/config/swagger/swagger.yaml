@@ -784,6 +784,41 @@ paths:
           $ref: '#/components/responses/getTaskDetail404'
       security:
         - JWT: [ ]
+    post:
+      tags:
+        - wbs
+      summary: wbs 업무 상세 수정
+      description: wbs 업무 상세 수정
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+        - in: path
+          name: taskSn
+          required: true
+          description: 업무 일련번호
+          schema:
+            type: integer
+      requestBody:
+        description: 업무 수정 내용 (아래 내용 중 택1 or 여러개 전송)
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/editTask'
+      responses:
+        '200':
+          $ref: '#/components/responses/editTask200'
+        '400':
+          $ref: '#/components/responses/editTask400'
+        '403':
+          $ref: '#/components/responses/getTaskDetail403'
+        '404':
+          $ref: '#/components/responses/getTaskDetail404'
+      security:
+        - JWT: [ ]
   /status:
     get:
       tags:
@@ -1739,6 +1774,33 @@ components:
           type: string
           description: 업무 마감일
           example: '2024-01-31'
+    editTask:
+      type: object
+      properties:
+        priority:
+          type: string
+          description: 중요도
+          example: L1
+        level:
+          type: string
+          description: 난이도
+          example: MIDIUM
+        present:
+          type: integer
+          description: 담당자 일련번호
+          example: 49
+        startDt:
+          type: string
+          description: 업무 시작일
+          example: 2024-01-01
+        endDt:
+          type: string
+          description: 업무 마감일
+          example: 2024-01-09
+        status:
+          type: string
+          description: 업무 상태
+          example: IN PROGERSS
   securitySchemes:
     JWT:
       type: http
@@ -3860,3 +3922,17 @@ components:
           schema:
             type: string
             example: '존재하지 않는 업무입니다.'
+    editTask200:
+      description: 업무 상세 수정 성공
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: 업무 상세가 수정되었습니다.
+    editTask400:
+      description: 업무 상세 수정 중 오류 발생
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: '업무 상세 수정 중 에러 발생 : (에러메시지)'

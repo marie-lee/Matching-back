@@ -518,6 +518,57 @@ class WbsService {
             throw error;
         }
     }
+
+    async editTaskDetail(userSn, pjtSn, taskSn, data){
+        const transaction = await db.transaction();
+        try {
+            const mem = await projectRepository.findProjectMember(pjtSn, userSn);
+            if (!mem) return {
+                status: 403,
+                message: '프로젝트 멤버가 아닙니다.'
+            };
+
+            const task = await wbsRepository.findTicket(taskSn, pjtSn);
+            if(!task) return {
+                status: 404,
+                message: '존재하지 않는 업무입니다.'
+            };
+            console.log(task.CPLT_DT);
+
+            const updateData = await Object.entries(data).reduce(async (accPromise, [key, value]) => {
+                const acc = await accPromise; // 이전 결과를 기다림
+                if (value !== null) {
+                    if (key === 'PRIORITY') {
+                        const priority = await cmmnRepository.oneCmmnCd('TICKET_PRRT', value);
+                        acc[key] = priority.CMMN_CD;
+                    } else if (key === 'LEVEL') {
+                        const level = await cmmnRepository.oneCmmnCd('TICKET_LEVEL', value)
+                        acc[key] = level.CMMN_CD;
+                    } else if (key === 'STATUS') {
+                        const status = await cmmnRepository.oneCmmnCd('TICKET_STTS', value);
+                        if(value === 'COMPLETE' && task.CPLT_DT === null){
+                            acc['CPLT_DT'] = new Date();
+                        }
+                        else if(value !== 'CLOSE' && value !== 'COMPLETE'){
+                            acc['CPLT_DT'] = null;
+                        }
+                        acc[key] = status.CMMN_CD;
+                    } else {
+                        acc[key] = value; // null이 아닌 값만 추가
+                    }
+                }
+                return acc;
+            }, Promise.resolve({}));
+
+            const result = await wbsRepository.updateTask(taskSn, pjtSn, updateData, transaction);
+            await transaction.commit();
+            return result;
+        }
+        catch (error){
+            await transaction.rollback();
+            throw error;
+        }
+    }
 }
 
 module.exports = new WbsService();
