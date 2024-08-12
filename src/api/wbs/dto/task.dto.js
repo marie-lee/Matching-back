@@ -1,6 +1,6 @@
 const {throwError} = require("../../../utils/errors");
 
-class TaskCreateDto {
+class TaskDto {
     constructor({
         pjtSn, userSn, depth, title, priority = null,
                     level = null, worker = null, startDt = null, endDt = null, status = null
@@ -77,7 +77,27 @@ class IssuedTaskCreateDto {
     }
 }
 
+class TaskEditDto {
+    constructor({
+                    priority = null, level = null, worker = null, startDt = null, endDt = null, status = null
+                }) {
+        this.PRIORITY = priority;
+        this.LEVEL = level;
+        this.WORKER = worker;
+        this.START_DT = startDt;
+        this.END_DT = endDt;
+        this.STATUS = status;
+    }
+
+    validate(){
+        if(Object.values(this).every(value => value === null)){
+            throwError('수정 할 내용이 없습니다.');
+        }
+    }
+}
+
 module.exports = {
-    TaskCreateDto,
-    IssuedTaskCreateDto
+    TaskCreateDto: TaskDto,
+    IssuedTaskCreateDto,
+    TaskEditDto
 };

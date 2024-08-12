@@ -7,7 +7,7 @@ const {ProjectDto, MemberDto, WbsDataDto} = require("./dto/wbs.create.dto");
 const CreateIssueDto = require("./dto/issue.create.dto");
 const IssueDto = require('./dto/issue.dto')
 const CreateCommentDto = require("./dto/comment.create.dto");
-const {TaskCreateDto, IssuedTaskCreateDto} = require("./dto/task.create.dto");
+const {TaskCreateDto, IssuedTaskCreateDto, TaskEditDto} = require("./dto/task.dto");
 // wbs 템플릿 조회
 router.get('/project/wbs/template', jwt.authenticateToken, async (req, res) => {
     try {
@@ -241,6 +241,28 @@ router.get('/project/wbs/task/:pjtSn/:taskSn', jwt.authenticateToken, async (req
     catch (error) {
         logger.error(`업무 상세 조회 중 에러 발생 : ${error}`);
         return res.status(400).json(`업무 상세 조회 중 에러 발생 : ${error.message}`);
+    }
+});
+
+router.post('/project/wbs/task/:pjtSn/:taskSn', jwt.authenticateToken, async (req, res) => {
+    const userSn = req.userSn.USER_SN;
+    const pjtSn = req.params.pjtSn;
+    const taskSn = req.params.taskSn;
+    const data = new TaskEditDto({
+        priority: req.body.priority, level: req.body.level, status: req.body.status, worker: req.body.present, startDt: req.body.startDt
+        , endDt: req.body.endDt
+    });
+
+
+    try{
+        data.validate();
+        const result = await wbsService.editTaskDetail(userSn, pjtSn, taskSn, data);
+        if(result.message) return res.status(result.status).json(result.message);
+        return res.status(200).json('업무 상세가 수정되었습니다.');
+    }
+    catch (error) {
+        logger.error(`업무 상세 수정 중 에러 발생 : ${error}`);
+        return res.status(400).json(`업무 상세 수정 중 에러 발생 : ${error.message}`);
     }
 });
 module.exports = router;
