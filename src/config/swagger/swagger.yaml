@@ -2832,6 +2832,9 @@ components:
                   items:
                     type: object
                     properties:
+                      pfolSn:
+                        type: string
+                        description: 포트폴리오 일련번호
                       name:
                         type: string
                         description: 포트폴리오 이름
@@ -2891,7 +2894,8 @@ components:
                 interests: iOS Development, MOBILE, WEB
                 url: http://www.github.com/CHS1, https://www.CHSBLOG.com
               portfolio:
-                - name: 온라인 음악 스트리밍 웹 앱
+                - pfolSn: 1
+                  name: 온라인 음악 스트리밍 웹 앱
                   startDt: "2023-01-01"
                   endDt: "2023-08-31"
                   period: 183
@@ -2918,7 +2922,8 @@ components:
                 interests: JAVA, WEB
                 url: http://github.com/hi
                 portfolio:
-                  - name: Weather Forecast App
+                  - pfolSn: 4
+                    name: Weather Forecast App
                     startDt: "2024-01-01"
                     endDt: "2024-05-01"
                     period: 121

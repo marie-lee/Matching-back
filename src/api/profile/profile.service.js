@@ -346,6 +346,7 @@ class profileService {
                                         "url", GROUP_CONCAT(DISTINCT url.URL)
                                     ) as profile
                                     , JSON_ARRAYAGG( DISTINCT JSON_OBJECT(
+                                        "pfolSn", vpl.PFOL_SN,
                                         "name", vpl.PFOL_NM,
                                         "startDt", vpl.START_DT,
                                         "endDt", vpl.END_DT,
