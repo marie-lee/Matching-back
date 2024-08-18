@@ -39,12 +39,11 @@ router.post('/project/wbs/create/:pjtSn', jwt.authenticateToken, async (req, res
     const userSn = req.userSn.USER_SN;
     const pjtSn = req.params.pjtSn;
     const pjtData = new ProjectDto({
-        startDt: req.body.pjtData.START_DT,
-        endDt: req.body.pjtData.END_DT,
+        startDt: req.body.pjtData.startDt,
+        endDt: req.body.pjtData.endDt,
         members: req.body.memberData.map(member => new MemberDto(member)),
         wbsData: req.body.wbsData.map(wbs => new WbsDataDto(wbs))
     });
-    console.log(pjtData)
     try{
         await wbsService.createWbs(userSn, pjtSn, pjtData);
         return res.status(200).json('프로젝트 WBS 생성 성공');
@@ -183,8 +182,8 @@ router.post('/project/wbs/issue/comment/:pjtSn/:issueSn', jwt.authenticateToken,
 
 router.post('/project/wbs/task/create/:pjtSn', jwt.authenticateToken, async (req, res) => {
     const taskCreateDto = new TaskCreateDto({
-        pjtSn: req.params.pjtSn, userSn: req.userSn.USER_SN, depth: req.body.DEPTH, title: req.body.TICKET_NAME, priority: req.body.PRIORITY,
-        level: req.body.LEVEL, status: "TICKET_WAIT", endDt: req.body.END_DT, startDt: req.body.START_DT, worker: req.body.WORKER
+        pjtSn: req.params.pjtSn, userSn: req.userSn.USER_SN, depth: req.body.depth, title: req.body.ticketName, priority: req.body.priority,
+        level: req.body.level, status: "TICKET_WAIT", endDt: req.body.endDt, startDt: req.body.startDt, worker: req.body.worker
     });
     taskCreateDto.validate();
     try {
@@ -199,8 +198,8 @@ router.post('/project/wbs/task/create/:pjtSn', jwt.authenticateToken, async (req
 
 router.post('/project/wbs/task/create/:pjtSn/:issueSn', jwt.authenticateToken, async (req, res) => {
     const issuedTaskCreateDto = new IssuedTaskCreateDto({
-        pjtSn: req.params.pjtSn, userSn: req.userSn.USER_SN, issueSn: req.params.issueSn, depth: req.body.DEPTH, title: req.body.TICKET_NAME,
-        priority: req.body.PRIORITY, level: req.body.LEVEL, status: "TICKET_WAIT", endDt: req.body.END_DT, startDt: req.body.START_DT, worker: req.body.WORKER
+        pjtSn: req.params.pjtSn, userSn: req.userSn.userSn, issueSn: req.params.issueSn, depth: req.body.depth, title: req.body.ticketName,
+        priority: req.body.priority, level: req.body.level, status: "TICKET_WAIT", endDt: req.body.endDt, startDt: req.body.startDt, worker: req.body.worker
     });
     issuedTaskCreateDto.validate();
     try {
