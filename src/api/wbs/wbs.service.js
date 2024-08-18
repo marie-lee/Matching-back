@@ -93,22 +93,48 @@ class WbsService {
 
 
 // WBS 수정
-    async editWbs(userSn, pjtSn, data){
+    async editWbs(userSn, pjtSn, pjtData){
         const t = await wbsRepository.beginTransaction();
         try {
             const existingWbs = await wbsRepository.findWbs(pjtSn);
             if (!existingWbs) {
-                return { message: 'WBS가 존재하지 않습니다.'}
+                return {
+                    status: 404,
+                    message: 'WBS가 존재하지 않습니다.'
+                }
             }
 
-            // 템플릿 데이터 입력
-            await wbsRepository.updateWbsTemplate(pjtSn, userSn, data[0].templateData, t);
+            const userRole = await projectRepository.findProjectMember(pjtSn, userSn);
+            console.log(userRole.ROLE)
+            if(userRole.ROLE !== 'owner'){
+                return {
+                    status: 403,
+                    message: 'WBS 수정 권한이 없습니다.'
+                }
+            }
+
+            // 시작일 종료일 설정
+            await wbsRepository.updateProjectDates(pjtSn, pjtData, t);
+
+            // 멤버 권한, 담당 설정
+            for (const member of pjtData.members) {
+                await wbsRepository.updateProjectMembers(pjtSn, member, t);
+            }
+
+            // WBS 수정
+            let depth1Count = 1;
+            for (const depth1 of pjtData.wbsData) {
+                if(depth1.ticketSn){
+                    await wbsRepository.updateWbs(depth1, pjtSn, userSn, null, depth1Count, t);
+                }
+                else await wbsRepository.updateWbsNew(depth1, pjtSn, userSn, null, depth1Count, t);
+                depth1Count++;
+            }
 
             await wbsRepository.commitTransaction(t);
             return true;
         } catch (e) {
             await wbsRepository.rollbackTransaction(t);
-            logger.error('WBS 수정 중 오류 발생 error: ', e);
             throw e;
         }
     };
