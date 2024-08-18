@@ -3,7 +3,7 @@ const router = express.Router();
 const wbsService = require('./wbs.service');
 const jwt = require('../../utils/jwt/jwt');
 const {logger} = require('../../utils/logger');
-const {ProjectDto, MemberDto, WbsDataDto} = require("./dto/wbs.create.dto");
+const {ProjectDto, MemberDto, WbsDataDto, WbsEditDto} = require("./dto/wbs.create.dto");
 const CreateIssueDto = require("./dto/issue.create.dto");
 const IssueDto = require('./dto/issue.dto')
 const CreateCommentDto = require("./dto/comment.create.dto");
@@ -49,7 +49,7 @@ router.post('/project/wbs/create/:pjtSn', jwt.authenticateToken, async (req, res
         return res.status(200).json('프로젝트 WBS 생성 성공');
     }
     catch (e){
-        return res.status(400).json('프로젝트 WBS 생성 실패 error = ' + e.message);
+        return res.status(400).json('프로젝트 WBS 생성 실패 : ' + e.message);
     }
 });
 
@@ -57,16 +57,19 @@ router.post('/project/wbs/create/:pjtSn', jwt.authenticateToken, async (req, res
 router.post('/project/wbs/edit/:pjtSn', jwt.authenticateToken, async (req, res) => {
     const userSn = req.userSn.USER_SN;
     const pjtSn = req.params.pjtSn;
-    const data = req.body;
+    const pjtData = new ProjectDto({
+        startDt: req.body.pjtData.startDt,
+        endDt: req.body.pjtData.endDt,
+        members: req.body.memberData.map(member => new MemberDto(member)),
+        wbsData: req.body.wbsData.map(wbs => new WbsEditDto(wbs))
+    });
 
     try {
-        const result = await wbsService.editWbs(userSn, pjtSn, data);
-        if (result) {
-            if(result.message){ res.status(400).json(result.message); }
-            else{ res.status(200).json('WBS 수정 완료.'); }
-        } else {
-            res.status(400).json('WBS 수정 실패.');
-        }
+        const result = await wbsService.editWbs(userSn, pjtSn, pjtData);
+
+        if(result.message){ res.status(result.status).json(result.message); }
+        else{ res.status(200).json('WBS 수정 완료.'); }
+
     } catch (e) {
         return res.status(400).json('WBS 수정 중 오류 발생 error: ' + e.message);
     }

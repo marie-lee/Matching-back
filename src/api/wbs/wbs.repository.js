@@ -59,7 +59,7 @@ const insertWbs = async (depth, pjtSn, userSn, parentSn, orderNum, transaction) 
                 const status = await oneCmmnCd('TICKET_STTS', child.data.STATUS);
                 await createTask(
                     {PJT_SN: pjtSn, TICKET_NAME: child.name, WORKER: child.data.WORKER, START_DT: child.data.START_DT, END_DT: child.data.END_DT
-                    , STATUS: status}, childOrderNum, transaction
+                    , STATUS: status, PARENT_SN: depthData.TICKET_SN, CREATER_SN: userSn}, childOrderNum, transaction
                     );
             }
             else await insertWbs(child, pjtSn, userSn, depthData.TICKET_SN, childOrderNum, transaction);
@@ -84,14 +84,72 @@ const findPartByRoleSn = async (roleSn) => {
     return await db.TB_PJT_ROLE.findOne({ where: { PJT_ROLE_SN: roleSn, DEL_YN: false } });
 };
 
-const updateWbsTemplate = async (pjtSn, userSn, templateData, transaction) => {
-    return await db.TB_WBS.update(
-        { LAST_UPDATER: userSn, TEMPLATE_DATA: JSON.stringify(templateData) },
-        {
-            where: { PJT_SN: pjtSn },
-            transaction
+const updateWbs = async (depth, pjtSn, userSn, parentSn, orderNum, transaction) => {
+    await db.TB_WBS.update({TICKET_NAME: depth.name, PARENT_SN: parentSn, ORDER_NUM: orderNum},
+        {where:{PJT_SN:pjtSn, TICKET_SN: depth.ticketSn},transaction});
+    const depthData = await db.TB_WBS.findOne({where:{PJT_SN:pjtSn, TICKET_SN: depth.ticketSn}});
+
+    if (depth.child && Array.isArray(depth.child)) {
+        // depth.child가 배열인지 확인
+        let childOrderNum = 1;
+        for (const child of depth.child) {
+            if(child.ticketSn){
+                if(child.data){
+                    console.log(child)
+                    const status = await oneCmmnCd('TICKET_STTS', child.data.STATUS);
+                    await updateTask(child.ticketSn, pjtSn,
+                        {TICKET_NAME: child.name, WORKER: child.data.WORKER, START_DT: child.data.START_DT, END_DT: child.data.END_DT
+                            , STATUS: status.CMMN_CD_VAL, PARENT_SN: depthData.TICKET_SN, ORDER_NUM: childOrderNum}, transaction
+                    );
+                }
+                else await updateWbs(child, pjtSn, userSn, depthData.TICKET_SN, childOrderNum, transaction);
+            }
+            else{
+                if(child.data){
+                    const status = await oneCmmnCd('TICKET_STTS', child.data.STATUS);
+                    await createTask(
+                        {PJT_SN: pjtSn, TICKET_NAME: child.name, WORKER: child.data.WORKER, START_DT: child.data.START_DT, END_DT: child.data.END_DT
+                            , STATUS: status.CMMN_CD_VAL, PARENT_SN: depthData.TICKET_SN, CREATER_SN: userSn}, childOrderNum, transaction
+                    );
+                }
+                else await updateWbsNew(child, pjtSn, userSn, depthData.TICKET_SN, childOrderNum, transaction);
+            }
+            childOrderNum++;
         }
-    );
+    }
+};
+
+const updateWbsNew = async (depth, pjtSn, userSn, parentSn, orderNum, transaction) => {
+    const depthData = await db.TB_WBS.create({PJT_SN:pjtSn, CREATER_SN:userSn, TICKET_NAME: depth.name, PARENT_SN: parentSn, ORDER_NUM: orderNum},
+        {transaction});
+
+    if (depth.child && Array.isArray(depth.child)) {
+        // depth.child가 배열인지 확인
+        let childOrderNum = 1;
+        for (const child of depth.child) {
+            if(child.ticketSn){
+                if(child.data){
+                    const status = await oneCmmnCd('TICKET_STTS', child.data.STATUS);
+                    await updateTask(child.ticketSn, pjtSn,
+                        {TICKET_NAME: child.name, WORKER: child.data.WORKER, START_DT: child.data.START_DT, END_DT: child.data.END_DT
+                            , STATUS: status.CMMN_CD_VAL, PARENT_SN: depthData.TICKET_SN, ORDER_NUM: childOrderNum}, transaction
+                    );
+                }
+                else await updateWbs(child, pjtSn, userSn, depthData.TICKET_SN, childOrderNum, transaction);
+            }
+            else{
+                if(child.data){
+                    const status = await oneCmmnCd('TICKET_STTS', child.data.STATUS);
+                    await createTask(
+                        {PJT_SN: pjtSn, TICKET_NAME: child.name, WORKER: child.data.WORKER, START_DT: child.data.START_DT, END_DT: child.data.END_DT
+                            , STATUS: status.CMMN_CD_VAL, PARENT_SN: depthData.TICKET_SN, CREATER_SN: userSn}, childOrderNum, transaction
+                    );
+                }
+                else await updateWbsNew(child, pjtSn, userSn, depthData.TICKET_SN, childOrderNum, transaction);
+            }
+            childOrderNum++;
+        }
+    }
 };
 
 const findProjectMember = async (userSn, pjtSn) => {
@@ -336,7 +394,8 @@ module.exports = {
     findProjectMembers,
     findUserBySn,
     findPartByRoleSn,
-    updateWbsTemplate,
+    updateWbs,
+    updateWbsNew,
     findProjectMember,
     findDepth1Data,
     findChildData,

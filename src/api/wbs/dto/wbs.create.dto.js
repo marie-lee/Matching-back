@@ -8,12 +8,12 @@ class ProjectDto {
 }
 
 class MemberDto {
-    constructor({ USER_IMG, USER_SN, USER_NM, PART, ROLE = null }) {
-        this.userImg = USER_IMG;
-        this.userSn = USER_SN;
-        this.userNm = USER_NM;
-        this.part = PART;
-        this.role = ROLE;
+    constructor({ userImg, userSn, userNm, part, role = null }) {
+        this.userImg = userImg;
+        this.userSn = userSn;
+        this.userNm = userNm;
+        this.part = part;
+        this.role = role;
     }
 }
 
@@ -34,4 +34,21 @@ class WbsDataDetailsDto {
     }
 }
 
-module.exports = { ProjectDto, MemberDto, WbsDataDto, WbsDataDetailsDto };
+class WbsEditDto{
+    constructor({ ticketSn = null, name, child, data }) {
+        if(ticketSn !== null) this.ticketSn = ticketSn;
+        this.name = name;
+        this.child = child ? child.map(c => new WbsEditDto(c)) : null;
+        this.data = data ? new WbsEditDataDetailsDto(data) : null;
+    }
+}
+
+class WbsEditDataDetailsDto {
+    constructor({ worker, startDt, endDt, status }) {
+        this.WORKER = worker;
+        this.START_DT = startDt;
+        this.END_DT = endDt;
+        this.STATUS = status;
+    }
+}
+module.exports = { ProjectDto, MemberDto, WbsDataDto, WbsDataDetailsDto, WbsEditDto, WbsEditDataDetailsDto };
