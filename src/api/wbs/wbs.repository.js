@@ -1,6 +1,7 @@
 const db = require('../../config/db/db');
 const { logger } = require("../../utils/logger");
 const { QueryTypes, Sequelize, Op, or} = require("sequelize");
+const {oneCmmnCd} = require("../common/common.repository");
 
 const beginTransaction = async () => {
     return await db.transaction();
@@ -50,10 +51,18 @@ const insertWbs = async (depth, pjtSn, userSn, parentSn, orderNum, transaction) 
         transaction
     );
 
-    let childOrderNum = 1;
-    if (depth.child && Array.isArray(depth.child)) { // depth.child가 배열인지 확인
+    if (depth.child && Array.isArray(depth.child)) {
+        // depth.child가 배열인지 확인
+        let childOrderNum = 1;
         for (const child of depth.child) {
-            await insertWbs(child, pjtSn, userSn, depthData.TICKET_SN, childOrderNum, transaction);
+            if(child.data){
+                const status = await oneCmmnCd('TICKET_STTS', child.data.STATUS);
+                await createTask(
+                    {PJT_SN: pjtSn, TICKET_NAME: child.name, WORKER: child.data.WORKER, START_DT: child.data.START_DT, END_DT: child.data.END_DT
+                    , STATUS: status}, childOrderNum, transaction
+                    );
+            }
+            else await insertWbs(child, pjtSn, userSn, depthData.TICKET_SN, childOrderNum, transaction);
             childOrderNum++;
         }
     }
@@ -86,8 +95,6 @@ const updateWbsTemplate = async (pjtSn, userSn, templateData, transaction) => {
 };
 
 const findProjectMember = async (userSn, pjtSn) => {
-    console.log(userSn);
-    console.log(pjtSn);
     return await db.TB_PJT_M.findOne({
         where: { PJT_SN: pjtSn, USER_SN: userSn, DEL_YN: false }
     });

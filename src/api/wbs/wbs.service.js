@@ -138,12 +138,13 @@ class WbsService {
             const childData = await wbsRepository.findChildData(pjtSn, depth.TICKET_SN);
             const childArray = await this.buildWbsHierarchy(childData, pjtSn);
             const user = depth.WORKER ? await wbsRepository.findUserBySn(depth.WORKER) : null;
+            const status = depth.STATUS ? await cmmnRepository.oneCmmnVal('TICKET_STTS', depth.STATUS) : null;
             const data = user ? {
-                WORKER: depth.WORKER,
-                WORKER_NM: user.USER_NM,
-                START_DT: depth.START_DT,
-                END_DT: depth.END_DT,
-                STATUS: depth.STATUS
+                worker: depth.WORKER,
+                workerNm: user.USER_NM,
+                startDt: depth.START_DT,
+                endDt: depth.END_DT,
+                status: status.CMMN_CD_VAL
             } : null;
 
             const object = new WbsTicketDto(depth.TICKET_SN, depth.TICKET_NAME, depth.ORDER_NUM, depth.PARENT_SN, data, childArray);
@@ -325,7 +326,6 @@ class WbsService {
                     COMMENT_SN: comment.COMMENT_SN
                 }
                 const result = await wbsRepository.addMentionFromIssue(mentionData, transaction);
-                console.log(result)
             }
             await transaction.commit()
             return comment
@@ -533,7 +533,6 @@ class WbsService {
                 status: 404,
                 message: '존재하지 않는 업무입니다.'
             };
-            console.log(task.CPLT_DT);
 
             const updateData = await Object.entries(data).reduce(async (accPromise, [key, value]) => {
                 const acc = await accPromise; // 이전 결과를 기다림
