@@ -3,9 +3,9 @@ class WbsTicketDto {
         this.ticketSn = ticketSn;
         this.name = name;
         this.orderNum = orderNum;
-        this.parentSn = parentSn;
-        this.data = data;
-        this.child = child;
+        if(parentSn !== null) this.parentSn = parentSn;
+        if(data !== null) this.data = data;
+        if(child !== null && child.length > 0) this.child = child;
     }
 }
 
