@@ -508,6 +508,10 @@ paths:
           $ref: '#/components/responses/editWbs200'
         '400':
           $ref: '#/components/responses/editWbs400'
+        '403':
+          $ref: '#/components/responses/editWbs403'
+        '404':
+          $ref: '#/components/responses/editWbs404'
       security:
         - JWT: [ ]
   /project/wbs/{pjtSn}:
@@ -1662,34 +1666,271 @@ components:
     reqEditWbs:
       type: object
       properties:
-        TEMPLATE_DATA:
-          type: string
-          description: WBS JSON DATA
+        pjtData:
+          type: object
+          properties:
+            startDt:
+              type: string
+              description: 프로젝트 시작일
+            endDt:
+              type: string
+              description: 프로젝트 종료일
+        memberData:
+          type: array
+          items:
+            type: object
+            properties:
+              userSn:
+                type: integer
+                description: 멤버의 유저 PK
+              userNm:
+                type: string
+                description: 멤버 이름
+              part:
+                type: string
+                description: 담당 분야
+              role:
+                type: string
+                description: 권한 정보
+        wbsData:
+          type: array
+          items:
+            type: object
+            properties:
+              ticketSn:
+                type: integer
+                description: 항목 SN
+              name:
+                type: string
+                description: 항목 이름
+              orderNum:
+                type: integer
+                description: 정렬 순위
+              child:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ticketSn:
+                      type: integer
+                      description: 항목 SN
+                    name:
+                      type: string
+                      description: 항목 이름
+                    parentSn:
+                      type: integer
+                      description: 부모 항목 SN
+                    orderNum:
+                      type: integer
+                      description: 정렬 순위
+                    child:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          ticketSn:
+                            type: integer
+                            description: 항목 SN
+                          name:
+                            type: string
+                            description: 항목 이름
+                          parentSn:
+                            type: integer
+                            description: 부모 항목 SN
+                          orderNum:
+                            type: integer
+                            description: 정렬 순위
+                          data:
+                            type: object
+                            properties:
+                              worker:
+                                type: integer
+                                description: 업무 담당자 USER_SN
+                              workerNm:
+                                type: string
+                                description: 업무 담당자 이름
+                              startDt:
+                                type: string
+                                description: 업무 시작 일
+                              endDt:
+                                type: string
+                                description: 업무 종료 일
+                              status:
+                                type: string
+                                description: 업무 진행 상태
       example:
-        - TEMPLATE_DATA:
-            {
-              "manage": [
-                { "사전준비": [ "기획분석", "WBS 작성" ] },
-                { "화면설계": [ "화면설계서 작성" ] }
-              ],
-              "design": [
-                { "사전준비": [ "디자인 레퍼런스 스터디" ] },
-                { "시안 작업": [ "시안 작업" ] },
-                { "디자인 작업": [ "상세페이지 디자인" ] }
-              ],
-              "publishing": [
-                { "퍼블리싱 작업": [ "레이아웃 퍼블리싱", "페이지 퍼블리싱" ] }
-              ],
-              "development": [
-                { "사전준비": [ "개발 환경 구축", "플랫폼 기본 설정" ] },
-                { "DB": [ "데이터베이스/테이블 구성" ] },
-                { "개발": [ "F.E 개발", "B.E 개발" ] }
-              ],
-              "testing": [
-                { "1차 테스트": [ "1차 개발자 알파 테스트 및 수정" ] },
-                { "2차 테스트": [ "2차 사용자 알파 테스트", "알파 테스트 수정사항 수정진행" ] }
-              ]
-            }
+        pjtData:
+          startDt: 2024-01-01
+          endDt: 2024-01-31
+        memberData:
+          - userSn: 1
+            userNm: 홍길동
+            part: F.E
+            role: owner
+          - userSn: 2
+            userNm: 김미영
+            part: B.E
+            role: member
+        wbsData:
+          - ticketSn: 1
+            name: 기획
+            child:
+              - ticketSn: 2
+                name: 사전준비
+                child:
+                  - ticketSn: 3
+                    name: 사전준비
+                    data:
+                      worker: 1
+                      startDt: 2024-01-01
+                      endDt: 2024-01-31
+                      status: WAIT
+                  - name: 추가 업무
+                    data:
+                      worker: 1
+                      startDt: 2024-01-01
+                      endDt: 2024-01-31
+                      status: WAIT
+              - ticketSn: 5
+                name: 화면설계
+                child:
+                  - ticketSn: 6
+                    name: 화면 설계서 작성
+                    data:
+                      worker: 1
+                      startDt: 2024-01-01
+                      endDt: 2024-01-31
+                      status: WAIT
+          - ticketSn: 7
+            name: 디자인
+            child:
+              - ticketSn: 8
+                name: 사전준비
+                child:
+                  - ticketSn: 9
+                    name: 디자인 레퍼런스 스터디
+                    data:
+                      worker: 1
+                      startDt: 2024-01-01
+                      endDt: 2024-01-31
+                      status: WAIT
+              - ticketSn: 10
+                name: 시안작업
+                child:
+                  - ticketSn: 11
+                    name: 시안작업
+                    data:
+                      worker: 1
+                      startDt: 2024-01-01
+                      endDt: 2024-01-31
+                      status: WAIT
+              - ticketSn: 12
+                name: 디자인 작업
+                child:
+                  - ticketSn: 13
+                    name: 상세 페이지 디자인
+                    data:
+                      worker: 1
+                      startDt: 2024-01-01
+                      endDt: 2024-01-31
+                      status: WAIT
+          - ticketSn: 14
+            name: 퍼블리싱
+            child:
+              - ticketSn: 15
+                name: 퍼블리싱 작업
+                child:
+                  - ticketSn: 16
+                    name: 레이아웃 퍼블리싱
+                    data:
+                      worker: 1
+                      startDt: 2024-01-01
+                      endDt: 2024-01-31
+                      status: WAIT
+                  - ticketSn: 17
+                    name: 페이지 퍼블리싱
+                    data:
+                      worker: 1
+                      startDt: 2024-01-01
+                      endDt: 2024-01-31
+                      status: WAIT
+          - ticketSn: 18
+            name: 개발
+            child:
+              - ticketSn: 19
+                name: 사전준비
+                child:
+                  - ticketSn: 20
+                    name: 개발환경 구축
+                    data:
+                      worker: 1
+                      startDt: 2024-01-01
+                      endDt: 2024-01-31
+                      status: WAIT
+                  - ticketSn: 21
+                    name: 플랫폼 기본 설정
+                    data:
+                      worker: 1
+                      startDt: 2024-01-01
+                      endDt: 2024-01-31
+                      status: WAIT
+              - ticketSn: 22
+                name: DB
+                child:
+                  - ticketSn: 23
+                    name: 데이터베이스 / 테이블 구성
+                    data:
+                      worker: 1
+                      startDt: 2024-01-01
+                      endDt: 2024-01-31
+                      status: WAIT
+              - ticketSn: 24
+                name: 웹 개발
+                child:
+                  - ticketSn: 25
+                    name: FE 개발
+                    data:
+                      worker: 1
+                      startDt: 2024-01-01
+                      endDt: 2024-01-31
+                      status: WAIT
+                  - ticketSn: 26
+                    name: BE 개발
+                    data:
+                      worker: 1
+                      startDt: 2024-01-01
+                      endDt: 2024-01-31
+                      status: WAIT
+          - ticketSn: 27
+            name: 테스트
+            child:
+              - ticketSn: 28
+                name: 1차 테스트
+                child:
+                  - ticketSn: 29
+                    name: 1차 개발자 알파 테스트 및 수정
+                    data:
+                      worker: 1
+                      startDt: 2024-01-01
+                      endDt: 2024-01-31
+                      status: WAIT
+              - ticketSn: 30
+                name: 2차 테스트
+                child:
+                  - ticketSn: 31
+                    name: 2차 사용자 알파 테스트
+                    data:
+                      worker: 1
+                      startDt: 2024-01-01
+                      endDt: 2024-01-31
+                      status: WAIT
+                  - ticketSn: 32
+                    name: 알파 테스트 수정사항 수정작업
+                    data:
+                      worker: 1
+                      startDt: 2024-01-01
+                      endDt: 2024-01-31
+                      status: WAIT
     createIssue:
       type: object
       properties:
@@ -3092,6 +3333,20 @@ components:
           schema:
             type: string
             example: WBS 수정 완료.
+    editWbs403:
+      description: WBS 수정 권한 없음
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: 'WBS 수정 권한이 없습니다.'
+    editWbs404:
+      description: WBS 존재하지 않음
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: 'WBS가 존재하지 않습니다.'
     editWbs400:
       description: WBS 수정 중 오류 발생
       content:
