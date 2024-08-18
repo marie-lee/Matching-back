@@ -95,7 +95,6 @@ const updateWbs = async (depth, pjtSn, userSn, parentSn, orderNum, transaction) 
         for (const child of depth.child) {
             if(child.ticketSn){
                 if(child.data){
-                    console.log(child)
                     const status = await oneCmmnCd('TICKET_STTS', child.data.STATUS);
                     await updateTask(child.ticketSn, pjtSn,
                         {TICKET_NAME: child.name, WORKER: child.data.WORKER, START_DT: child.data.START_DT, END_DT: child.data.END_DT
