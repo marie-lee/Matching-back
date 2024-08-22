@@ -10,11 +10,16 @@ class MemberService {
       try{
         const user = await MemberRepository.findUserByEmail(loginDto.USER_EMAIL);
         if (!user) {
-          return { message: '로그인 실패 : 유저 정보를 찾지 못했습니다.'};
+          return {
+            status: 400,
+            message: '로그인 실패 : 유저 정보를 찾지 못했습니다.'
+          };
         }
         const isPasswordValid = await bcrypt.compare(loginDto.USER_PW,user.USER_PW);
         if (!isPasswordValid) {
-          return { message: '로그인 실패 : 잘못된 비밀번호입니다.'};
+          return {
+            status: 400,
+            message: '로그인 실패 : 잘못된 비밀번호입니다.'};
         }
 
         const userSn = user.USER_SN;
@@ -24,6 +29,7 @@ class MemberService {
         await transaction.commit();
 
         return {
+          status: 200,
           accessToken: jwt.generateAccessToken(userSn),
           refreshToken: refreshToken,
           USER_NM: user.USER_NM,
@@ -39,11 +45,17 @@ class MemberService {
       try{
         const emailVerification = await MemberRepository.findEmailVerification(registerDto.USER_EMAIL,'register');
         if (!emailVerification) {
-          return { message: '회원가입 실패: 이메일 인증이 완료되지 않았습니다.'};
+          return {
+            status: 400,
+            message: '회원가입 실패: 이메일 인증이 완료되지 않았습니다.'
+          };
         }
         const existingUser = await MemberRepository.findUserByEmail(registerDto.USER_EMAIL);
         if (existingUser) {
-          return { message: '회원가입 실패: 이미 존재하는 이메일입니다.'};
+          return {
+            status: 400,
+            message: '회원가입 실패: 이미 존재하는 이메일입니다.'
+          };
         }
         let hashedPassword = '';
         if (type === 'local') {
@@ -70,6 +82,7 @@ class MemberService {
 
         await transaction.commit();
         return{
+          status: 200,
           message: '회원가입 성공',
           accessToken: accessToken,
           refreshToken: refreshToken,
@@ -82,48 +95,51 @@ class MemberService {
     }
 
     async requestEmail(USER_EMAIL, PURPOSE) {
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    const transporter = nodemailer.createTransport({
-      service: 'Gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+      const transporter = nodemailer.createTransport({
+        service: 'Gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
 
-    let subject, text;
+      let subject, text;
 
-    switch(PURPOSE) {
-      case 'register':
-        subject = '프로젝트 매칭 플랫폼 회원가입 이메일 인증';
-        text = `안녕하세요.\n프로젝트 매칭 플랫폼 회원가입에 필요한 이메일 인증번호입니다.\n\n인증번호: ${verificationCode}\n\n이메일 인증을 완료해주십시오.`;
-        break;
-      case 'reset_password':
-        subject = '프로젝트 매칭 플랫폼 비밀번호 재설정 인증';
-        text = `안녕하세요.\n프로젝트 매칭 플랫폼 비밀번호 재설정에 필요한 인증번호입니다.\n\n인증번호: ${verificationCode}\n\n인증 후 새로운 비밀번호를 설정해주세요.`;
-        break;
-      default:
-        throw new Error('Invalid email purpose');
-    }
+      switch(PURPOSE) {
+        case 'register':
+          subject = '프로젝트 매칭 플랫폼 회원가입 이메일 인증';
+          text = `안녕하세요.\n프로젝트 매칭 플랫폼 회원가입에 필요한 이메일 인증번호입니다.\n\n인증번호: ${verificationCode}\n\n이메일 인증을 완료해주십시오.`;
+          break;
+        case 'reset_password':
+          subject = '프로젝트 매칭 플랫폼 비밀번호 재설정 인증';
+          text = `안녕하세요.\n프로젝트 매칭 플랫폼 비밀번호 재설정에 필요한 인증번호입니다.\n\n인증번호: ${verificationCode}\n\n인증 후 새로운 비밀번호를 설정해주세요.`;
+          break;
+        default:
+          throw new Error('Invalid email purpose');
+      }
 
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: USER_EMAIL,
-      subject: subject,
-      text: text,
-    };
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: USER_EMAIL,
+        subject: subject,
+        text: text,
+      };
 
-    await transporter.sendMail(mailOptions);
+      await transporter.sendMail(mailOptions);
 
-    await MemberRepository.upsertEmailVerification({
-      USER_EMAIL,
-      VERIFICATION_CODE: verificationCode,
-      VERIFIED: false,
-      PURPOSE
-    });
+      await MemberRepository.upsertEmailVerification({
+        USER_EMAIL,
+        VERIFICATION_CODE: verificationCode,
+        VERIFIED: false,
+        PURPOSE
+      });
 
-    return { message: 'Verification code sent to your email' };
+      return {
+        status: 200,
+        message: 'Verification code sent to your email'
+      };
   }
 
     async verifyEmailCode(USER_EMAIL, verificationCode, PURPOSE) {
@@ -131,7 +147,10 @@ class MemberService {
       const record = await MemberRepository.findEmailVerification(USER_EMAIL, PURPOSE);
 
       if (!record || record.VERIFICATION_CODE !== verificationCode) {
-        return { message: '이메일 인증 실패: 인증 코드가 일치하지 않습니다.'};
+        return {
+          status: 400,
+          message: '이메일 인증 실패: 인증 코드가 일치하지 않습니다.'
+        };
       }
 
       await MemberRepository.upsertEmailVerification({
@@ -142,7 +161,7 @@ class MemberService {
       });
 
       return {
-        success: true,
+        status: 200,
         message: '이메일 인증 성공'
       };
     } catch (error) {
@@ -153,15 +172,24 @@ class MemberService {
     async findId(USER_NM, PHONE) {
     const user = await MemberRepository.findUserByNameAndPhone(USER_NM, PHONE);
     if (!user) {
-      return { message: '아이디 찾기 실패: 유저 정보를 찾을 수 없습니다'};
+      return {
+        status: 400,
+        message: '아이디 찾기 실패: 유저 정보를 찾을 수 없습니다'
+      };
     }
-    return { USER_ID: user.USER_EMAIL };
+    return {
+      status: 200,
+      USER_ID: user.USER_EMAIL
+    };
   }
 
     async findPassword(USER_NM, USER_EMAIL) {
     const user = await MemberRepository.findUserByNameAndEmail(USER_NM, USER_EMAIL);
     if (!user) {
-      throw new Error('비밀번호 찾기 실패: 유저 정보를 찾을 수 없습니다.');
+      return {
+        status: 400,
+        message: '비밀번호 찾기 실패: 유저 정보를 찾을 수 없습니다'
+      };
     }
 
     return await this.requestEmail(USER_EMAIL, 'reset_password');
@@ -171,18 +199,26 @@ class MemberService {
     const transaction = await db.transaction();
     try {
       if (newPassword !== confirmPassword) {
-        return { message: '비밀번호 재설정 실패: 새 비밀번호와 확인 비밀번호가 일치하지 않습니다.'};
+        return {
+          status: 400,
+          message: '비밀번호 재설정 실패: 새 비밀번호와 확인 비밀번호가 일치하지 않습니다.'
+        };
       }
 
       const record = await MemberRepository.findEmailVerification(USER_EMAIL, 'reset_password');
       if (!record || !record.VERIFIED) {
-        return { message: '비밀번호 재설정 실패: 인증이 완료되지 않았습니다.'};
+        return {
+          status: 400,
+          message: '비밀번호 재설정 실패: 인증이 완료되지 않았습니다.'};
       }
 
       const user = await MemberRepository.findUserByEmail(USER_EMAIL);
       const isSamePassword = await bcrypt.compare(newPassword, user.USER_PW);
       if (isSamePassword) {
-        return { message: '비밀번호 재설정 실패: 새 비밀번호가 기존 비밀번호와 같습니다.'};
+        return {
+          status: 400,
+          message: '비밀번호 재설정 실패: 새 비밀번호가 기존 비밀번호와 같습니다.'
+        };
       }
 
       const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -202,7 +238,7 @@ class MemberService {
 
     async googleLogin(email) {
     try {
-      const user = await MemberRepository.findUserByEmail(email);
+      const user = await MemberRepository.findUserByGoogle(email);
 
       if (user) {
         const userSn = user.USER_SN;
@@ -212,12 +248,16 @@ class MemberService {
         await MemberRepository.updateUserRefreshToken(userSn, refreshToken);
 
         return {
+          status: 200,
           accessToken,
           refreshToken,
           USER_NM: user.USER_NM
         };
       } else {
-        throw new Error('가입되지 않은 사용자입니다.');
+        return {
+          status: 400,
+          message: '가입되지 않은 사용자입니다.'
+        }
       }
     } catch (error) {
       throw error;

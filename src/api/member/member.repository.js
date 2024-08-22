@@ -2,7 +2,12 @@ const db = require('../../config/db/db');
 
 // 사용자 이메일로 사용자 찾기
 const findUserByEmail = async (email) => {
-  return await db.TB_USER.findOne({ where: { USER_EMAIL: email } });
+  return await db.TB_USER.findOne({ where: { USER_EMAIL: email, LOGIN_TYPE: 'LOCAL' } });
+};
+
+// 구글 로그인 용 사용자 찾기
+const findUserByGoogle = async (email) => {
+  return await db.TB_USER.findOne({where: {USER_EMAIL: email, LOGIN_TYPE: 'GOOGLE'}});
 };
 
 // 사용자 리프레시 토큰 업데이트
@@ -78,5 +83,6 @@ module.exports = {
   updateEmailVerificationStatus,
   destroyEmailVerification,
   updateUserPassword,
-  findUser
+  findUser,
+  findUserByGoogle
 };
