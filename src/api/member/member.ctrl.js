@@ -31,7 +31,7 @@ router.post('/registration/join',async (req,res)=>{
 
     const result = await MemberService.register(registerDto,'local');
     if(result) {
-      if(result.message){ res.status(400).json(result.message); }
+      if(result.status === 400){ res.status(400).json(result.message); }
       else res.status(200).json(result);
     }
   }catch (error) {
@@ -48,7 +48,7 @@ router.post('/registration/join/google',async (req,res)=>{
 
     const result = await MemberService.register(googleRegisterDto,'google');
     if(result) {
-      if(result.message){ res.status(400).json(result.message); }
+      if(result.status === 400){ res.status(400).json(result.message); }
       else res.status(200).json(result);
     }
   }catch (error) {
@@ -63,7 +63,10 @@ router.post('/login/google',async (req,res)=>{
     const {email}=req.body;
 
     const result = await MemberService.googleLogin(email);
-    res.status(200).json(result);
+    if(result) {
+      if(result.status === 400){ res.status(400).json(result.message); }
+      else res.status(200).json(result);
+    }
   }catch (error){
     logger.error('구글 로그인 실패:',error);
     return res.status(400).json('구글 로그인 실패:'+error.message);
@@ -79,7 +82,9 @@ router.post('/registration/certification',async (req,res)=>{
     }
 
     const result = await MemberService.requestEmail(USER_EMAIL,'register');
-    res.status(200).json(result);
+    if(result) {
+      return res.status(200).json(result);
+    }
   } catch (error) {
     logger.error('이메일 인증 확인 실패:', error);
     return res.status(400).json( '이메일 인증 확인 실패:'+ error.message );
@@ -94,7 +99,7 @@ router.post('/registration/confirmation',async (req,res)=>{
 
     const result = await MemberService.verifyEmailCode(emailVerificationDto.USER_EMAIL, emailVerificationDto.verificationCode, 'register');
     if(result) {
-      if(!result.success){ res.status(400).json(result.message); }
+      if(result.status === 400){ res.status(400).json(result.message); }
       else res.status(200).json(result.message);
     }
   } catch (error) {
@@ -110,7 +115,7 @@ router.post('/find/id',async (req,res)=>{
 
     const result = await MemberService.findId(USER_NM, PHONE);
     if(result) {
-      if(result.message){ res.status(400).json(result.message); }
+      if(result.status === 400){ res.status(400).json(result.message); }
       else res.status(200).json(result);
     }
   } catch (error){
@@ -125,7 +130,10 @@ router.post('/find/pw', async (req, res) => {
     const { USER_NM, USER_EMAIL } = req.body;
 
     const result = await MemberService.findPassword(USER_NM, USER_EMAIL);
-    res.status(200).json(result);
+    if(result) {
+      if(result.status === 400){ res.status(400).json(result.message); }
+      else res.status(200).json(result);
+    }
   } catch (error) {
     logger.error('비밀번호 찾기 요청 실패:', error);
     return res.status(400).send('비밀번호 찾기 요청 실패: ' + error.message);
@@ -140,7 +148,7 @@ router.post('/find/pw/certification', async (req, res) => {
 
     const result = await MemberService.verifyEmailCode(emailVerificationDto.USER_EMAIL, emailVerificationDto.verificationCode, 'reset_password');
     if(result) {
-      if(!result.success){ res.status(400).json(result.message); }
+      if(result.status === 400){ res.status(400).json(result.message); }
       else res.status(200).json(result.message);
     }
   } catch (error) {
@@ -157,7 +165,7 @@ router.post('/find/pw/confirmation', async (req, res) => {
 
       const result = await MemberService.confirmPasswordReset(passwordResetDto.USER_EMAIL, passwordResetDto.newPassword, passwordResetDto.confirmPassword);
       if(result) {
-        if(!result.success){ res.status(400).json(result.message); }
+        if(result.status === 400){ res.status(400).json(result.message); }
         else res.status(200).json(result.message);
       }
     } catch (error) {
