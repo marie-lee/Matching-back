@@ -307,6 +307,15 @@ class projectService {
       throw error;
     }
   }
+  async getProjectInfo(pjtSn,userSn){
+    try{
+      const projectInfo = await projectRepository.getProjectInfo(pjtSn,userSn);
+      return projectInfo;
+    }catch (error){
+      logger.error('프로젝트 정보 조회 중 오류 발생:',error);
+      throw error;
+    }
+  }
 
   async rateMember(rateData) {
     const transaction = await db.transaction();

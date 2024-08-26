@@ -201,6 +201,28 @@ const findRateMember = async (pjt,user)=>{
   });
 };
 
+const getProjectInfo = async (pjtSn, userSn) => {
+  const query = `
+    SELECT
+      pj.PJT_SN as pjtSn,
+      pj.PJT_NM as pjtNm,
+      pj.START_DT as startDt,
+      pj.END_DT as endDt,
+      (SELECT COUNT(*) FROM TB_PJT_M WHERE PJT_SN = ${pjtSn} AND DEL_YN = FALSE) as totalMembers,
+      tpr.PART as role,
+      GROUP_CONCAT(DISTINCT st.ST_NM) as stack,
+      pjm.CONTRIBUTION as contribution
+    FROM TB_PJT pj
+           LEFT JOIN TB_PJT_M pjm ON pj.PJT_SN = pjm.PJT_SN AND pjm.DEL_YN = FALSE
+           LEFT JOIN TB_PJT_ROLE tpr ON pjm.PJT_ROLE_SN = tpr.PJT_ROLE_SN AND tpr.DEL_YN = FALSE
+           LEFT JOIN TB_PJT_SKILL pjs ON pj.PJT_SN = pjs.PJT_SN
+           LEFT JOIN TB_ST st ON pjs.ST_SN = st.ST_SN
+    WHERE pj.PJT_SN = ${pjtSn} AND pj.DEL_YN = FALSE AND pjm.USER_SN = ${userSn}
+    GROUP BY pj.PJT_SN, tpr.PART, pjm.CONTRIBUTION;
+  `;
+  return await db.query(query, {type: QueryTypes.SELECT});
+};
+
 const rateMember = async (rateData, transaction) => {
   return await db.TB_RATE.create(rateData, { transaction });
 };
@@ -272,5 +294,6 @@ module.exports = {
     findMyRates,
     findWbsTicketsByProject,
     updateContribution,
-    findProjectMembersByProject
+    findProjectMembersByProject,
+    getProjectInfo
 };
