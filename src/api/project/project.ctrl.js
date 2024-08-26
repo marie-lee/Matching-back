@@ -96,13 +96,17 @@ router.get('/project/rate/:pjtSn',jwt.authenticateToken,async(req,res)=>{
   const user = req.userSn.USER_SN;
   try {
     const rateMemberList = await projectService.getRateMemberList(pjt, user);
+    const projectInfo = await projectService.getProjectInfo(pjt, user);
     if (rateMemberList.length === 0) {
       return res.status(403).json({ message: '해당 프로젝트에 대한 접근 권한이 없습니다.' });
     }
-    return res.status(200).json(rateMemberList);
+    return res.status(200).json({
+      projectInfo,
+      rateMemberList
+    });
   } catch (error) {
-    logger.error('평가자 목록 조회 실패:', error);
-    return res.status(400).json('평가자 목록 조회 실패: ' + error.message );
+    logger.error('프로젝트 정보 및 평가자 목록 조회 실패:', error);
+    return res.status(400).json('프로젝트 정보 및 평가자 목록 조회 실패: ' + error.message );
   }
 
 });
@@ -136,7 +140,6 @@ router.post('/project/rate/:pjtSn/:targetSn', jwt.authenticateToken, async (req,
     return res.status(400).json({ message: '평가 실패: ' + error.message });
   }
 });
-
 
 //나에대한 평가조회
 router.get('/project/myRate/:pjtSn', jwt.authenticateToken, async (req, res) => {

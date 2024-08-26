@@ -334,8 +334,8 @@ paths:
     get:
       tags:
         - project
-      summary: 프로젝트 평가자 목록 조회
-      description: 프로젝트 평가자 목록 조회
+      summary: 프로젝트 정보 및 평가자 목록 조회
+      description: 프로젝트 정보 및 평가자 목록 조회
       parameters:
         - in: path
           name: pjtSn
@@ -2717,7 +2717,7 @@ components:
               endDt: null
               delYn: 0
     rateMemberList200:
-      description: 프로젝트 멤버 리스트 조회 성공
+      description: 프로젝트 정보 및 멤버 리스트 조회 성공
       content:
         application/json:
           schema:
