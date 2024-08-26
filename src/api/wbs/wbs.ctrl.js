@@ -182,7 +182,19 @@ router.post('/project/wbs/issue/comment/:pjtSn/:issueSn', jwt.authenticateToken,
         return res.status(400).json(`wbs 이슈 댓글작성 중 에러 발생 : ${error.message}`)
     }
 })
+router.get('/project/wbs/task/create/:pjtSn', jwt.authenticateToken, async (req, res) => {
+    const pjtSn = req.params.pjtSn;
+    const userSn = req.userSn.USER_SN;
 
+    try {
+        const result = await wbsService.getInfoProject(userSn, pjtSn);
+        if(result.message) return res.status(result.status).json(result);
+        return res.status(200).json(result);
+    } catch (error){
+        logger.error(`wbs 업무 추가 정보 조회 중 에러 발생 : ${error}`);
+        return res.status(400).json(`wbs 업무 추가 정보 조회 중 에러 발생 : ${error.message}`)
+    }
+});
 router.post('/project/wbs/task/create/:pjtSn', jwt.authenticateToken, async (req, res) => {
     const taskCreateDto = new TaskCreateDto({
         pjtSn: req.params.pjtSn, userSn: req.userSn.USER_SN, depth: req.body.depth, title: req.body.ticketName, priority: req.body.priority,
