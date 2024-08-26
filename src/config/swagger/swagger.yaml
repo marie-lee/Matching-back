@@ -681,6 +681,29 @@ paths:
       security:
         - JWT: [ ]
   /project/wbs/task/create/{pjtSn}:
+    get:
+      tags:
+        - wbs
+      summary: wbs 업무 추가 시 정보 조회
+      description: wbs 업무 추가 시 정보 조회
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/getInfoProject200'
+        '400':
+          $ref: '#/components/responses/getInfoProject400'
+        '403':
+          $ref: '#/components/responses/getInfoProject403'
+        '404':
+          $ref: '#/components/responses/getInfoProject404'
+      security:
+        - JWT: [ ]
     post:
       tags:
         - wbs
@@ -4191,3 +4214,107 @@ components:
           schema:
             type: string
             example: '업무 상세 수정 중 에러 발생 : (에러메시지)'
+    getInfoProject200:
+      description: wbs 업무 추가 시 정보 조회 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              workPackage:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    workPackageSn:
+                      type: integer
+                      description: workPackage 일련번호
+                    workPackageNm:
+                      type: string
+                      description: workPackage 이름
+              depth:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    depthSn:
+                      type: integer
+                      description: depth 일련번호
+                    depthNm:
+                      type: string
+                      description: depth 이름
+                    parentSn:
+                      type: integer
+                      description: 부모 티켓 일련번호
+              memberList:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    userSn:
+                      type: integer
+                      description: 회원 일련번호
+                    userNm:
+                      type: string
+                      description: 회원 이름
+                    part:
+                      type: string
+                      description: 파트 명
+            example:
+              - workPackage:
+                  - workPackageSn: 1
+                    workPackageNm: 기획
+                  - workPackageSn: 2
+                    workPackageNm: 디자인
+                  - workPackageSn: 3
+                    workPackageNm: 퍼블리싱
+                depth:
+                  - depthSn: 4
+                    depthNm: 사전준비
+                    parentSn: 1
+                  - depthSn: 5
+                    depthNm: 화면설계
+                    parentSn: 1
+                  - depthSn: 6
+                    depthNm: 사전준비
+                    parentSn: 2
+                  - depthSn: 7
+                    depthNm: 시안작업
+                    parentSn: 2
+                  - depthSn: 8
+                    depthNm: 디자인 작업
+                    parentSn: 2
+                  - depthSn: 9
+                    depthNm: 퍼블리싱 작업
+                    parentSn: 3
+                memberList:
+                  - userSn: 1
+                    userNm: 홍길동
+                    part: F.E
+                  - userSn: 2
+                    userNm: 김철수
+                    part: B.E
+    getInfoProject403:
+      description: 프로젝트 멤버가 아닙니다.
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: 프로젝트 멤버가 아닙니다.
+    getInfoProject404:
+      description: WBS가 존재하지 않습니다.
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: WBS가 존재하지 않습니다.
+    getInfoProject400:
+      description: wbs 업무 추가 정보 조회 중 에러 발생
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: 'wbs 업무 추가 정보 조회 중 에러 발생 : (에러메시지)'
+
+
+
