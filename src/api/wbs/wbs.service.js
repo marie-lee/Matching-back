@@ -434,7 +434,7 @@ class WbsService {
                     priority: task.PRIORITY,
                     title: task.TICKET_NAME,
                     present: task.CREATER_NM,
-                    dueDate: formatDt(task.END_DT)
+                    dueDate: task.END_DT ? formatDt(task.END_DT) : null
                 }
                 if(taskResult.dueDate){
                     const endDt = new Date(task.END_DT);
@@ -463,7 +463,7 @@ class WbsService {
                         priority: issuePriority.CMMN_CD_VAL,
                         title: issue.ISSUE_NM,
                         present: issuePresent.USER_NM,
-                        dueDate: formatDt(issue.END_DT)
+                        dueDate: issue.END_DT ? formatDt(issue.END_DT) : null
                     }
                     result.issue.push(issueResult);
                 }
@@ -509,12 +509,12 @@ class WbsService {
                 workPackage: null,
                 depth: null,
                 title: task.TICKET_NAME,
-                priority: priority.CMMN_CD_VAL,
-                level: level.CMMN_CD_VAL,
+                priority: priority ? priority.CMMN_CD_VAL : null,
+                level: level ? level.CMMN_CD_VAL : null,
                 present: presentUser.USER_NM,
-                startDt: formatDt(task.START_DT),
-                endDt: formatDt(task.END_DT),
-                status: status.CMMN_CD_VAL,
+                startDt: task.START_DT ? formatDt(task.START_DT) : null,
+                endDt: task.END_DT ? formatDt(task.END_DT) : null,
+                status: status ? status.CMMN_CD_VAL : null,
                 issues: []
             }
             if(task.PARENT_SN){
@@ -591,6 +591,58 @@ class WbsService {
         }
         catch (error){
             await transaction.rollback();
+            throw error;
+        }
+    }
+
+    async getInfoProject(userSn, pjtSn){
+        try {
+            const mem = await projectRepository.findProjectMember(pjtSn, userSn);
+            if (!mem) return {
+                status: 403,
+                message: '프로젝트 멤버가 아닙니다.'
+            };
+
+            const depthList = await wbsRepository.findDepth1Data(pjtSn);
+            if (!depthList) return {
+                status: 404,
+                message: 'WBS가 존재하지 않습니다.'
+            }
+            const projectMemList = await wbsRepository.findProjectMembers(pjtSn);
+
+            const workPackage = [];
+            const depth = [];
+            const memberList = [];
+            for(const depth1 of depthList){
+                workPackage.push({
+                    workPackageSn: depth1.TICKET_SN,
+                    workPackageNm: depth1.TICKET_NAME
+                });
+                const child = await wbsRepository.findChildData(pjtSn, depth1.TICKET_SN);
+                for(const depth2 of child){
+                    depth.push({
+                        depthSn: depth2.TICKET_SN,
+                        depthNm: depth2.TICKET_NAME,
+                        parentSn: depth2.PARENT_SN
+                    });
+                }
+            }
+
+            for(const member of projectMemList){
+                const memberData = await userRepository.findUser(member.USER_SN);
+                memberList.push({
+                    userSn: memberData.USER_SN,
+                    userNm: memberData.USER_NM,
+                    part: member.PART
+                });
+            }
+            return {
+                workPackage,
+                depth,
+                memberList
+            };
+        }
+        catch (error){
             throw error;
         }
     }
