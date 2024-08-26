@@ -206,6 +206,7 @@ const getProjectInfo = async (pjtSn, userSn) => {
     SELECT
       pj.PJT_SN as pjtSn,
       pj.PJT_NM as pjtNm,
+      pj.PJT_IMG as pjtImg,
       pj.START_DT as startDt,
       pj.END_DT as endDt,
       (SELECT COUNT(*) FROM TB_PJT_M WHERE PJT_SN = ${pjtSn} AND DEL_YN = FALSE) as totalMembers,
