@@ -104,9 +104,8 @@ router.get('/status/myProject/:pjtSn/:userSn', jwt.authenticateToken, async (req
     try {
         const userData = await statusService.engineerData(userSn, pjtSn, res);
         if(userData.message) return res.status(400).json({message: userData.message});
-        // 프로필포폴 코드 수정 필요 -> 추후 수정
-        // return res.status(200).json(userData);
-        return userData
+        // 프로필포폴 코드
+        return res.status(200).json(userData);
     } catch (error) {
         logger.error('프로필 및 포트폴리오 조회 실패', error.message);
         return res.status(400).json('프로필 및 포트폴리오 조회 실패  : ' + error.message);

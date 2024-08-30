@@ -93,7 +93,7 @@ class statusService {
     try{
       const mem = await statusRepository.findRequest(userSn, pjtSn);
       if(!mem) return {message : '프로젝트 참여요청 내역이 없습니다.'};
-      // profile부분과 연결 - 추후 수정 필요
+      // profile부분과 연결
       return await profileService.pfPfolSelect(userSn, res)
     } catch (error){
       throw error
