@@ -1,6 +1,6 @@
 const db = require('../../config/db/db');
 const {logger} = require('../../utils/logger');
-const oneCmmnVal = require("../common/common.repository");
+const {oneCmmnVal} = require("../common/common.repository");
 
 const profileService = require("../profile/profile.service");
 const projectRepository = require("../project/project.repository");
