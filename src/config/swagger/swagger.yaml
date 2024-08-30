@@ -2026,10 +2026,6 @@ components:
           type: string
           description: 업무 난이도
           example: HIGH
-        worker:
-          type: integer
-          description: 업무 담당자 일련번호
-          example: 2
         startDt:
           type: string
           description: 업무 시작일

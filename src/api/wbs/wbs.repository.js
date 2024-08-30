@@ -342,7 +342,12 @@ const findOrderNum = async (parentSn) => {
         order: [['ORDER_NUM', 'DESC']],
         limit: 1
     });
-    return result[0].ORDER_NUM + 1;
+
+    if(!result[0]) return {
+        status: 400,
+        message: '잘못된 depth 입니다.'
+    }
+    else return result[0].ORDER_NUM + 1;
 };
 
 const createTask = async(taskData, orderNum, transaction) => {
