@@ -15,6 +15,7 @@ class TaskDto {
             STATUS: status,
             LEVEL: level,
             WORKER: worker,
+            CREATER_SN: userSn,
             START_DT: startDt,
             END_DT: endDt
         };
