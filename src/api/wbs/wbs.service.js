@@ -365,9 +365,14 @@ class WbsService {
         const transaction =  await db.transaction();
         try {
             const mem = await projectRepository.findProjectMember(createTaskDto.PJT_SN, createTaskDto.USER_SN);
-            if (!mem) return {message: '업무 등록 권한이 없습니다.'}
+            if (!mem) return {
+                status: 404,
+                message: '업무 등록 권한이 없습니다.'
+            }
             let orderNum = await wbsRepository.findOrderNum(createTaskDto.taskData.PARENT_SN);
+            if(orderNum.message) return orderNum;
             if(!orderNum) orderNum = 1;
+
             if(createTaskDto.taskData.PRIORITY){
                 const priority = await cmmnRepository.oneCmmnCd('TICKET_PRRT', createTaskDto.taskData.PRIORITY);
                 createTaskDto.taskData.PRIORITY = priority.CMMN_CD;

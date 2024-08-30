@@ -198,12 +198,12 @@ router.get('/project/wbs/task/create/:pjtSn', jwt.authenticateToken, async (req,
 router.post('/project/wbs/task/create/:pjtSn', jwt.authenticateToken, async (req, res) => {
     const taskCreateDto = new TaskCreateDto({
         pjtSn: req.params.pjtSn, userSn: req.userSn.USER_SN, depth: req.body.depth, title: req.body.ticketName, priority: req.body.priority,
-        level: req.body.level, status: "TICKET_WAIT", endDt: req.body.endDt, startDt: req.body.startDt, worker: req.body.worker
+        level: req.body.level, status: "TICKET_WAIT", endDt: req.body.endDt, startDt: req.body.startDt, worker: req.userSn.USER_SN
     });
     taskCreateDto.validate();
     try {
         const task = await wbsService.createTask(taskCreateDto);
-        if(task.message) return res.status(404).json(task);
+        if(task.message) return res.status(task.status).json(task);
         return res.status(200).json('업무가 등록되었습니다.')
     } catch (error) {
         logger.error(`업무 등록 중 에러 발생 : ${error}`);
