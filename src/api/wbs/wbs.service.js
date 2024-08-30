@@ -511,6 +511,7 @@ class WbsService {
                 title: task.TICKET_NAME,
                 priority: priority ? priority.CMMN_CD_VAL : null,
                 level: level ? level.CMMN_CD_VAL : null,
+                userSn: presentUser.USER_SN,
                 present: presentUser.USER_NM,
                 startDt: task.START_DT ? formatDt(task.START_DT) : null,
                 endDt: task.END_DT ? formatDt(task.END_DT) : null,
@@ -533,6 +534,7 @@ class WbsService {
                         issueSn: issue.ISSUE_SN,
                         createDate: formatDt(issue.CREATED_DT),
                         issueTitle: issue.ISSUE_NM,
+                        userSn: issueCreater.USER_SN,
                         creater: issueCreater.USER_NM
                     }
                     result.issues.push(issueResult);
