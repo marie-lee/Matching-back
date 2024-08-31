@@ -59,7 +59,7 @@ const insertWbs = async (depth, pjtSn, userSn, parentSn, orderNum, transaction) 
                 const status = await oneCmmnCd('TICKET_STTS', child.data.STATUS);
                 await createTask(
                     {PJT_SN: pjtSn, TICKET_NAME: child.name, WORKER: child.data.WORKER, START_DT: child.data.START_DT, END_DT: child.data.END_DT
-                    , STATUS: status, PARENT_SN: depthData.TICKET_SN, CREATER_SN: userSn}, childOrderNum, transaction
+                    , STATUS: status.CMMN_CD, PARENT_SN: depthData.TICKET_SN, CREATER_SN: userSn}, childOrderNum, transaction
                     );
             }
             else await insertWbs(child, pjtSn, userSn, depthData.TICKET_SN, childOrderNum, transaction);
