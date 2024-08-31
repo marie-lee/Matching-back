@@ -165,9 +165,9 @@ class WbsService {
             const childArray = await this.buildWbsHierarchy(childData, pjtSn);
             const user = depth.WORKER ? await wbsRepository.findUserBySn(depth.WORKER) : null;
             const status = depth.STATUS ? await cmmnRepository.oneCmmnVal('TICKET_STTS', depth.STATUS) : null;
-            const data = user ? {
+            const data = status ? {
                 worker: depth.WORKER,
-                workerNm: user.USER_NM,
+                workerNm: user ? user.USER_NM : null,
                 startDt: depth.START_DT,
                 endDt: depth.END_DT,
                 status: status.CMMN_CD_VAL
