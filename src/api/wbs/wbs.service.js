@@ -79,7 +79,8 @@ class WbsService {
                     userImg: user.USER_IMG,
                     userSn: user.USER_SN,
                     userNm: user.USER_NM,
-                    part: part.PART
+                    part: part.PART,
+                    role: member.role
                 };
 
                 memberData.push(new MemberDto(userData));
