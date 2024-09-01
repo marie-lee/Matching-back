@@ -174,4 +174,20 @@ router.post('/find/pw/confirmation', async (req, res) => {
     }
 });
 
+router.post('/emailCheck', async (req, res) => {
+  const email = req.body.email;
+  if(!email){
+    res.status(404).json('이메일이 입력되지 않았습니다.')
+  }
+  try{
+    const result = await MemberService.emailCheck(email);
+
+    res.status(result.status).json(result);
+  }
+  catch (error){
+    logger.error('이메일 체크중 에러 발생 : ', error);
+    res.status(500).json('이메일 체크중 에러 발생 : ' + error.message);
+  }
+});
+
 module.exports = router;

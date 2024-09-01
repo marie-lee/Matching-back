@@ -3,6 +3,7 @@ const jwt = require('../../utils/jwt/jwt');
 const db = require('../../config/db/db');
 const nodemailer = require('nodemailer');
 const MemberRepository = require('../member/member.repository');
+const userRepository = require("./member.repository");
 
 class MemberService {
     async login(loginDto) {
@@ -260,6 +261,25 @@ class MemberService {
         }
       }
     } catch (error) {
+      throw error;
+    }
+  }
+
+  async emailCheck(email){
+    try {
+      const emailUser = await userRepository.findUserByEmail(email);
+      if(!emailUser){
+        return {
+          status: 200,
+          message: '미가입된 이메일 입니다.'
+        }
+      }
+      else return {
+        status: 400,
+        message: '이미 가입된 이메일 입니다.'
+      }
+    }
+    catch (error){
       throw error;
     }
   }
