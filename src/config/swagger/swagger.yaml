@@ -1101,12 +1101,16 @@ components:
       description: google login request
       type: object
       properties:
-        email:
+        userName:
           type: string
-          description: 구글 이메일
-          example: example@gmail.com
+          description: 구글 닉네임
+          example: example
+        accessToken:
+          type: string
+          description: 구글 accessToken
+          example: access token
       required:
-        - email
+        - accessToken
     register:
       type: object
       properties:
@@ -2090,7 +2094,7 @@ components:
         level:
           type: string
           description: 난이도
-          example: MIDIUM
+          example: MEDIUM
         present:
           type: integer
           description: 담당자 일련번호
@@ -2106,7 +2110,7 @@ components:
         status:
           type: string
           description: 업무 상태
-          example: IN PROGERSS
+          example: IN PROGRESS
   securitySchemes:
     JWT:
       type: http
@@ -2137,7 +2141,7 @@ components:
       description: Invalid input
       content:
         text:
-          example: error 메시지
+          example: '로그인 실패 : error 메시지'
     loginRes401:
       description: Validation exception
       content:
