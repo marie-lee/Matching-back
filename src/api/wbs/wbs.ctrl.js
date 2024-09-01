@@ -182,6 +182,8 @@ router.post('/project/wbs/issue/comment/:pjtSn/:issueSn', jwt.authenticateToken,
         return res.status(400).json(`wbs 이슈 댓글작성 중 에러 발생 : ${error.message}`)
     }
 })
+
+// WBS 생성 시 프로젝트 정보 조회
 router.get('/project/wbs/task/create/:pjtSn', jwt.authenticateToken, async (req, res) => {
     const pjtSn = req.params.pjtSn;
     const userSn = req.userSn.USER_SN;
@@ -195,6 +197,8 @@ router.get('/project/wbs/task/create/:pjtSn', jwt.authenticateToken, async (req,
         return res.status(400).json(`wbs 업무 추가 정보 조회 중 에러 발생 : ${error.message}`)
     }
 });
+
+// 업무 생성
 router.post('/project/wbs/task/create/:pjtSn', jwt.authenticateToken, async (req, res) => {
     const taskCreateDto = new TaskCreateDto({
         pjtSn: req.params.pjtSn, userSn: req.userSn.USER_SN, depth: req.body.depth, title: req.body.ticketName, priority: req.body.priority,
@@ -211,6 +215,7 @@ router.post('/project/wbs/task/create/:pjtSn', jwt.authenticateToken, async (req
     }
 });
 
+// WBS 이슈 파생 업무 생성
 router.post('/project/wbs/task/create/:pjtSn/:issueSn', jwt.authenticateToken, async (req, res) => {
     const issuedTaskCreateDto = new IssuedTaskCreateDto({
         pjtSn: req.params.pjtSn, userSn: req.userSn.userSn, issueSn: req.params.issueSn, depth: req.body.depth, title: req.body.ticketName,
@@ -227,6 +232,7 @@ router.post('/project/wbs/task/create/:pjtSn/:issueSn', jwt.authenticateToken, a
     }
 });
 
+// 대시보드 조회
 router.get('/project/wbs/dashboard/:pjtSn', jwt.authenticateToken, async (req, res) => {
     const userSn = req.userSn.USER_SN;
     const pjtSn = req.params.pjtSn;
@@ -242,6 +248,7 @@ router.get('/project/wbs/dashboard/:pjtSn', jwt.authenticateToken, async (req, r
     }
 });
 
+// 업무 상세 조회
 router.get('/project/wbs/task/:pjtSn/:taskSn', jwt.authenticateToken, async (req, res) => {
     const userSn = req.userSn.USER_SN;
     const pjtSn = req.params.pjtSn;
@@ -258,6 +265,7 @@ router.get('/project/wbs/task/:pjtSn/:taskSn', jwt.authenticateToken, async (req
     }
 });
 
+// 업무 수정
 router.post('/project/wbs/task/:pjtSn/:taskSn', jwt.authenticateToken, async (req, res) => {
     const userSn = req.userSn.USER_SN;
     const pjtSn = req.params.pjtSn;
@@ -279,4 +287,20 @@ router.post('/project/wbs/task/:pjtSn/:taskSn', jwt.authenticateToken, async (re
         return res.status(400).json(`업무 상세 수정 중 에러 발생 : ${error.message}`);
     }
 });
+
+// 이슈 생성 시 업무 목록 조회
+router.get('/project/wbs/create/issue/:pjtSn', jwt.authenticateToken, async (req, res) => {
+    const userSn = req.userSn.USER_SN;
+    const pjtSn = req.params.pjtSn;
+    try{
+        const result = await wbsService.getWorkList(userSn, pjtSn);
+        if(result.message) return res.status(result.status).json(result.message);
+        return res.status(200).json(result);
+    }
+    catch (error) {
+        logger.error(`업무 목록 조회 에러 발생 : ${error}`);
+        return res.status(400).json(`업무 목록 조회 중 에러 발생 : ${error.message}`);
+    }
+});
+
 module.exports = router;

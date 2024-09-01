@@ -892,6 +892,30 @@ paths:
           $ref: '#/components/responses/getTaskDetail404'
       security:
         - JWT: [ ]
+  /project/wbs/create/issue/{pjtSn}:
+    get:
+      tags:
+        - wbs
+      summary: 이슈 등록 시 업무 목록 조회
+      description: 이슈 등록 시 업무 목록 조회
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/getWorkList200'
+        '400':
+          $ref: '#/components/responses/getWorkList400'
+        '403':
+          $ref: '#/components/responses/getWorkList403'
+        '404':
+          $ref: '#/components/responses/getWorkList404'
+      security:
+        - JWT: [ ]
   /status:
     get:
       tags:
@@ -4371,6 +4395,81 @@ components:
           schema:
             type: string
             example: 'wbs 업무 추가 정보 조회 중 에러 발생 : (에러메시지)'
-
-
+    getWorkList200:
+      description: 업무 목록 조회 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              workList:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    taskNum:
+                      type: string
+                    taskSn:
+                      type: integer
+                    title:
+                      type: string
+          example:
+            workList:
+              - taskNum: F.E-25
+                taskSn: 25
+                title: 테스트
+              - taskNum: B.E-19
+                taskSn: 19
+                title: BE 개발
+              - taskNum: F.E-15
+                taskSn: 15
+                title: FE 개발
+              - taskNum: B.E-10
+                taskSn: 10
+                title: 개발환경 구축
+              - taskNum: TASK-6
+                taskSn: 6
+                title: WBS 작성
+              - taskNum: TASK-3
+                taskSn: 3
+                title: 사전준비
+    getWorkList403:
+      description: 프로젝트 멤버가 아닙니다.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 403
+              message:
+                type: string
+                example: 프로젝트 멤버가 아닙니다.
+    getWorkList404:
+      description: 등록된 업무가 없습니다.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 404
+              message:
+                type: string
+                example: 등록된 업무가 없습니다.
+    getWorkList400:
+      description: 업무 목록 조회 에러 발생
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 400
+              message:
+                type: string
+                example: '업무 목록 조회 에러 발생 : 에러메시지'
 

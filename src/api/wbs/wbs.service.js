@@ -323,12 +323,14 @@ class WbsService {
             let issueDetail = await wbsRepository.issueDetail(issueSn, pjtSn);
             const mentionData = await wbsRepository.mentionData(issue.ISSUE_SN, pjtSn);
             const commentData = await wbsRepository.issueCommentData(issue.ISSUE_SN);
+            const issuePart = await wbsRepository.findIssuePart(pjtSn, issue.TICKET_SN);
 
             const { CREATED_DT, ...restIssueDetail } = issueDetail = {...issueDetail ,CREATED_DT: formatDt(issueDetail.CREATED_DT)}
             commentData.map(c => ({
                 ...c, CREATED_DT: formatDt(c.CREATED_DT),
             }))
             return {
+                issueNum: issuePart ? issuePart.PART+'-i'+issue.ISSUE_CNT+'-'+issue.ISSUE_SN : 'ISSUE-i'+issue.ISSUE_CNT+'-'+issue.ISSUE_SN,
                 ...issueDetail,
                 MENTIONS:mentionData,
                 COMMENTS: commentData.map(c => ({
@@ -465,13 +467,14 @@ class WbsService {
             for(const mention of myMention){
                 if(mention.ISSUE_SN){
                     const issue = await wbsRepository.findIssue(mention.ISSUE_SN, pjtSn);
-                    const [issuePriority,issuePresent] = await Promise.all([
+                    const [issuePriority,issuePresent, issuePart] = await Promise.all([
                         cmmnRepository.oneCmmnVal('ISSUE_PRRT', issue.PRIORITY),
-                        userRepository.findUser(issue.PRESENT_SN)
+                        projectRepository.findProjectMember(pjtSn, issue.PRESENT_SN),
+                        wbsRepository.findIssuePart(pjtSn, issue.TICKET_SN)
                     ])
                     const issueResult = {
                         issueSn: issue.ISSUE_SN,
-                        issueNum: mem.PART+'-i'+issue.ISSUE_CNT+'-'+issue.ISSUE_SN,
+                        issueNum: issuePart ? issuePart.PART+'-i'+issue.ISSUE_CNT+'-'+issue.ISSUE_SN : 'ISSUE-i'+issue.ISSUE_CNT+'-'+issue.ISSUE_SN,
                         priority: issuePriority ? issuePriority.CMMN_CD_VAL : null,
                         title: issue.ISSUE_NM,
                         present: issuePresent.USER_NM,
@@ -509,14 +512,17 @@ class WbsService {
                 priority,
                 level,
                 presentUser,
+                presentUserPart,
                 status,
             ] = await Promise.all([
                 cmmnRepository.oneCmmnVal('TICKET_PRRT', task.PRIORITY),
                 cmmnRepository.oneCmmnVal('TICKET_LEVEL', task.LEVEL),
                 userRepository.findUser(task.WORKER),
+                projectRepository.findProjectMember(pjtSn, task.WORKER),
                 cmmnRepository.oneCmmnVal('TICKET_STTS', task.STATUS)
             ]);
             const result = {
+                taskNum: presentUserPart ? presentUserPart.PART+'-'+task.TICKET_SN : 'TASK-'+task.TICKET_SN,
                 taskSn: task.TICKET_SN,
                 workPackage: null,
                 depth: null,
@@ -655,6 +661,37 @@ class WbsService {
                 depth,
                 memberList
             };
+        }
+        catch (error){
+            throw error;
+        }
+    }
+
+    async getWorkList(userSn, pjtSn){
+        try {
+            const mem = await projectRepository.findProjectMember(pjtSn, userSn);
+            if (!mem) return {
+                status: 403,
+                message: '프로젝트 멤버가 아닙니다.'
+            };
+
+            const workData = await wbsRepository.findWorkList(pjtSn);
+            if(!workData) return {
+                status: 404,
+                message: '등록된 업무가 없습니다.'
+            };
+
+            const workList = [];
+            for (const work of workData){
+                const presentUser = await projectRepository.findProjectMember(pjtSn, work.WORKER);
+                const data = {
+                    taskNum: presentUser ? presentUser.PART+'-'+work.TICKET_SN : 'TASK-'+work.TICKET_SN,
+                    taskSn: work.TICKET_SN,
+                    title: work.TICKET_NAME
+                };
+                workList.push(data);
+            }
+            return {workList:workList}
         }
         catch (error){
             throw error;
