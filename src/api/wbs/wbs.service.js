@@ -73,6 +73,7 @@ class WbsService {
             let memberData = [];
 
             for (const member of members) {
+                console.log(member)
                 const user = await wbsRepository.findUserBySn(member.USER_SN);
                 const part = await wbsRepository.findPartByRoleSn(member.PJT_ROLE_SN);
                 const userData = {
@@ -80,7 +81,7 @@ class WbsService {
                     userSn: user.USER_SN,
                     userNm: user.USER_NM,
                     part: part.PART,
-                    role: member.role
+                    role: member.ROLE
                 };
 
                 memberData.push(new MemberDto(userData));
