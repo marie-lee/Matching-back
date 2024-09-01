@@ -4,6 +4,7 @@ const db = require('../../config/db/db');
 const nodemailer = require('nodemailer');
 const MemberRepository = require('../member/member.repository');
 const userRepository = require("./member.repository");
+const {getUserInfo} = require('../../middleware/firebase/firebase');
 
 class MemberService {
     async login(loginDto) {
@@ -41,16 +42,9 @@ class MemberService {
       }
     }
 
-    async register(registerDto, type){
+    async register(registerDto){
       const transaction = await db.transaction();
       try{
-        const emailVerification = await MemberRepository.findEmailVerification(registerDto.USER_EMAIL,'register');
-        if (!emailVerification) {
-          return {
-            status: 400,
-            message: '회원가입 실패: 이메일 인증이 완료되지 않았습니다.'
-          };
-        }
         const existingUser = await MemberRepository.findUserByEmail(registerDto.USER_EMAIL);
         if (existingUser) {
           return {
@@ -58,15 +52,18 @@ class MemberService {
             message: '회원가입 실패: 이미 존재하는 이메일입니다.'
           };
         }
-        let hashedPassword = '';
-        if (type === 'local') {
-          hashedPassword = await bcrypt.hash(registerDto.USER_PW, 10);
+        const emailVerification = await MemberRepository.findEmailVerification(registerDto.USER_EMAIL,'register');
+        if (!emailVerification) {
+          return {
+            status: 400,
+            message: '회원가입 실패: 이메일 인증이 완료되지 않았습니다.'
+          };
         }
+        let hashedPassword = await bcrypt.hash(registerDto.USER_PW, 10);
         const newUser = await MemberRepository.createUser({
           USER_NM:registerDto.USER_NM,
           USER_EMAIL:registerDto.USER_EMAIL,
           USER_PW : hashedPassword,
-          LOGIN_TYPE: type.toUpperCase(),
           PHONE:registerDto.PHONE,
           REFRESH_TOKEN: '',
           DEVICE_TOKEN: '',
@@ -237,16 +234,27 @@ class MemberService {
     }
   }
 
-    async googleLogin(email) {
+  async googleLogin(data) {
+    const transaction = await db.transaction();
     try {
-      const user = await MemberRepository.findUserByGoogle(email);
+
+      const userData = await getUserInfo(data.accessToken);
+      if(!userData){
+        return {
+          status: 401,
+          message: '유효하지 않은 token입니다.'
+        }
+      }
+      const user = await MemberRepository.findUserByEmail(userData.email);
 
       if (user) {
         const userSn = user.USER_SN;
         const accessToken = jwt.generateAccessToken(userSn);
         const refreshToken = jwt.generateRefreshToken(userSn);
 
-        await MemberRepository.updateUserRefreshToken(userSn, refreshToken);
+        await MemberRepository.updateUserRefreshToken(userSn, refreshToken, userData.uid, transaction);
+
+        await transaction.commit()
 
         return {
           status: 200,
@@ -260,9 +268,10 @@ class MemberService {
           message: '가입되지 않은 사용자입니다.'
         }
       }
-    } catch (error) {
-      throw error;
-    }
+      } catch (error) {
+        await transaction.rollback();
+        throw error;
+      }
   }
 
   async emailCheck(email){

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const MemberService = require('./member.service');
 const {logger} = require('../../utils/logger');
-const { GoogleRegisterDto,RegisterDto, LoginDto, EmailVerificationDto, PasswordResetDto } = require('../member/dto');
+const {GoogleLoginDto, RegisterDto, LoginDto, EmailVerificationDto, PasswordResetDto } = require('../member/dto');
 
 //로컬 로그인
 router.post('/login', async (req, res) => {
@@ -29,24 +29,7 @@ router.post('/registration/join',async (req,res)=>{
     const registerDto = new RegisterDto(req.body);
     registerDto.validate();
 
-    const result = await MemberService.register(registerDto,'local');
-    if(result) {
-      if(result.status === 400){ res.status(400).json(result.message); }
-      else res.status(200).json(result);
-    }
-  }catch (error) {
-    logger.error('회원가입 실패',error);
-    return res.status(400).json('회원가입 실패 : ' + error.message);
-  }
-});
-
-//구글 회원가입
-router.post('/registration/join/google',async (req,res)=>{
-  try{
-    const googleRegisterDto = new GoogleRegisterDto(req.body);
-    googleRegisterDto.validate();
-
-    const result = await MemberService.register(googleRegisterDto,'google');
+    const result = await MemberService.register(registerDto);
     if(result) {
       if(result.status === 400){ res.status(400).json(result.message); }
       else res.status(200).json(result);
@@ -60,11 +43,12 @@ router.post('/registration/join/google',async (req,res)=>{
 //구글 로그인
 router.post('/login/google',async (req,res)=>{
   try{
-    const {email}=req.body;
+    const data = new GoogleLoginDto({userName: req.body.userName, accessToken: req.body.accessToken});
+    data.validate();
 
-    const result = await MemberService.googleLogin(email);
+    const result = await MemberService.googleLogin(data);
     if(result) {
-      if(result.status === 400){ res.status(400).json(result.message); }
+      if(result.status !== 200){ res.status(result.status).json(result.message); }
       else res.status(200).json(result);
     }
   }catch (error){
