@@ -472,7 +472,7 @@ class WbsService {
                     const issueResult = {
                         issueSn: issue.ISSUE_SN,
                         issueNum: mem.PART+'-i'+issue.ISSUE_CNT+'-'+issue.ISSUE_SN,
-                        priority: issuePriority.CMMN_CD_VAL,
+                        priority: issuePriority ? issuePriority.CMMN_CD_VAL : null,
                         title: issue.ISSUE_NM,
                         present: issuePresent.USER_NM,
                         dueDate: issue.END_DT ? formatDt(issue.END_DT) : null
