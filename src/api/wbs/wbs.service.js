@@ -76,11 +76,12 @@ class WbsService {
                 const user = await wbsRepository.findUserBySn(member.USER_SN);
                 const part = await wbsRepository.findPartByRoleSn(member.PJT_ROLE_SN);
                 const userData = {
-                    USER_IMG: user.USER_IMG,
-                    USER_SN: user.USER_SN,
-                    USER_NM: user.USER_NM,
-                    PART: part.PART
+                    userImg: user.USER_IMG,
+                    userSn: user.USER_SN,
+                    userNm: user.USER_NM,
+                    part: part.PART
                 };
+
                 memberData.push(new MemberDto(userData));
             }
 

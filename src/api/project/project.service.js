@@ -87,8 +87,8 @@ class projectService {
         PJT_DETAIL,
         ROLES
       } = projectCreateDto;
+
       // 프로젝트 생성
-      console.log(projectCreateDto)
       const newProject = await projectRepository.createProject({
         PJT_NM,
         PJT_IMG,
