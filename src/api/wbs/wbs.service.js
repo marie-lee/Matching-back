@@ -225,21 +225,25 @@ class WbsService {
             const ticket = await wbsRepository.findTicket(createIssueData.TICKET_SN, createIssueData.PJT_SN);
             if(!ticket) return {message : '티켓에 대한 정보가 없습니다.'};
 
-            const priority = await cmmnRepository.oneCmmnCd('ISSUE_PRRT', createIssueData.PRIORITY);
-            createIssueData.PRIORITY = priority.CMMN_CD;
+            if(createIssueData.PRIORITY){
+                const priority = await cmmnRepository.oneCmmnCd('ISSUE_PRRT', createIssueData.PRIORITY);
+                createIssueData.PRIORITY = priority.CMMN_CD;
+            }
 
             const issueCnt = await wbsRepository.findIssueCnt(issueDto.PJT_SN);
             const issue = await wbsRepository.createIssue(createIssueData, issueCnt, transaction);
 
-            for (const mention of MENTIONS) {
-                const mem = await projectRepository.findProjectMember(createIssueData.PJT_SN, mention)
-                if(!mem) return {message: '멘션할 수 없는 회원입니다. ', targetSn: mention}
-                const mentionData = {
-                    TARGET_SN: mention,
-                    CREATER_SN: createIssueData.PRESENT_SN,
-                    ISSUE_SN: issue.ISSUE_SN,
+            if(MENTIONS){
+                for (const mention of MENTIONS) {
+                    const mem = await projectRepository.findProjectMember(createIssueData.PJT_SN, mention)
+                    if(!mem) return {message: '멘션할 수 없는 회원입니다. ', targetSn: mention}
+                    const mentionData = {
+                        TARGET_SN: mention,
+                        CREATER_SN: createIssueData.PRESENT_SN,
+                        ISSUE_SN: issue.ISSUE_SN,
+                    }
+                    await wbsRepository.addMentionFromIssue(mentionData, transaction);
                 }
-                await wbsRepository.addMentionFromIssue(mentionData, transaction);
             }
 
             await transaction.commit()
