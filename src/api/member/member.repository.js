@@ -6,8 +6,13 @@ const findUserByEmail = async (email) => {
 };
 
 // 사용자 리프레시 토큰 업데이트
-const updateUserRefreshToken = async (userSn, refreshToken, uid, transaction) => {
-    return await db.TB_USER.update({ REFRESH_TOKEN: refreshToken, UID: uid }, { where: { USER_SN: userSn }, transaction });
+const updateUserRefreshToken = async (userSn, refreshToken, transaction) => {
+    return await db.TB_USER.update({ REFRESH_TOKEN: refreshToken }, { where: { USER_SN: userSn }, transaction });
+};
+
+// 사용자 리프레시 토큰 업데이트
+const updateUserGoogleLogin = async (userSn, refreshToken, uid, transaction) => {
+  return await db.TB_USER.update({ REFRESH_TOKEN: refreshToken, UID: uid }, { where: { USER_SN: userSn }, transaction });
 };
 
 // 사용자 데이터베이스에 저장
@@ -70,6 +75,7 @@ module.exports = {
   findUserByEmail,
   findUserByNameAndPhone,
   findUserByNameAndEmail,
+  updateUserGoogleLogin,
   createUser,
   updateUserRefreshToken,
   upsertEmailVerification,

@@ -252,7 +252,7 @@ class MemberService {
         const accessToken = jwt.generateAccessToken(userSn);
         const refreshToken = jwt.generateRefreshToken(userSn);
 
-        await MemberRepository.updateUserRefreshToken(userSn, refreshToken, userData.uid, transaction);
+        await MemberRepository.updateUserGoogleLogin(userSn, refreshToken, userData.uid, transaction);
 
         await transaction.commit()
 
