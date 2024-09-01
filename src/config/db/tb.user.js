@@ -27,10 +27,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(2000),
       allowNull: true
     },
-    LOGIN_TYPE: {
-      type: DataTypes.STRING(2000),
-      allowNull: false
-    },
     CREATED_DT: {
       type: DataTypes.DATE,
       allowNull: false,
