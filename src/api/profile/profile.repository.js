@@ -186,45 +186,56 @@ const findAllProfilesAndPortfolios = async (snList, userSn) => {
 
 // 프로필 조회
 const findProfile = async (userSn) => {
-  const query = `SELECT pf.PF_SN
-                    , usr.USER_SN
-                    , usr.USER_NM
-                    , usr.USER_IMG
-                    , pf.PF_INTRO
-                    , JSON_ARRAYAGG( DISTINCT
-                        JSON_OBJECT(
-                            'CARRER_NM', cr.CAREER_NM
-                            , 'ENTERING_DT', cr.ENTERING_DT
-                            , 'QUIT_DT', cr.QUIT_DT
-                        )
-                    ) AS career
-                    , JSON_ARRAYAGG( DISTINCT
-                        JSON_OBJECT(
-                            'ST_NM', st.ST_NM
-                            , 'ST_LEVEL', ps.ST_LEVEL
-                        )
-                    ) AS stack
-                    , JSON_ARRAYAGG( DISTINCT
-                        JSON_OBJECT( 'INTEREST_NM', i.INTRST_NM )
-                    ) AS interest
-                    , JSON_ARRAYAGG( DISTINCT
-                        JSON_OBJECT(
-                            'URL_ADDR', u.URL
-                            ,'URL_INTRO', u.URL_INTRO
-                        )
-                    ) AS url
-                FROM TB_PF pf
-                    LEFT JOIN TB_USER usr ON usr.USER_SN = pf.USER_SN
-                    LEFT JOIN TB_CAREER cr ON cr.PF_SN = pf.PF_SN AND cr.DEL_YN = FALSE
-                    LEFT JOIN TB_PF_ST ps ON pf.PF_SN = ps.PF_SN
-                    LEFT JOIN TB_ST st ON ps.ST_SN = st.ST_SN
-                    LEFT JOIN TB_PF_INTRST pi ON pf.PF_SN = pi.PF_SN
-                    LEFT JOIN TB_INTRST i ON pi.INTRST_SN = i.INTRST_SN
-                    LEFT JOIN TB_PF_URL pu ON pf.PF_SN = pu.PF_SN
-                    LEFT JOIN TB_URL u ON pu.URL_SN = u.URL_SN AND u.DEL_YN = FALSE
-                WHERE pf.DEL_YN = FALSE AND usr.USER_SN = ${userSn}`;
+  const careerData = [];
+  const stackData = [];
+  const intrstData = [];
+  const urlData = [];
+  const user = await db.TB_USER.findOne({where: {USER_SN: userSn}});
+  const profile = await db.TB_PF.findOne({where: {USER_SN: userSn}});
+  const career = await db.TB_CAREER.findAll({where: {PF_SN: profile.PF_SN, DEL_YN: false}});
+  const pfSt = await db.TB_PF_ST.findAll({where: {PF_SN: profile.PF_SN}});
+  const pfIntrst = await db.TB_PF_INTRST.findAll({where: {PF_SN: profile.PF_SN}});
+  const pfUrl = await db.TB_PF_URL.findAll({where: {PF_SN: profile.PF_SN}});
+  for(const c of career){
+    careerData.push({
+      CAREER_NM: c.CAREER_NM,
+      ENTERING_DT: c.ENTERING_DT,
+      QUIT_DT: c.QUIT_DT
+    });
+  }
+  for(const s of pfSt){
+    const stack = await db.TB_ST.findOne({where: {ST_SN: s.ST_SN}});
+    stackData.push({
+      ST_NM: stack.ST_NM,
+      ST_LEVEL: s.ST_LEVEL
+    });
+  }
+  for(const i of pfIntrst){
+    const intrst = await db.TB_INTRST.findOne({where: {INTRST_SN: i.INTRST_SN}});
+    intrstData.push({
+      INTEREST_NM: intrst.INTRST_NM
+    });
+  }
+  for(const u of pfUrl){
+    const url = await db.TB_URL.findOne({where: {URL_SN: u.URL_SN, DEL_YN: false}});
+    urlData.push({
+      URL_ADDR: url.URL,
+      URL_INTRO: url.URL_INTRO
+    })
+  }
 
-  return db.query(query, { type: QueryTypes.SELECT });
+  return {
+    PF_SN: profile.PF_SN,
+    USER_SN: user.USER_SN,
+    USER_NM: user.USER_NM,
+    USER_IMG: user.USER_IMG,
+    PF_INTRO: profile.PF_INTRO,
+    career: careerData[0] ? careerData : null,
+    stack: stackData[0] ? stackData : null,
+    interest: intrstData[0] ? intrstData : null,
+    url: urlData[0] ? urlData : null
+  }
+
 };
 
 // 프로필 포트폴리오 정보 조회

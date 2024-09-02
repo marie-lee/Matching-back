@@ -6,6 +6,7 @@ const {runPfPfolToVec} = require("../../utils/matching/spawnVectorization");
 const mutex = require('../../utils/matching/Mutex');
 const {throwError} = require("../../utils/errors");
 const {Op} = require("sequelize");
+const profileRepository = require("./profile.repository");
 
 class profileService {
   async profileUpload(userSn, profileData, portfolios, userImg, portfolioMedia) {
@@ -385,9 +386,9 @@ class profileService {
   async pfPfolSelect(userSn){
     try {
       // 프로필 조회
-      const profile = await this.profileSelect(userSn);
+      const profile = await profileRepository.findProfile(userSn);
       // 포트폴리오정보 조회(평가 내역있을 시 추가)
-      const portfolioInfo = await this.portfolioInfoSelect(profile[0].PF_SN);
+      const portfolioInfo = await this.portfolioInfoSelect(profile.PF_SN);
 
       // 프로필 데이터가 없을 때
       if (!profile || profile.length === 0) {
@@ -409,97 +410,10 @@ class profileService {
     }
   }
 
-  async profileSelect(userSn){
-    const query = `SELECT  pf.PF_SN
-                                    , usr.USER_SN
-                                    , usr.USER_NM
-                                    , usr.USER_IMG
-                                    , pf.PF_INTRO
-                                    , JSON_ARRAYAGG( DISTINCT
-                                        JSON_OBJECT(
-                                            'CARRER_NM', cr.CAREER_NM
-                                            , 'ENTERING_DT', cr.ENTERING_DT
-                                            , 'QUIT_DT', cr.QUIT_DT
-                                        )
-                                    ) AS carrer
-                                    , JSON_ARRAYAGG( DISTINCT
-                                        JSON_OBJECT(
-                                            'ST_NM', st.ST_NM
-                                            , 'ST_LEVEL', ps.ST_LEVEL
-                                        )
-                                    ) AS stack
-                                    , JSON_ARRAYAGG( DISTINCT
-                                        JSON_OBJECT( 'INTEREST_NM', i.INTRST_NM )
-                                    ) AS interest
-                                    , JSON_ARRAYAGG( DISTINCT
-                                        JSON_OBJECT(
-                                            'URL_ADDR', u.URL
-                                            ,'URL_INTRO', u.URL_INTRO
-                                        )
-                                    ) AS url
-                                FROM TB_PF pf
-                                    LEFT JOIN TB_USER usr ON usr.USER_SN = pf.USER_SN
-                                    LEFT JOIN TB_CAREER cr ON cr.PF_SN = pf.PF_SN AND cr.DEL_YN = FALSE
-                                    LEFT JOIN TB_PF_ST ps ON pf.PF_SN = ps.PF_SN
-                                    LEFT JOIN TB_ST st ON ps.ST_SN = st.ST_SN
-                                    LEFT JOIN TB_PF_INTRST pi ON pf.PF_SN = pi.PF_SN
-                                    LEFT JOIN TB_INTRST i ON pi.INTRST_SN = i.INTRST_SN
-                                    LEFT JOIN TB_PF_URL pu ON pf.PF_SN = pu.PF_SN
-                                    LEFT JOIN TB_URL u ON pu.URL_SN = u.URL_SN AND u.DEL_YN = FALSE
-                                WHERE pf.DEL_YN = FALSE AND usr.USER_SN = ${userSn}`;
-    try{
-      return await db.query(query, {type: QueryTypes.SELECT});
-    }
-    catch (error) {
-      logger.error("프로필 조회 중 오류 발생: ", error);
-      throw error;
-    }
-  }
-
   async toVectorPfPfol(userSn){
-    const query = `SELECT pf.PF_SN as pfSn, usr.USER_SN as userSn, usr.USER_NM as userNm
-                                    , JSON_OBJECT(
-                                        "introduction", pf.PF_INTRO,
-                                        "img", usr.USER_IMG,
-                                        "career", JSON_ARRAYAGG( DISTINCT JSON_OBJECT(
-                                            "careerNm", cr.CAREER_NM,
-                                            "enteringDt", cr.ENTERING_DT,
-                                            "quitDt", cr.QUIT_DT
-                                        )),
-                                        "stack", GROUP_CONCAT(DISTINCT st.ST_NM),
-                                        "interests", GROUP_CONCAT(DISTINCT intrst.INTRST_NM),
-                                        "url", GROUP_CONCAT(DISTINCT url.URL)
-                                    ) as profile
-                                    , JSON_ARRAYAGG( DISTINCT JSON_OBJECT(
-                                        "name", vpl.PFOL_NM,
-                                        "startDt", vpl.START_DT,
-                                        "endDt", vpl.END_DT,
-                                        "period", vpl.PERIOD,
-                                        "introduction", vpl.INTRO,
-                                        "memCnt", vpl.MEM_CNT,
-                                        "contribution", vpl.CONTRIBUTION,
-                                        "stack", vpl.STACK,
-                                        "role", vpl.\`ROLE\`,
-                                        "serviceStts", vpl.SERVICE_STTS,
-                                        "url", vpl.URL,
-                                        "media", vpl.MEDIA
-                                    )) AS portfolio
-                                FROM TB_PF pf
-                                    INNER JOIN TB_USER usr ON usr.USER_SN = pf.USER_SN
-                                    INNER JOIN TB_CAREER cr ON cr.PF_SN = pf.PF_SN
-                                    INNER JOIN TB_PF_ST pfSt ON pfSt.PF_SN = pf.PF_SN
-                                    INNER JOIN TB_ST st ON st.ST_SN = pfSt.ST_SN
-                                    INNER JOIN TB_PF_INTRST pfI ON pfI.PF_SN = pf.PF_SN
-                                    INNER JOIN TB_INTRST intrst ON intrst.INTRST_SN = pfI.INTRST_SN
-                                    INNER JOIN TB_PF_URL pfU ON pfU.PF_SN = pf.PF_SN
-                                    INNER JOIN TB_URL url ON pfU.URL_SN = url.URL_SN
-                                    INNER JOIN TB_PF_PFOL pfPl ON pfPl.PF_SN = pf.PF_SN
-                                    INNER JOIN VIEW_PFOL vpl ON vpl.PFOL_SN = pfPl.PFOL_SN
-                                WHERE usr.USER_SN = ${userSn} AND usr.DEL_YN = 'N'
-                                GROUP BY pf.PF_SN, usr.USER_SN, usr.USER_NM;`;
     try {
       // await mutex.lock();
-      const pfPfolData = await db.query(query, {type: QueryTypes.SELECT});
+      const pfPfolData = await profileRepository.findProfileAndPortfolioForVectorization(userSn);
       const pfPfolJson = JSON.stringify(pfPfolData);
       await runPfPfolToVec(pfPfolJson);
       // mutex.unlock(); // Mutex 해제
