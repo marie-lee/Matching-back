@@ -311,7 +311,7 @@ const portfolioInfoSelect = async (pfSn) => {
       RATE: rateData
     });
   }
-  return pfolData;
+  return pfolData[0] ? pfolData : null;
 };
 
 // 프로필 포트폴리오 정보 조회
