@@ -55,6 +55,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false
+    },
+    PJT_SN: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: null
     }
   }, {
     tableName: 'TB_PFOL',
@@ -69,6 +74,7 @@ module.exports = (sequelize, DataTypes) => {
     TB_PFOL.hasMany(models.TB_PFOL_MEDIA, { foreignKey: 'PFOL_SN' });
     TB_PFOL.hasMany(models.TB_PFOL_ROLE, { foreignKey: 'PFOL_SN' });
     TB_PFOL.hasMany(models.TB_PFOL_URL, { foreignKey: 'PFOL_SN' });
+    TB_PFOL.belongsTo(models.TB_PJT, {foreignKey: 'PJT_SN'});
   };
  
   return TB_PFOL;

@@ -2403,7 +2403,7 @@ components:
                     - ST_SN: 3
                       ST_NM: JAVA
                     - ST_SN: 1
-                    - ST_NM: REACT
+                      ST_NM: REACT
                   role:
                     - ROLE_SN: 3
                       ROLE_NM: backend
@@ -2431,7 +2431,7 @@ components:
                     - ST_SN: 3
                       ST_NM: JAVA
                     - ST_SN: 1
-                    - ST_NM: REACT
+                      ST_NM: REACT
                   role:
                     - ROLE_SN: 3
                       ROLE_NM: backend

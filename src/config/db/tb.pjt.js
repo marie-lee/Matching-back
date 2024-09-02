@@ -91,6 +91,7 @@ module.exports = (sequelize, DataTypes) => {
       TB_PJT.hasMany(models.TB_RATE, { foreignKey: 'PJT_SN' });
       TB_PJT.hasMany(models.TB_ISSUE, { foreignKey: 'PJT_SN' });
       TB_PJT.hasMany(models.TB_COMMENT, { foreignKey: 'PJT_SN' });
+      TB_PJT.hasMany(models.TB_PFOL, { foreignKey: 'PJT_SN' });
     };
   
     return TB_PJT;

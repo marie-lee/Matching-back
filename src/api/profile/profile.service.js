@@ -40,7 +40,6 @@ class profileService {
     } catch (error) {
       await this.deleteFileFromMinio(profileData, portfolios);
       await t.rollback();
-      logger.error('프로필 포트폴리오 등록 중 에러 발생:', error);
       throw error;
     }
   }
@@ -318,7 +317,6 @@ class profileService {
         }
       }
     } catch (error) {
-      console.error('Error deleting file:', error);
     }
   }
 
@@ -378,7 +376,6 @@ class profileService {
     try {
       return await db.query(query, {type: QueryTypes.SELECT});
     } catch (error){
-      logger.error("프로필 및 포트폴리오 전체 조회 실패", error)
       throw error;
     }
   }
@@ -388,11 +385,14 @@ class profileService {
       // 프로필 조회
       const profile = await profileRepository.findProfile(userSn);
       // 포트폴리오정보 조회(평가 내역있을 시 추가)
-      const portfolioInfo = await this.portfolioInfoSelect(profile.PF_SN);
+      const portfolioInfo = await profileRepository.portfolioInfoSelect(profile.PF_SN);
 
       // 프로필 데이터가 없을 때
       if (!profile || profile.length === 0) {
-        return res.status(404).send('프로필이 입력되지 않았습니다.');
+        return {
+          status: 404,
+          message: '프로필이 입력되지 않았습니다.'
+        };
       }
       // 프로필O 포트폴리오X
       if (!portfolioInfo || portfolioInfo.length === 0) {
@@ -405,7 +405,6 @@ class profileService {
       const pfPfol = {profile: profile, portfolioInfo: portfolioInfo};
       return pfPfol;
     } catch (error){
-      logger.error("프로필 및 포트폴리오 조회 중 오류 발생: ", error);
       throw error;
     }
   }
@@ -419,69 +418,6 @@ class profileService {
       // mutex.unlock(); // Mutex 해제
     } catch (error){
       // mutex.unlock(); // Mutex 해제
-      throw error;
-    }
-  }
-
-  async portfolioInfoSelect(pfSn) {
-    const query = `SELECT pl.PFOL_SN
-                                    , pl.PFOL_NM
-                                    , pl.INTRO
-                                    , pl.START_DT
-                                    , pl.END_DT
-                                    , pl.PERIOD
-                                    , pl.MEM_CNT
-                                    , JSON_ARRAYAGG( DISTINCT
-                                        JSON_OBJECT(
-                                        'ST_SN', st.ST_SN
-                                            ,'ST_NM', st.ST_NM
-                                        )
-                                    ) AS stack
-                                    , JSON_ARRAYAGG( DISTINCT
-                                        JSON_OBJECT(
-                                        'ROLE_SN', tr.ROLE_SN
-                                            ,'ROLE_NM', tr.ROLE_NM
-                                        )
-                                    ) AS role
-                                    , pl.CONTRIBUTION
-                                    , pl.SERVICE_STTS
-                                    , tcc.CMMN_CD_VAL AS SERVICE_STTS_VAL
-                                    , pl.\`RESULT\`
-                                    , pl.CREATED_DT
-                                    , pl.MODIFIED_DT
-                                    , JSON_ARRAYAGG( DISTINCT
-                                        JSON_OBJECT(
-                                        'URL_SN', tpu.URL_SN
-                                            ,'URL', tu.URL
-                                            , 'OS', tpu.OS
-                                        )
-                                    ) AS url
-                                    , CASE
-                                        WHEN pm.MAIN_YN = 1 THEN pm.URL
-                                            ELSE NULL
-                                        END AS IMG
-                                    , JSON_ARRAYAGG(DISTINCT pm.URL) AS IMG_SUB
-                                    , GROUP_CONCAT( DISTINCT tr2.RATE_TEXT) AS RATE
-                                FROM TB_PFOL pl
-                                LEFT JOIN TB_PF_PFOL pp ON pl.PFOL_SN = pp.PFOL_SN
-                                LEFT JOIN TB_PFOL_ST ps ON ps.PFOL_SN = pp.PFOL_SN
-                                LEFT JOIN TB_ST st ON st.ST_SN = ps.ST_SN
-                                LEFT JOIN TB_PFOL_ROLE tpr ON tpr.PFOL_SN = pl.PFOL_SN
-                                LEFT JOIN TB_ROLE tr ON tr.ROLE_SN = tpr.ROLE_SN
-                                LEFT JOIN TB_PFOL_URL tpu ON tpu.PFOL_SN = pl.PFOL_SN AND tpu.DEL_YN = false
-                                LEFT JOIN TB_URL tu ON tu.URL_SN = tpu.URL_SN
-                                LEFT JOIN TB_PFOL_MEDIA pm ON pl.PFOL_SN = pm.PFOL_SN
-                                LEFT JOIN TB_CMMN_CD tcc ON tcc.CMMN_CD_TYPE = 'SERVICE_STTS' AND tcc.CMMN_CD = pl.SERVICE_STTS
-                                LEFT JOIN TB_RATE tr2 ON tr2.PJT_SN = pl.PJT_SN
-                                WHERE pp.PF_SN = ${pfSn} AND pl.DEL_YN = 'N'
-                                GROUP BY pl.PFOL_SN
-                                ORDER BY pl.START_DT ASC`;
-    try{
-      const portfolioInfo = await db.query(query, {type: QueryTypes.SELECT});
-      return portfolioInfo;
-    }
-    catch (error) {
-      logger.error("포트폴리오 조회 중 오류 발생: ", error);
       throw error;
     }
   }
@@ -540,7 +476,6 @@ class profileService {
       }
       return portfolioDetail[0];
     } catch (error) {
-      logger.error("포트폴리오 상세 조회 중 오류 발생: ", error);
       throw error;
     }
   }
@@ -579,7 +514,6 @@ class profileService {
     } catch (error) {
       await this.deleteFileFromMinio(profileData, portfolios);
       await t.rollback();
-      logger.error('프로필 포트폴리오 등록 중 에러 발생:', error);
       throw error;
     }
   }
@@ -704,6 +638,7 @@ class profileService {
       if (portfolio.PFOL_SN) {
         pfol = await db.TB_PFOL.findOne({ where: { PFOL_SN: portfolio.PFOL_SN } });
         if (pfol) {
+          const stts = db.TB_CMMN_CD.findOne({where: {CMMN_CD_TYPE: 'SERVICE_STTS', CMMN_CD_VAL: portfolio.SERVICE_STTS}});
           await db.TB_PFOL.update({
             PFOL_NM: portfolio.PFOL_NM,
             START_DT: portfolio.START_DT,
@@ -712,7 +647,7 @@ class profileService {
             INTRO: portfolio.INTRO,
             MEM_CNT: portfolio.MEM_CNT,
             CONTRIBUTION: portfolio.CONTRIBUTION,
-            SERVICE_STTS: portfolio.SERVICE_STTS,
+            SERVICE_STTS: stts ? stts.CMMN_CD : 'COMPLETE',
             RESULT: portfolio.RESULT
           }, { where: { PFOL_SN: portfolio.PFOL_SN }, transaction });
 
@@ -825,6 +760,7 @@ class profileService {
 
   async portfolioInsertTest(portfolio, pf, transaction, portfolioMedia, pfolCnt) {
     try {
+      const stts = db.TB_CMMN_CD.findOne({where: {CMMN_CD_TYPE: 'SERVICE_STTS', CMMN_CD_VAL: portfolio.SERVICE_STTS}});
       const pfol = await db.TB_PFOL.create({
         PFOL_NM: portfolio.PFOL_NM,
         START_DT: portfolio.START_DT,
@@ -833,7 +769,7 @@ class profileService {
         INTRO: portfolio.INTRO,
         MEM_CNT: portfolio.MEM_CNT,
         CONTRIBUTION: portfolio.CONTRIBUTION,
-        SERVICE_STTS: portfolio.SERVICE_STTS,
+        SERVICE_STTS: stts ? stts.CMMN_CD : 'COMPLETE',
         RESULT: portfolio.RESULT
       }, { transaction });
 

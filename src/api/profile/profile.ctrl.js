@@ -13,7 +13,8 @@ router.get('/profile', jwt.authenticateToken, async (req, res) => {
   try {
     const userSn = req.userSn.USER_SN;
     const result = await profileService.pfPfolSelect(userSn);
-    return res.status(200).json(result);
+    if(result.status) return res.status(result.status).json(result);
+    else return res.status(200).json(result);
   } catch (error) {
     logger.error('내 프로필 및 포트폴리오 조회 실패', error);
     return res.status(400).json('내 프로필/포트폴리오 조회 중 에러 발생 에러 내용 : ' + error.message);
