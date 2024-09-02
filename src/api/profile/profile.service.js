@@ -398,7 +398,7 @@ class profileService {
       if (!portfolioInfo || portfolioInfo.length === 0) {
         return {
           profile: profile,
-          portfolioInfo: [],
+          portfolioInfo: portfolioInfo,
           message: '포트폴리오가 작성되지 않았습니다.'
         };
       }
