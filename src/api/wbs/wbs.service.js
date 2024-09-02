@@ -108,7 +108,6 @@ class WbsService {
             }
 
             const userRole = await projectRepository.findProjectMember(pjtSn, userSn);
-            console.log(userRole.ROLE)
             if(userRole.ROLE !== 'owner'){
                 return {
                     status: 403,
@@ -120,8 +119,10 @@ class WbsService {
             await wbsRepository.updateProjectDates(pjtSn, pjtData, t);
 
             // 멤버 권한, 담당 설정
-            for (const member of pjtData.members) {
-                await wbsRepository.updateProjectMembers(pjtSn, member, t);
+            if(pjtData.members){
+                for (const member of pjtData.members) {
+                    await wbsRepository.updateProjectMembers(pjtSn, member, t);
+                }
             }
 
             // WBS 수정

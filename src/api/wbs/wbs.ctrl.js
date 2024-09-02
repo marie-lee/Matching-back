@@ -58,9 +58,9 @@ router.post('/project/wbs/edit/:pjtSn', jwt.authenticateToken, async (req, res) 
     const userSn = req.userSn.USER_SN;
     const pjtSn = req.params.pjtSn;
     const pjtData = new ProjectDto({
-        startDt: req.body.pjtData.startDt,
-        endDt: req.body.pjtData.endDt,
-        members: req.body.memberData.map(member => new MemberDto(member)),
+        startDt: req.body.pjtData && req.body.pjtData.startDt ? req.body.pjtData.startDt : null,
+        endDt: req.body.pjtData && req.body.pjtData.endDt ? req.body.pjtData.endDt : null,
+        members: req.body.memberData ? req.body.memberData.map(member => new MemberDto(member)) : null,
         wbsData: req.body.wbsData.map(wbs => new WbsEditDto(wbs))
     });
 
@@ -71,6 +71,7 @@ router.post('/project/wbs/edit/:pjtSn', jwt.authenticateToken, async (req, res) 
         else{ res.status(200).json('WBS 수정 완료.'); }
 
     } catch (e) {
+        logger.error('WBS 수정 중 오류 발생: ' + e.message);
         return res.status(400).json('WBS 수정 중 오류 발생 error: ' + e.message);
     }
 });

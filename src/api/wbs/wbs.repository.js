@@ -28,10 +28,24 @@ const findWbs = async (pjtSn) => {
 };
 
 const updateProjectDates = async (pjtSn, pjtData, transaction) => {
-    return await db.TB_PJT.update(
-        { START_DT: pjtData.startDt, END_DT: pjtData.endDt },
-        { where: { PJT_SN: pjtSn }, transaction }
-    );
+    if(pjtData.startDt && pjtData.endDt){
+        return await db.TB_PJT.update(
+            { START_DT: pjtData.startDt, END_DT: pjtData.endDt },
+            { where: { PJT_SN: pjtSn }, transaction }
+        );
+    }
+    else if(!pjtData.startDt && pjtData.endDt){
+        return await db.TB_PJT.update(
+            { END_DT: pjtData.endDt },
+            { where: { PJT_SN: pjtSn }, transaction }
+        );
+    }
+    else if(pjtData.startDt && !pjtData.endDt){
+        return await db.TB_PJT.update(
+            { START_DT: pjtData.startDt },
+            { where: { PJT_SN: pjtSn }, transaction }
+        );
+    }
 };
 
 const updateProjectMembers = async (pjtSn, member, transaction) => {
@@ -98,7 +112,7 @@ const updateWbs = async (depth, pjtSn, userSn, parentSn, orderNum, transaction) 
                     const status = await oneCmmnCd('TICKET_STTS', child.data.STATUS);
                     await updateTask(child.ticketSn, pjtSn,
                         {TICKET_NAME: child.name, WORKER: child.data.WORKER, START_DT: child.data.START_DT, END_DT: child.data.END_DT
-                            , STATUS: status.CMMN_CD_VAL, PARENT_SN: depthData.TICKET_SN, ORDER_NUM: childOrderNum}, transaction
+                            , STATUS: status.CMMN_CD, PARENT_SN: depthData.TICKET_SN, ORDER_NUM: childOrderNum}, transaction
                     );
                 }
                 else await updateWbs(child, pjtSn, userSn, depthData.TICKET_SN, childOrderNum, transaction);
