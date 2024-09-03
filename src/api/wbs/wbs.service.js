@@ -472,14 +472,15 @@ class WbsService {
                             cmmnRepository.oneCmmnVal('ISSUE_PRRT', issue.PRIORITY),
                             projectRepository.findProjectMember(pjtSn, issue.PRESENT_SN),
                             wbsRepository.findIssuePart(pjtSn, issue.TICKET_SN)
-                        ])
+                        ]);
+                        const presentUser = await userRepository.findUser(issuePresent.USER_SN);
 
                         const issueResult = {
                             issueSn: issue.ISSUE_SN,
                             issueNum: issuePart ? issuePart.PART + '-i' + issue.ISSUE_CNT + '-' + issue.ISSUE_SN : 'ISSUE-i' + issue.ISSUE_CNT + '-' + issue.ISSUE_SN,
                             priority: issuePriority ? issuePriority.CMMN_CD_VAL : null,
                             title: issue.ISSUE_NM,
-                            present: issuePresent.USER_NM,
+                            present: presentUser.USER_NM,
                             dueDate: issue.END_DT ? formatDt(issue.END_DT) : null
                         }
                         result.issue.push(issueResult);
