@@ -73,7 +73,6 @@ class WbsService {
             let memberData = [];
 
             for (const member of members) {
-                console.log(member)
                 const user = await wbsRepository.findUserBySn(member.USER_SN);
                 const part = await wbsRepository.findPartByRoleSn(member.PJT_ROLE_SN);
                 const userData = {
@@ -446,7 +445,7 @@ class WbsService {
                 const taskResult = {
                     ticketSn: task.TICKET_SN,
                     ticketNum: mem.PART+'-'+task.TICKET_SN,
-                    priority: task.PRIORITY,
+                    priority: task.PRIORITY ? task.PRIORITY : null,
                     title: task.TICKET_NAME,
                     present: task.CREATER_NM,
                     dueDate: task.END_DT ? formatDt(task.END_DT) : null
@@ -468,25 +467,28 @@ class WbsService {
             for(const mention of myMention){
                 if(mention.ISSUE_SN){
                     const issue = await wbsRepository.findIssue(mention.ISSUE_SN, pjtSn);
-                    const [issuePriority,issuePresent, issuePart] = await Promise.all([
-                        cmmnRepository.oneCmmnVal('ISSUE_PRRT', issue.PRIORITY),
-                        projectRepository.findProjectMember(pjtSn, issue.PRESENT_SN),
-                        wbsRepository.findIssuePart(pjtSn, issue.TICKET_SN)
-                    ])
-                    const issueResult = {
-                        issueSn: issue.ISSUE_SN,
-                        issueNum: issuePart ? issuePart.PART+'-i'+issue.ISSUE_CNT+'-'+issue.ISSUE_SN : 'ISSUE-i'+issue.ISSUE_CNT+'-'+issue.ISSUE_SN,
-                        priority: issuePriority ? issuePriority.CMMN_CD_VAL : null,
-                        title: issue.ISSUE_NM,
-                        present: issuePresent.USER_NM,
-                        dueDate: issue.END_DT ? formatDt(issue.END_DT) : null
+                    if(issue){
+                        const [issuePriority, issuePresent, issuePart] = await Promise.all([
+                            cmmnRepository.oneCmmnVal('ISSUE_PRRT', issue.PRIORITY),
+                            projectRepository.findProjectMember(pjtSn, issue.PRESENT_SN),
+                            wbsRepository.findIssuePart(pjtSn, issue.TICKET_SN)
+                        ])
+
+                        const issueResult = {
+                            issueSn: issue.ISSUE_SN,
+                            issueNum: issuePart ? issuePart.PART + '-i' + issue.ISSUE_CNT + '-' + issue.ISSUE_SN : 'ISSUE-i' + issue.ISSUE_CNT + '-' + issue.ISSUE_SN,
+                            priority: issuePriority ? issuePriority.CMMN_CD_VAL : null,
+                            title: issue.ISSUE_NM,
+                            present: issuePresent.USER_NM,
+                            dueDate: issue.END_DT ? formatDt(issue.END_DT) : null
+                        }
+                        result.issue.push(issueResult);
                     }
-                    result.issue.push(issueResult);
                 }
             }
-            sortTasks(result.today);
-            sortTasks(result.task);
-            sortTasks(result.issue);
+            if(result.today) sortTasks(result.today);
+            if(result.task) sortTasks(result.task);
+            if(result.issue) sortTasks(result.issue);
 
             return result;
         }
