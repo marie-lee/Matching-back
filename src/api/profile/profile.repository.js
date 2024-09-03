@@ -275,7 +275,8 @@ const portfolioInfoSelect = async (pfSn) => {
       urlData.push({
         URL_SN: url.URL_SN,
         URL: url.URL,
-        OS: url.OS
+        OS: u.OS,
+        URL_INTRO: url.URL_INTRO
       });
     }
     for (const m of pfolMedia) {
