@@ -65,7 +65,7 @@ router.post('/profile/test', jwt.authenticateToken, upload.any(), async (req, re
         portfolioMediaFiles[portfolioIndex][mediaIndex] = file; // 파일을 해당 인덱스에 저장
       }
     });
-    console.log('포트폴리오 파일 : ' + portfolioMediaFiles);
+    console.log('포트폴리오 파일 : ' + JSON.stringify(portfolioMediaFiles, null, 2));
     // const profileCreateDto = new ProfileCreateDto(data);
     // profileCreateDto.validate();
     await profileService.profileUploadTest(userSn, profile, portfolios, userImg, portfolioMediaFiles);
