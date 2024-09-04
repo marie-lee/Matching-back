@@ -346,8 +346,9 @@ const findIssueCnt = async (pjtSn) => {
         order: [['ISSUE_CNT', 'DESC']],
         limit: 1
     });
-    if(!result[0].ISSUE_CNT) return 1;
-    else return result[0].ISSUE_CNT + 1;
+
+    if(result.length > 0 && result[0].ISSUE_CNT) return result[0].ISSUE_CNT + 1;
+    else return 1;
 };
 
 const findOrderNum = async (parentSn) => {
