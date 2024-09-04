@@ -237,6 +237,83 @@ const findProfile = async (userSn) => {
   }
 };
 
+const portfolioInfo = async (pfSn) => {
+  const pfolData = [];
+  const pfolList = await db.TB_PF_PFOL.findAll({where: {PF_SN: pfSn}});
+  for (const pfPfol of pfolList) {
+    const pfol = await db.TB_PFOL.findOne({where: {PFOL_SN: pfPfol.PFOL_SN}});
+    const stackData = [];
+    const roleData = [];
+    const urlData = [];
+    const imgData = [];
+    let rateData = null;
+    const stts = await db.TB_CMMN_CD.findOne({where: {CMMN_CD_TYPE: 'SERVICE_STTS', CMMN_CD: pfol.SERVICE_STTS}});
+    const pfolSt = await db.TB_PFOL_ST.findAll({where: {PFOL_SN: pfol.PFOL_SN}});
+    const pfolRole = await db.TB_PFOL_ROLE.findAll({where: {PFOL_SN: pfol.PFOL_SN}});
+    const pfolUrl = await db.TB_PFOL_URL.findAll({where: {PFOL_SN: pfol.PFOL_SN, DEL_YN: false}});
+    const pfolMedia = await db.TB_PFOL_MEDIA.findAll({where: {PFOL_SN: pfol.PFOL_SN, DEL_YN: false}});
+    const pfolRate = await db.TB_RATE.findAll({where: {PJT_SN: pfol.PJT_SN}});
+
+    for (const s of pfolSt) {
+      const stack = await db.TB_ST.findOne({where: {ST_SN: s.ST_SN}});
+      stackData.push({
+        ST_NM: stack.ST_NM,
+        ST_LEVEL: s.ST_LEVEL
+      });
+    }
+    for (const r of pfolRole) {
+      const role = await db.TB_ROLE.findOne({where: {ROLE_SN: r.ROLE_SN}});
+      roleData.push({
+        ROLE_SN: role.ROLE_SN,
+        ROLE_NM: role.ROLE_NM
+      });
+    }
+    for (const u of pfolUrl) {
+      const url = await db.TB_URL.findOne({where: {URL_SN: u.URL_SN, DEL_YN: false}});
+      urlData.push({
+        URL_SN: url.URL_SN,
+        URL: url.URL,
+        OS: u.OS,
+        URL_INTRO: url.URL_INTRO
+      });
+    }
+    for (const m of pfolMedia) {
+      imgData.push({
+        URL: m.URL,
+        MAIN_YN: m.MAIN_YN
+      });
+    }
+
+    for (const rate of pfolRate) {
+      if(rateData===null) rateData = rate.RATE_TEXT;
+      else rateData = `${rateData}, ${rate.RATE_TEXT}`;
+    }
+
+
+    pfolData.push({
+      PFOL_SN: pfol.PFOL_SN,
+      PFOL_NM: pfol.PFOL_NM,
+      INTRO: pfol.INTRO,
+      START_DT: pfol.START_DT,
+      END_DT: pfol.END_DT,
+      PERIOD: pfol.PERIOD,
+      MEM_CNT: pfol.MEM_CNT,
+      stack: stackData[0] ? stackData : null,
+      role: roleData[0] ? roleData : null,
+      CONTRIBUTION: pfol.CONTRIBUTION,
+      SERVICE_STTS: pfol.SERVICE_STTS,
+      SERVICE_STTS_VAL: stts ? stts.CMMN_CD_VAL : null,
+      RESULT: pfol.RESULT,
+      CREATED_DT: pfol.CREATED_DT,
+      MODIFIED_DT: pfol.MODIFIED_DT,
+      url: urlData[0] ? urlData : null,
+      IMG: imgData[0] ? imgData : null,
+      RATE: rateData
+    });
+  }
+  return pfolData[0] ? pfolData : null;
+};
+
 // 포트폴리오 전체 조회
 const portfolioInfoSelect = async (pfSn) => {
   const pfolData = [];
@@ -494,6 +571,7 @@ module.exports = {
   portfolioInfoSelect,
   findProfile,
   findPortfolioInfo,
+  portfolioInfo,
   findPortfolioDetail,
   findProfileAndPortfolioForVectorization
 };

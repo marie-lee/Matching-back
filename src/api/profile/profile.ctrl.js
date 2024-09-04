@@ -12,7 +12,7 @@ const upload = multer();
 router.get('/profile', jwt.authenticateToken, async (req, res) => {
   try {
     const userSn = req.userSn.USER_SN;
-    const result = await profileService.pfPfolSelect(userSn);
+    const result = await profileService.pfPfolInfo(userSn);
     if(result.status) return res.status(result.status).json(result);
     else return res.status(200).json(result);
   } catch (error) {

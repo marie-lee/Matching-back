@@ -380,6 +380,35 @@ class profileService {
     }
   }
 
+  async pfPfolInfo(userSn){
+    try {
+      // 프로필 조회
+      const profile = await profileRepository.findProfile(userSn);
+      // 포트폴리오정보 조회(평가 내역있을 시 추가)
+      const portfolioInfo = await profileRepository.portfolioInfo(profile.PF_SN);
+
+      // 프로필 데이터가 없을 때
+      if (!profile || profile.length === 0) {
+        return {
+          status: 404,
+          message: '프로필이 입력되지 않았습니다.'
+        };
+      }
+      // 프로필O 포트폴리오X
+      if (!portfolioInfo || portfolioInfo.length === 0) {
+        return {
+          profile: profile,
+          portfolioInfo: portfolioInfo,
+          message: '포트폴리오가 작성되지 않았습니다.'
+        };
+      }
+      const pfPfol = {profile: profile, portfolioInfo: portfolioInfo};
+      return pfPfol;
+    } catch (error){
+      throw error;
+    }
+  }
+
   async pfPfolSelect(userSn){
     try {
       // 프로필 조회
