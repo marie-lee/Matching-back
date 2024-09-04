@@ -807,9 +807,9 @@ class profileService {
       if(portfolio.MEDIA){
         let mediaCnt = 0;
         for(const media of portfolio.MEDIA){
-          if(portfolioMedia[pfolCnt][mediaCnt]){
+          if (portfolioMedia[pfolCnt] && portfolioMedia[pfolCnt][mediaCnt]) {
             const file = portfolioMedia[pfolCnt][mediaCnt];
-            if(file){
+            if (file) {
               await minio.portfolioUpload(file, media.MAIN_YN, pfol.PFOL_SN, transaction);
             }
           }
