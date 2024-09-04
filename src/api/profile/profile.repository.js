@@ -277,11 +277,14 @@ const portfolioInfo = async (pfSn) => {
         URL_INTRO: url.URL_INTRO
       });
     }
+    let imgCnt = 0;
     for (const m of pfolMedia) {
       imgData.push({
+        ID: imgCnt,
         URL: m.URL,
         MAIN_YN: m.MAIN_YN
       });
+      imgCnt++;
     }
 
     for (const rate of pfolRate) {
