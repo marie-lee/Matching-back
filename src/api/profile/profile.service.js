@@ -700,7 +700,7 @@ class profileService {
                 }
                 else{
                   await db.TB_PFOL_MEDIA.update({MAIN_YN: media.MAIN_YN}, {
-                    where: {PFOL_SN: portfolio.PFOL_NM, URL: media.URL},
+                    where: {PFOL_SN: portfolio.PFOL_SN, URL: media.URL},
                     transaction
                   });
                 }
