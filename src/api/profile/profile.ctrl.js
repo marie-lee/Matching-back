@@ -46,7 +46,7 @@ router.post('/profile/test', jwt.authenticateToken, upload.any(), async (req, re
     const profile = JSON.parse(req.body.profile); // 일반 데이터
     const portfolios = JSON.parse(req.body.portfolios);
     const userImg = req.files.find(file => file.fieldname === 'profile[USER_IMG]'); // 사용자 이미지 찾기
-
+    console.log('프로필 파일 : '+userImg);
     // 포트폴리오 미디어 파일 수집
     const portfolioMediaFiles = {};
 
@@ -65,6 +65,7 @@ router.post('/profile/test', jwt.authenticateToken, upload.any(), async (req, re
         portfolioMediaFiles[portfolioIndex][mediaIndex] = file; // 파일을 해당 인덱스에 저장
       }
     });
+    console.log('포트폴리오 파일 : ' + portfolioMediaFiles);
     // const profileCreateDto = new ProfileCreateDto(data);
     // profileCreateDto.validate();
     await profileService.profileUploadTest(userSn, profile, portfolios, userImg, portfolioMediaFiles);
