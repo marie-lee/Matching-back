@@ -21,18 +21,34 @@ router.get('/profile', jwt.authenticateToken, async (req, res) => {
   }
 });
 
-router.post('/profile', jwt.authenticateToken, upload.fields([{ name: 'USER_IMG', maxCount: 1 }, { name: 'PORTFOLIO_MEDIA' }]), async (req, res) => {
+router.post('/profile', jwt.authenticateToken, upload.any(), async (req, res) => {
   try {
     const userSn = req.userSn.USER_SN;
-    const data = {
-      profile: JSON.parse(req.body.data).profile,
-      portfolios: JSON.parse(req.body.data).portfolios
-    };
-    const profileCreateDto = new ProfileCreateDto(data);
+    const profile = JSON.parse(req.body.profile); // 일반 데이터
+    const portfolios = JSON.parse(req.body.portfolios);
+    const userImg = req.files.find(file => file.fieldname === 'profile[USER_IMG]'); // 사용자 이미지 찾기
+    // 포트폴리오 미디어 파일 수집
+    const portfolioImageFiles = {};
+
+
+    req.files.forEach(file => {
+      const regex = /portfolios\[(\d+)\]\[MEDIA\]\[(\d+)\]\[file\]/;
+      const match = file.fieldname.match(regex);
+
+      if (match) {
+        const portfolioIndex = match[1]; // 포트폴리오 인덱스
+        const mediaIndex = match[2]; // 미디어 인덱스
+
+        if (!portfolioImageFiles[portfolioIndex]) {
+          portfolioImageFiles[portfolioIndex] = [];
+        }
+
+        portfolioImageFiles[portfolioIndex][mediaIndex] = file; // 파일을 해당 인덱스에 저장
+      }
+    });
+    // const profileCreateDto = new ProfileCreateDto(data);
     // profileCreateDto.validate();
-    const userImg = req.files.USER_IMG ? req.files.USER_IMG[0] : null;
-    const portfolioMedia = req.files.PORTFOLIO_MEDIA? req.files.PORTFOLIO_MEDIA : null;
-    await profileService.profileUpload(userSn, profileCreateDto.profile, profileCreateDto.portfolios, userImg, portfolioMedia);
+    await profileService.profileUploadTest(userSn, profile, portfolios, userImg, portfolioImageFiles);
     return res.status(200).json({ message: '프로필 및 포트폴리오 생성 완료' });
   } catch (error) {
     logger.error('프로필 및 포트폴리오 입력중 에러 발생 에러내용', error);
@@ -43,11 +59,12 @@ router.post('/profile', jwt.authenticateToken, upload.fields([{ name: 'USER_IMG'
 router.post('/profile/test', jwt.authenticateToken, upload.any(), async (req, res) => {
   try {
     const userSn = req.userSn.USER_SN;
-    const profile = JSON.parse(req.body.profile); // 일반 데이터
-    const portfolios = JSON.parse(req.body.portfolios);
+    const profile = req.body.profile ? JSON.parse(req.body.profile) : null; // 일반 데이터
+    const portfolios = req.body.portfolios ? JSON.parse(req.body.portfolios) : null;
     const userImg = req.files.find(file => file.fieldname === 'profile[USER_IMG]'); // 사용자 이미지 찾기
-    // 포트폴리오 미디어 파일 수집
-    const portfolioMediaFiles = {};
+    const portfolioImageFiles = {};
+    const portfolioVideoFiles = {};
+
 
     req.files.forEach(file => {
       const regex = /portfolios\[(\d+)\]\[MEDIA\]\[(\d+)\]\[file\]/;
@@ -57,16 +74,26 @@ router.post('/profile/test', jwt.authenticateToken, upload.any(), async (req, re
         const portfolioIndex = match[1]; // 포트폴리오 인덱스
         const mediaIndex = match[2]; // 미디어 인덱스
 
-        if (!portfolioMediaFiles[portfolioIndex]) {
-          portfolioMediaFiles[portfolioIndex] = [];
+        if (!portfolioImageFiles[portfolioIndex]) {
+          portfolioImageFiles[portfolioIndex] = [];
         }
 
-        portfolioMediaFiles[portfolioIndex][mediaIndex] = file; // 파일을 해당 인덱스에 저장
+        portfolioImageFiles[portfolioIndex][mediaIndex] = file; // 파일을 해당 인덱스에 저장
+      }
+    });
+
+    req.files.forEach(file => {
+      const regex = /portfolios\[(\d+)\]\[VIDEO\]\[file\]/;
+      const match = file.fieldname.match(regex);
+
+      if (match) {
+        const portfolioVideoIndex = match[1]; // 포트폴리오 인덱스
+        portfolioVideoFiles[portfolioVideoIndex] = file; // 파일을 해당 인덱스에 저장
       }
     });
     // const profileCreateDto = new ProfileCreateDto(data);
     // profileCreateDto.validate();
-    await profileService.profileUploadTest(userSn, profile, portfolios, userImg, portfolioMediaFiles);
+    await profileService.profileUploadTest(userSn, profile, portfolios, userImg, portfolioImageFiles, portfolioVideoFiles);
     return res.status(200).json({ message: '프로필 및 포트폴리오 생성 완료' });
   } catch (error) {
     logger.error('프로필 및 포트폴리오 입력중 에러 발생 에러내용', error);

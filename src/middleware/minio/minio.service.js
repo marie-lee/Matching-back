@@ -84,7 +84,7 @@ class minio {
         return `http://${process.env.MINIO_END_POINT}:${process.env.MINIO_PORT}/matching/${filePath}`;
     }
 
-    async portfolioUpload(file, mainYn, serialNum, transaction) {
+    async portfolioUpload(file, mainYn, serialNum, transaction, type) {
 
         if (!file) {
             return res.status(400).send('No file uploaded.');
@@ -109,7 +109,7 @@ class minio {
         try {
             const objInfo = await uploadPromise;
             const url = `http://${process.env.MINIO_END_POINT}:${process.env.MINIO_PORT}/matching/${filePath}`;
-            await db.TB_PFOL_MEDIA.create({PFOL_SN: serialNum, URL: url, MAIN_YN: mainYn}, {transaction});
+            await db.TB_PFOL_MEDIA.create({PFOL_SN: serialNum, URL: url, MAIN_YN: mainYn, TYPE:type}, {transaction});
         } catch (error) {
             logger.error('Failed to upload the file or update the database:', error);
             throw error;

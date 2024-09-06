@@ -9,288 +9,6 @@ const {Op} = require("sequelize");
 const profileRepository = require("./profile.repository");
 
 class profileService {
-  async profileUpload(userSn, profileData, portfolios, userImg, portfolioMedia) {
-    const t = await db.transaction();
-    try {
-      if (!profileData && !portfolios) {
-        throwError('프로필과 포트폴리오 데이터가 없습니다.');
-      } else if (profileData && !portfolios) {
-        const pf = await this.profileInsert(profileData, userSn, t, userImg);
-        if (pf) {
-          await t.commit();
-          await this.toVectorPfPfol(userSn);
-        } else {
-          await this.profileModify(userSn, profileData, portfolios, userImg, portfolioMedia,t);
-
-          await t.commit();
-        }
-      } else if (profileData && portfolios) {
-        const pf = await this.profileInsert(profileData, userSn, t, userImg);
-        if (pf) {
-          for (const portfolio of portfolios) {
-            await this.portfolioInsert(portfolio, pf, t, portfolioMedia);
-          }
-          await t.commit();
-          await this.toVectorPfPfol(userSn);
-        } else {
-          await this.profileModify(userSn, profileData, portfolios, userImg, portfolioMedia,t);
-          await t.commit();
-        }
-      }
-    } catch (error) {
-      await this.deleteFileFromMinio(profileData, portfolios);
-      await t.rollback();
-      throw error;
-    }
-  }
-
-  async profileModify(userSn, profileData, portfolios, userImg, portfolioMedia,t) {
-    try {
-      const pf = await this.profileUpdate(profileData, userSn, t, userImg);
-      if (portfolios) {
-        for (const portfolio of portfolios) {
-          await this.portfolioUpdate(portfolio, pf, t, portfolioMedia);
-        }
-      }
-
-      await this.toVectorPfPfol(userSn);
-    } catch (error) {
-      await this.deleteFileFromMinio(profileData, portfolios);
-      throw error;
-    }
-  }
-
-  async profileUpdate(profile, userSn, transaction, userImg) {
-    try {
-      const existingProfile = await db.TB_PF.findOne({ where: { USER_SN: userSn } });
-      if (existingProfile) {
-        await db.TB_PF.update({ PF_INTRO: profile.PF_INTRO }, { where: { USER_SN: userSn }, transaction });
-
-        if (userImg) {
-          const user = await db.TB_USER.findOne({where: {USER_SN: userSn}});
-          const fileName = this.fileUrlParsing(user.USER_IMG);
-          await minio.deleteFile(fileName);
-          const url = await minio.profileUpload(userImg, userSn);
-          await db.TB_USER.update({ USER_IMG: url }, { where: { USER_SN: userSn }, transaction: transaction});
-        }
-        await this.updateProfileDetails(existingProfile.PF_SN, profile, transaction);
-        return existingProfile;
-      } else {
-        const newProfile = await db.TB_PF.create({ PF_INTRO: profile.PF_INTRO, USER_SN: userSn }, { transaction });
-
-        if (userImg) {
-          const url = await minio.profileUpload(userImg, userSn);
-          await db.TB_USER.update({ USER_IMG: url }, { where: { USER_SN: userSn }, transaction: transaction});
-        }
-
-        await this.insertProfileDetails(newProfile.PF_SN, profile, transaction);
-        return newProfile;
-      }
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async insertProfileDetails(pfSn, profile, transaction) {
-    if (profile.CAREER) {
-      for (const career of profile.CAREER) {
-        await db.TB_CAREER.create({
-          CAREER_NM: career.CAREER_NM,
-          ENTERING_DT: career.ENTERING_DT,
-          QUIT_DT: career.QUIT_DT,
-          PF_SN: pfSn
-        }, { transaction });
-      }
-    }
-
-    if (profile.STACK) {
-      for (const stack of profile.STACK) {
-        const [st] = await db.TB_ST.findOrCreate({
-          where: { ST_NM: stack.ST_NM },
-          defaults: { ST_NM: stack.ST_NM },
-          transaction: transaction
-        });
-        await db.TB_PF_ST.create({
-          PF_SN: pfSn,
-          ST_SN: st.ST_SN,
-          ST_LEVEL: stack.LEVEL
-        }, { transaction });
-      }
-    }
-    if (profile.INTRST) {
-      for (const intrst of profile.INTRST) {
-        const [intr] = await db.TB_INTRST.findOrCreate({
-          where: { INTRST_NM: intrst },
-          defaults: { INTRST_NM: intrst },
-          transaction: transaction
-        });
-        await db.TB_PF_INTRST.create({ PF_SN: pfSn, INTRST_SN: intr.INTRST_SN }, { transaction });
-      }
-    }
-    if (profile.URL) {
-      for (const url of profile.URL) {
-        const u = await db.TB_URL.create({ URL: url.URL, URL_INTRO: url.URL_INTRO }, { transaction });
-        await db.TB_PF_URL.create({ PF_SN: pfSn, URL_SN: u.URL_SN }, { transaction });
-      }
-    }
-  }
-
-  async updateProfileDetails(pfSn, profile, transaction) {
-    await db.TB_CAREER.destroy({ where: { PF_SN: pfSn }, transaction });
-    await db.TB_PF_ST.destroy({ where: { PF_SN: pfSn }, transaction });
-    await db.TB_PF_INTRST.destroy({ where: { PF_SN: pfSn }, transaction });
-    await db.TB_PF_URL.destroy({ where: { PF_SN: pfSn }, transaction });
-    await this.insertProfileDetails(pfSn, profile, transaction);
-  }
-
-  async portfolioUpdate(portfolio, pf, transaction, portfolioMedia) {
-    try {
-      let pfol;
-      if (portfolio.PFOL_SN) {
-        pfol = await db.TB_PFOL.findOne({ where: { PFOL_SN: portfolio.PFOL_SN } });
-        if (pfol) {
-          await db.TB_PFOL.update({
-            PFOL_NM: portfolio.PFOL_NM,
-            START_DT: portfolio.START_DT,
-            END_DT: portfolio.END_DT,
-            PERIOD: portfolio.PERIOD,
-            INTRO: portfolio.INTRO,
-            MEM_CNT: portfolio.MEM_CNT,
-            CONTRIBUTION: portfolio.CONTRIBUTION,
-            SERVICE_STTS: portfolio.SERVICE_STTS,
-            RESULT: portfolio.RESULT
-          }, { where: { PFOL_SN: portfolio.PFOL_SN }, transaction });
-
-          if(portfolio.MEDIA){
-            for(const media of portfolio.MEDIA){
-              if(media.fileName){
-                const file = portfolioMedia.find(f => f.originalname === media.fileName);
-                if(file){
-                  await minio.portfolioUpload(file, media.MAIN_YN, pfol.PFOL_SN, transaction);
-                }
-              }
-              else if(media.URL){
-                if(media.DEL_YN) {
-                  await db.TB_PFOL_MEDIA.update({DELETED_DT: new Date(), DEL_YN: media.DEL_YN, MAIN_YN: media.MAIN_YN}, {
-                    where: {PFOL_SN: portfolio.PFOL_SN, URL: media.URL},
-                    transaction
-                  });
-                  const fileName = this.fileUrlParsing(media.URL);
-                  await minio.deleteFile(fileName);
-                }
-              }
-              else{
-                await db.TB_PFOL_MEDIA.update({MAIN_YN: media.MAIN_YN}, {
-                  where: {PFOL_SN: portfolio.PFOL_NM, URL: media.URL},
-                  transaction
-                });
-              }
-            }
-          }
-
-          await this.updatePortfolioDetails(portfolio.PFOL_SN, portfolio, transaction);
-        }
-      } else {
-        pfol = await this.portfolioInsert(portfolio, pf, transaction, portfolioMedia);
-      }
-      return pfol;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async insertPortfolioDetails(pfolSn, portfolio, transaction) {
-    if (portfolio.STACK) {
-      for (const stack of portfolio.STACK) {
-        const [st] = await db.TB_ST.findOrCreate({
-          where: { ST_NM: stack.ST_NM },
-          defaults: { ST_NM: stack.ST_NM },
-          transaction: transaction
-        });
-        await db.TB_PFOL_ST.create({ PFOL_SN: pfolSn, ST_SN: st.ST_SN }, { transaction });
-      }
-    }
-    if (portfolio.ROLE) {
-      for (const role of portfolio.ROLE) {
-        const [r] = await db.TB_ROLE.findOrCreate({
-          where: { ROLE_NM: role },
-          defaults: { ROLE_NM: role },
-          transaction: transaction
-        });
-        await db.TB_PFOL_ROLE.create({ PFOL_SN: pfolSn, ROLE_SN: r.ROLE_SN }, { transaction });
-      }
-    }
-    if (portfolio.URL) {
-      for (const url of portfolio.URL) {
-        const u = await db.TB_URL.create({ URL: url.URL, URL_INTRO: url.URL_INTRO }, { transaction });
-        await db.TB_PFOL_URL.create({
-          PFOL_SN: pfolSn,
-          URL_SN: u.URL_SN,
-          RELEASE_YN: url.RELEASE_YN,
-          OS: url.OS
-        }, { transaction });
-      }
-    }
-  }
-
-  async updatePortfolioDetails(pfolSn, portfolio, transaction) {
-    await db.TB_PFOL_ST.destroy({ where: { PFOL_SN: pfolSn }, transaction });
-    await db.TB_PFOL_ROLE.destroy({ where: { PFOL_SN: pfolSn }, transaction });
-    await db.TB_PFOL_URL.destroy({ where: { PFOL_SN: pfolSn }, transaction });
-    await this.insertPortfolioDetails(pfolSn, portfolio, transaction);
-  }
-  async profileInsert(profile, userSn, transaction, userImg) {
-    try {
-      if (await db.TB_PF.findOne({ where: { USER_SN: userSn } })) {
-        logger.error('해당 유저의 프로필이 이미 존재합니다.');
-        return false;
-      } else {
-        const pf = await db.TB_PF.create({ PF_INTRO: profile.PF_INTRO, USER_SN: userSn }, { transaction });
-
-        if (userImg) {
-          const url = await minio.profileUpload(userImg, userSn);
-          await db.TB_USER.update({ USER_IMG: url }, { where: { USER_SN: userSn }, transaction: transaction});
-        }
-
-        await this.insertProfileDetails(pf.PF_SN, profile, transaction);
-        return pf;
-      }
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async portfolioInsert(portfolio, pf, transaction, portfolioMedia) {
-    try {
-      const pfol = await db.TB_PFOL.create({
-        PFOL_NM: portfolio.PFOL_NM,
-        START_DT: portfolio.START_DT,
-        END_DT: portfolio.END_DT,
-        PERIOD: portfolio.PERIOD,
-        INTRO: portfolio.INTRO,
-        MEM_CNT: portfolio.MEM_CNT,
-        CONTRIBUTION: portfolio.CONTRIBUTION,
-        SERVICE_STTS: portfolio.SERVICE_STTS,
-        RESULT: portfolio.RESULT
-      }, { transaction });
-
-      await db.TB_PF_PFOL.create({ PF_SN: pf.PF_SN, PFOL_SN: pfol.PFOL_SN }, { transaction });
-
-      if(portfolio.MEDIA){
-        for(const media of portfolio.MEDIA){
-          const file = portfolioMedia.find(f => f.originalname === media.fileName);
-          if(file){
-            await minio.portfolioUpload(file, media.MAIN_YN, pfol.PFOL_SN, transaction);
-          }
-        }
-      }
-
-      await this.insertPortfolioDetails(pfol.PFOL_SN, portfolio, transaction);
-      return pfol;
-    } catch (error) {
-      throw error;
-    }
-  }
   fileUrlParsing(url){
     const parsedUrl = new URL(url);
     const pathname = parsedUrl.pathname;
@@ -510,7 +228,7 @@ class profileService {
   }
 
   // 프로필, 포트폴리오 테스트 코드
-  async profileUploadTest(userSn, profileData, portfolios, userImg, portfolioMedia) {
+  async profileUploadTest(userSn, profileData, portfolios, userImg, portfolioMedia, portfolioVideo) {
     const t = await db.transaction();
     try {
       if (!profileData && !portfolios) {
@@ -521,7 +239,7 @@ class profileService {
           await t.commit();
           // await this.toVectorPfPfol(userSn);
         } else {
-          await this.profileModifyTest(userSn, profileData, portfolios, userImg, portfolioMedia,t);
+          await this.profileModifyTest(userSn, profileData, portfolios, userImg, portfolioMedia, portfolioVideo,t);
 
           await t.commit();
         }
@@ -530,13 +248,13 @@ class profileService {
         if (pf) {
           let pfolCnt = 0;
           for (const portfolio of portfolios) {
-            await this.portfolioInsertTest(portfolio, pf, t, portfolioMedia, pfolCnt);
+            await this.portfolioInsertTest(portfolio, pf, t, portfolioMedia, portfolioVideo, pfolCnt);
             pfolCnt++;
           }
           await t.commit();
           // await this.toVectorPfPfol(userSn);
         } else {
-          await this.profileModifyTest(userSn, profileData, portfolios, userImg, portfolioMedia,t);
+          await this.profileModifyTest(userSn, profileData, portfolios, userImg, portfolioMedia, portfolioVideo,t);
           await t.commit();
         }
       }
@@ -547,14 +265,14 @@ class profileService {
     }
   }
 
-  async profileModifyTest(userSn, profileData, portfolios, userImg, portfolioMedia,t) {
+  async profileModifyTest(userSn, profileData, portfolios, userImg, portfolioMedia, portfolioVideo, t) {
     try {
       const pf = await this.profileUpdateTest(profileData, userSn, t, userImg);
       if (portfolios) {
         let pfolCnt = 0;
         let pfolList = [];
         for (const portfolio of portfolios) {
-          const pfol = await this.portfolioUpdateTest(portfolio, pf, t, portfolioMedia, pfolCnt);
+          const pfol = await this.portfolioUpdateTest(portfolio, pf, t, portfolioMedia, portfolioVideo, pfolCnt);
           pfolCnt++;
           pfolList.push(pfol.PFOL_SN);
         }
@@ -563,6 +281,17 @@ class profileService {
           }});
         for (const delPfol of deletePfolList){
           await this.deletePortfolioDetailsTest(delPfol.PFOL_SN, t);
+          const delMediaList = await db.TB_PFOL_MEDIA.findAll({where:{PFOL_SN: delPfol.PFOL_SN}});
+          if(delMediaList){
+            for (const delMedia of delMediaList) {
+              await db.TB_PFOL_MEDIA.update({DELETED_DT: new Date(), DEL_YN: 1}, {
+                where: {PFOL_SN: delPfol.PFOL_SN, URL: delMedia.URL},
+                t
+              });
+              const fileName = this.fileUrlParsing(delPfol.URL);
+              await minio.deleteFile(fileName);
+            }
+          }
           await db.TB_PFOL.update({DEL_YN: true, DELETE_DT: new Date()}, {
             where: {PFOL_SN: delPfol.PFOL_SN},
             t
@@ -661,7 +390,7 @@ class profileService {
     await this.insertProfileDetailsTest(pfSn, profile, transaction);
   }
 
-  async portfolioUpdateTest(portfolio, pf, transaction, portfolioMedia, pfolCnt) {
+  async portfolioUpdateTest(portfolio, pf, transaction, portfolioMedia, portfolioVideo, pfolCnt) {
     try {
       let pfol;
       if (portfolio.PFOL_SN) {
@@ -686,12 +415,12 @@ class profileService {
               if(portfolioMedia[pfolCnt] && portfolioMedia[pfolCnt][mediaCnt]){
                 const file = portfolioMedia[pfolCnt][mediaCnt];
                 if(file){
-                  await minio.portfolioUpload(file, media.MAIN_YN, pfol.PFOL_SN, transaction);
+                  await minio.portfolioUpload(file, media.MAIN_YN, pfol.PFOL_SN, transaction, 'IMAGE');
                 }
               }
               else if(media.URL){
                 if(media.DEL_YN) {
-                  await db.TB_PFOL_MEDIA.update({DELETED_DT: new Date(), DEL_YN: media.DEL_YN, MAIN_YN: media.MAIN_YN}, {
+                  await db.TB_PFOL_MEDIA.update({DELETED_DT: new Date(), DEL_YN: media.DEL_YN}, {
                     where: {PFOL_SN: portfolio.PFOL_SN, URL: media.URL},
                     transaction
                   });
@@ -708,11 +437,33 @@ class profileService {
               mediaCnt++;
             }
           }
+          if(portfolio.VIDEO){
+            if(portfolio.VIDEO.DEL_YN){
+              await db.TB_PFOL_MEDIA.update({DELETED_DT: new Date(), DEL_YN: portfolio.VIDEO.DEL_YN}, {
+                where: {PFOL_SN: portfolio.PFOL_SN, URL: portfolio.VIDEO.URL},
+                transaction
+              });
+              const fileName = this.fileUrlParsing(portfolio.VIDEO.URL);
+              await minio.deleteFile(fileName);
+              if(portfolioVideo[pfolCnt]){
+                const video = portfolioVideo[pfolCnt];
+                if (video) {
+                  await minio.portfolioUpload(video, 0, pfol.PFOL_SN, transaction, 'VIDEO');
+                }
+              }
+            }
+          }
+          else if(portfolioVideo[pfolCnt]){
+            const video = portfolioVideo[pfolCnt];
+            if (video) {
+              await minio.portfolioUpload(video, 0, pfol.PFOL_SN, transaction, 'VIDEO');
+            }
+          }
 
           await this.updatePortfolioDetailsTest(portfolio.PFOL_SN, portfolio, transaction);
         }
       } else {
-        pfol = await this.portfolioInsertTest(portfolio, pf, transaction, portfolioMedia, pfolCnt);
+        pfol = await this.portfolioInsertTest(portfolio, pf, transaction, portfolioMedia, portfolioVideo, pfolCnt);
       }
       return pfol;
     } catch (error) {
@@ -787,7 +538,7 @@ class profileService {
     }
   }
 
-  async portfolioInsertTest(portfolio, pf, transaction, portfolioMedia, pfolCnt) {
+  async portfolioInsertTest(portfolio, pf, transaction, portfolioMedia, portfolioVideo, pfolCnt) {
     try {
       const stts = await db.TB_CMMN_CD.findOne({where: {CMMN_CD_TYPE: 'SERVICE_STTS', CMMN_CD_VAL: portfolio.SERVICE_STTS}});
       const pfol = await db.TB_PFOL.create({
@@ -810,10 +561,16 @@ class profileService {
           if (portfolioMedia[pfolCnt] && portfolioMedia[pfolCnt][mediaCnt]) {
             const file = portfolioMedia[pfolCnt][mediaCnt];
             if (file) {
-              await minio.portfolioUpload(file, media.MAIN_YN, pfol.PFOL_SN, transaction);
+              await minio.portfolioUpload(file, media.MAIN_YN, pfol.PFOL_SN, transaction, 'IMAGE');
             }
           }
           mediaCnt++;
+        }
+      }
+      if(portfolioVideo[pfolCnt]){
+        const video = portfolioVideo[pfolCnt];
+        if (video) {
+          await minio.portfolioUpload(video, 0, pfol.PFOL_SN, transaction, 'VIDEO');
         }
       }
 

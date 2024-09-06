@@ -251,8 +251,9 @@ const portfolioInfo = async (pfSn) => {
     const pfolSt = await db.TB_PFOL_ST.findAll({where: {PFOL_SN: pfol.PFOL_SN}});
     const pfolRole = await db.TB_PFOL_ROLE.findAll({where: {PFOL_SN: pfol.PFOL_SN}});
     const pfolUrl = await db.TB_PFOL_URL.findAll({where: {PFOL_SN: pfol.PFOL_SN, DEL_YN: false}});
-    const pfolMedia = await db.TB_PFOL_MEDIA.findAll({where: {PFOL_SN: pfol.PFOL_SN, DEL_YN: false}});
+    const pfolMedia = await db.TB_PFOL_MEDIA.findAll({where: {PFOL_SN: pfol.PFOL_SN, DEL_YN: false, TYPE: 'IMAGE'}});
     const pfolRate = await db.TB_RATE.findAll({where: {PJT_SN: pfol.PJT_SN}});
+    const pfolVideo = await db.TB_PFOL_MEDIA.findOne({where: {PFOL_SN: pfol.PFOL_SN, DEL_YN: false, TYPE: 'VIDEO'}});
 
     for (const s of pfolSt) {
       const stack = await db.TB_ST.findOne({where: {ST_SN: s.ST_SN}});
@@ -311,6 +312,7 @@ const portfolioInfo = async (pfSn) => {
       MODIFIED_DT: pfol.MODIFIED_DT,
       url: urlData[0] ? urlData : null,
       IMG: imgData[0] ? imgData : null,
+      VIDEO: pfolVideo ? {URL: pfolVideo.URL} : null,
       RATE: rateData
     });
   }
