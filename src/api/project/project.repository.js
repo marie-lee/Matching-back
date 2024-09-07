@@ -77,7 +77,8 @@ const getMyProjects = async(userSn) => {
                           LEFT JOIN TB_PJT pj ON pjm.PJT_SN = pj.PJT_SN AND pj.DEL_YN = FALSE
                           INNER JOIN TB_CMMN_CD tcc ON tcc.CMMN_CD_TYPE = 'PJT_STTS' AND tcc.CMMN_CD = pj.PJT_STTS
                    WHERE usr.USER_SN = ${userSn}
-                   GROUP BY pj.PJT_SN;`;
+                   GROUP BY pj.PJT_SN
+                   ORDER BY pj.CREATED_DT DESC;`;
 
     return await db.query(query, {type: QueryTypes.SELECT});
 }
