@@ -409,6 +409,10 @@ const findIssuePart = async (pjtSn, ticketSn) => {
     return await db.TB_PJT_M.findOne({where:{ PJT_SN: pjtSn, USER_SN: ticket.WORKER }});
 }
 
+const findCreateIssue = async (pjtSn, userSn) => {
+    return await db.TB_ISSUE.findAll({where: {PJT_SN: pjtSn, PRESENT_SN: userSn}});
+}
+
 module.exports = {
     beginTransaction,
     commitTransaction,
@@ -448,5 +452,6 @@ module.exports = {
     findIssuesByTicket,
     updateTask,
     findWorkList,
-    findIssuePart
+    findIssuePart,
+    findCreateIssue
 };

@@ -237,7 +237,7 @@ class profileService {
         const pf = await this.profileInsertTest(profileData, userSn, t, userImg);
         if (pf) {
           await t.commit();
-          // await this.toVectorPfPfol(userSn);
+          await this.toVectorPfPfol(userSn);
         } else {
           await this.profileModifyTest(userSn, profileData, portfolios, userImg, portfolioMedia, portfolioVideo,t);
 
@@ -252,7 +252,7 @@ class profileService {
             pfolCnt++;
           }
           await t.commit();
-          // await this.toVectorPfPfol(userSn);
+          await this.toVectorPfPfol(userSn);
         } else {
           await this.profileModifyTest(userSn, profileData, portfolios, userImg, portfolioMedia, portfolioVideo,t);
           await t.commit();
@@ -300,7 +300,7 @@ class profileService {
         }
       }
 
-      // await this.toVectorPfPfol(userSn);
+      await this.toVectorPfPfol(userSn);
     } catch (error) {
       await this.deleteFileFromMinio(profileData, portfolios);
       throw error;

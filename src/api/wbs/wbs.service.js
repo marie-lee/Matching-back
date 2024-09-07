@@ -107,15 +107,17 @@ class WbsService {
             }
 
             const userRole = await projectRepository.findProjectMember(pjtSn, userSn);
-            if(userRole.ROLE !== 'owner'){
+            /*if(userRole.ROLE !== 'owner'){
                 return {
                     status: 403,
                     message: 'WBS 수정 권한이 없습니다.'
                 }
-            }
+            }*/
 
             // 시작일 종료일 설정
-            await wbsRepository.updateProjectDates(pjtSn, pjtData, t);
+            if(pjtData.startDt || pjtData.endDt) {
+                await wbsRepository.updateProjectDates(pjtSn, pjtData, t);
+            }
 
             // 멤버 권한, 담당 설정
             if(pjtData.members){
@@ -462,7 +464,27 @@ class WbsService {
                     result.task.push(taskResult);
                 }
             }
-            // 현재는 멘션된 이슈만 가져옴 추후 댓글에 멘션된 이슈들도 포함해야되는지 결정할 예정
+
+            const myIssue = await wbsRepository.findCreateIssue(pjtSn, userSn);
+            for(const issue of myIssue){
+                const [issuePriority, issuePresent, issuePart] = await Promise.all([
+                    cmmnRepository.oneCmmnVal('ISSUE_PRRT', issue.PRIORITY),
+                    projectRepository.findProjectMember(pjtSn, issue.PRESENT_SN),
+                    wbsRepository.findIssuePart(pjtSn, issue.TICKET_SN)
+                ]);
+                const presentUser = await userRepository.findUser(issuePresent.USER_SN);
+
+                const issueResult = {
+                    issueSn: issue.ISSUE_SN,
+                    issueNum: issuePart ? issuePart.PART + '-i' + issue.ISSUE_CNT + '-' + issue.ISSUE_SN : 'ISSUE-i' + issue.ISSUE_CNT + '-' + issue.ISSUE_SN,
+                    priority: issuePriority ? issuePriority.CMMN_CD_VAL : null,
+                    title: issue.ISSUE_NM,
+                    present: presentUser.USER_NM,
+                    dueDate: issue.END_DT ? formatDt(issue.END_DT) : null
+                }
+                result.issue.push(issueResult);
+            }
+
             const myMention = await wbsRepository.findMentionByIssue(userSn);
             for(const mention of myMention){
                 if(mention.ISSUE_SN){
@@ -483,7 +505,11 @@ class WbsService {
                             present: presentUser.USER_NM,
                             dueDate: issue.END_DT ? formatDt(issue.END_DT) : null
                         }
-                        result.issue.push(issueResult);
+                        // 중복 체크: result.issue 배열에 issueSn이 이미 존재하는지 확인
+                        const exists = result.issue.find(existingIssue => existingIssue.issueSn === issueResult.issueSn);
+                        if (!exists) {
+                            result.issue.push(issueResult);
+                        }
                     }
                 }
             }
