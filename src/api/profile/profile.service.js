@@ -111,7 +111,8 @@ class profileService {
       // 프로필 데이터가 없을 때
       if (!profile || profile.length === 0) {
         return {
-          status: 404,
+          profile: profile,
+          portfolioInfo: portfolioInfo,
           message: '프로필이 입력되지 않았습니다.'
         };
       }

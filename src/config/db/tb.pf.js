@@ -8,7 +8,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     PF_INTRO: {
       type: DataTypes.TEXT,
-      allowNull: true
+      allowNull: true,
+      defaultValue: null
     },
     CREATED_DT: {
       type: DataTypes.DATE,
@@ -22,7 +23,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     DELETED_DT: {
       type: DataTypes.DATE,
-      allowNull: true
+      allowNull: true,
+      defaultValue: null
     },
     DEL_YN: {
       type: DataTypes.BOOLEAN,

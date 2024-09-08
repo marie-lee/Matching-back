@@ -17,7 +17,11 @@ const updateUserGoogleLogin = async (userSn, refreshToken, uid, transaction) => 
 
 // 사용자 데이터베이스에 저장
 const createUser = async (userData, transaction) => {
-    return await db.TB_USER.create(userData, { transaction });
+    const newUser = await db.TB_USER.create(userData, { transaction });
+    if(newUser){
+      await db.TB_PF.create({USER_SN: newUser.USER_SN}, {transaction});
+    }
+    return newUser;
 };
 
 const findEmailVerification = async (email, PURPOSE) => {
