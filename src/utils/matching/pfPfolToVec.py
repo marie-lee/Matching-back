@@ -42,6 +42,8 @@ processor = CLIPProcessor.from_pretrained(model_name)
 
 # 텍스트 임베딩 함수
 def get_text_embeddings(texts):
+    if not texts:  # texts가 비어 있거나 None인 경우
+        return torch.zeros((1, 512))  # 기본값으로 0 벡터 반환
     inputs = processor(text=texts, return_tensors="pt", padding=True, truncation=True, max_length=MAX_LENGTH)
     outputs = model.get_text_features(**inputs)
     return outputs
@@ -57,9 +59,10 @@ def get_average_embedding(text_list):
 
 # 프로젝트 데이터 가공 함수
 def process_description(description):
+    if description is None:
+        return ''
     sentences = description.split('/n')
     processed_sentences = []
-    # 문장이 하나만 있는 경우
     if len(sentences) == 1:
         return description
     for sentence in sentences:
@@ -69,6 +72,8 @@ def process_description(description):
         else:
             processed_sentences.append(sentence)
     return processed_sentences
+
+
 
 # 프로필 데이터를 텍스트로 변환
 def profile_to_text(profile):
