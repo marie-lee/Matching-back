@@ -89,8 +89,10 @@ router.put('/status/:pjtSn/req/:reqSn', jwt.authenticateToken, async (req, res) 
 
 // 참여 요청 프로젝트 조회
 router.get('/status/user/:pjtSn', jwt.authenticateToken, async (req, res) => {
+    const pjtSn = req.params.pjtSn;
+    const userSn = req.userSn.USER_SN;
     try {
-        const pjtData = await statusService.reqProject(req, res);
+        const pjtData = await statusService.reqProject(userSn, pjtSn);
         return res.status(200).json(pjtData);
     } catch (error) {
         logger.error(`요청된 프로젝트 조회 실패: ${error.message}`);
