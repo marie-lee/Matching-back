@@ -192,131 +192,137 @@ const findProfile = async (userSn) => {
   const urlData = [];
   const user = await db.TB_USER.findOne({where: {USER_SN: userSn}});
   const profile = await db.TB_PF.findOne({where: {USER_SN: userSn}});
-  const career = await db.TB_CAREER.findAll({where: {PF_SN: profile.PF_SN, DEL_YN: false}});
-  const pfSt = await db.TB_PF_ST.findAll({where: {PF_SN: profile.PF_SN}});
-  const pfIntrst = await db.TB_PF_INTRST.findAll({where: {PF_SN: profile.PF_SN}});
-  const pfUrl = await db.TB_PF_URL.findAll({where: {PF_SN: profile.PF_SN}});
-  for(const c of career){
-    careerData.push({
-      CAREER_NM: c.CAREER_NM,
-      ENTERING_DT: c.ENTERING_DT,
-      QUIT_DT: c.QUIT_DT
-    });
-  }
-  for(const s of pfSt){
-    const stack = await db.TB_ST.findOne({where: {ST_SN: s.ST_SN}});
-    stackData.push({
-      ST_NM: stack.ST_NM,
-      ST_LEVEL: s.ST_LEVEL
-    });
-  }
-  for(const i of pfIntrst){
-    const intrst = await db.TB_INTRST.findOne({where: {INTRST_SN: i.INTRST_SN}});
-    intrstData.push({
-      INTEREST_NM: intrst.INTRST_NM
-    });
-  }
-  for(const u of pfUrl){
-    const url = await db.TB_URL.findOne({where: {URL_SN: u.URL_SN, DEL_YN: false}});
-    urlData.push({
-      URL_ADDR: url.URL,
-      URL_INTRO: url.URL_INTRO
-    });
-  }
-
-  return {
-    PF_SN: profile.PF_SN,
-    USER_SN: user.USER_SN,
-    USER_NM: user.USER_NM,
-    USER_IMG: user.USER_IMG,
-    PF_INTRO: profile.PF_INTRO,
-    career: careerData[0] ? careerData : null,
-    stack: stackData[0] ? stackData : null,
-    interest: intrstData[0] ? intrstData : null,
-    url: urlData[0] ? urlData : null
-  }
-};
-
-const portfolioInfo = async (pfSn) => {
-  const pfolData = [];
-  const pfolList = await db.TB_PF_PFOL.findAll({where: {PF_SN: pfSn}});
-  for (const pfPfol of pfolList) {
-    const pfol = await db.TB_PFOL.findOne({where: {PFOL_SN: pfPfol.PFOL_SN}});
-    const stackData = [];
-    const roleData = [];
-    const urlData = [];
-    const imgData = [];
-    let rateData = null;
-    const stts = await db.TB_CMMN_CD.findOne({where: {CMMN_CD_TYPE: 'SERVICE_STTS', CMMN_CD: pfol.SERVICE_STTS}});
-    const pfolSt = await db.TB_PFOL_ST.findAll({where: {PFOL_SN: pfol.PFOL_SN}});
-    const pfolRole = await db.TB_PFOL_ROLE.findAll({where: {PFOL_SN: pfol.PFOL_SN}});
-    const pfolUrl = await db.TB_PFOL_URL.findAll({where: {PFOL_SN: pfol.PFOL_SN, DEL_YN: false}});
-    const pfolMedia = await db.TB_PFOL_MEDIA.findAll({where: {PFOL_SN: pfol.PFOL_SN, DEL_YN: false, TYPE: 'IMAGE'}});
-    const pfolRate = await db.TB_RATE.findAll({where: {PJT_SN: pfol.PJT_SN}});
-    const pfolVideo = await db.TB_PFOL_MEDIA.findOne({where: {PFOL_SN: pfol.PFOL_SN, DEL_YN: false, TYPE: 'VIDEO'}});
-
-    for (const s of pfolSt) {
+  if(profile){
+    const career = await db.TB_CAREER.findAll({where: {PF_SN: profile.PF_SN, DEL_YN: false}});
+    const pfSt = await db.TB_PF_ST.findAll({where: {PF_SN: profile.PF_SN}});
+    const pfIntrst = await db.TB_PF_INTRST.findAll({where: {PF_SN: profile.PF_SN}});
+    const pfUrl = await db.TB_PF_URL.findAll({where: {PF_SN: profile.PF_SN}});
+    for (const c of career) {
+      careerData.push({
+        CAREER_NM: c.CAREER_NM,
+        ENTERING_DT: c.ENTERING_DT,
+        QUIT_DT: c.QUIT_DT
+      });
+    }
+    for (const s of pfSt) {
       const stack = await db.TB_ST.findOne({where: {ST_SN: s.ST_SN}});
       stackData.push({
         ST_NM: stack.ST_NM,
         ST_LEVEL: s.ST_LEVEL
       });
     }
-    for (const r of pfolRole) {
-      const role = await db.TB_ROLE.findOne({where: {ROLE_SN: r.ROLE_SN}});
-      roleData.push({
-        ROLE_SN: role.ROLE_SN,
-        ROLE_NM: role.ROLE_NM
+    for (const i of pfIntrst) {
+      const intrst = await db.TB_INTRST.findOne({where: {INTRST_SN: i.INTRST_SN}});
+      intrstData.push({
+        INTEREST_NM: intrst.INTRST_NM
       });
     }
-    for (const u of pfolUrl) {
+    for (const u of pfUrl) {
       const url = await db.TB_URL.findOne({where: {URL_SN: u.URL_SN, DEL_YN: false}});
       urlData.push({
-        URL_SN: url.URL_SN,
-        URL: url.URL,
-        OS: u.OS,
+        URL_ADDR: url.URL,
         URL_INTRO: url.URL_INTRO
       });
     }
-    let imgCnt = 0;
-    for (const m of pfolMedia) {
-      imgData.push({
-        ID: imgCnt,
-        URL: m.URL,
-        MAIN_YN: m.MAIN_YN
-      });
-      imgCnt++;
-    }
 
-    for (const rate of pfolRate) {
-      if(rateData===null) rateData = rate.RATE_TEXT;
-      else rateData = `${rateData}, ${rate.RATE_TEXT}`;
-    }
-
-
-    pfolData.push({
-      PFOL_SN: pfol.PFOL_SN,
-      PFOL_NM: pfol.PFOL_NM,
-      INTRO: pfol.INTRO,
-      START_DT: pfol.START_DT,
-      END_DT: pfol.END_DT,
-      PERIOD: pfol.PERIOD,
-      MEM_CNT: pfol.MEM_CNT,
+    return {
+      PF_SN: profile.PF_SN,
+      USER_SN: user.USER_SN,
+      USER_NM: user.USER_NM,
+      USER_IMG: user.USER_IMG,
+      PF_INTRO: profile.PF_INTRO,
+      career: careerData[0] ? careerData : null,
       stack: stackData[0] ? stackData : null,
-      role: roleData[0] ? roleData : null,
-      CONTRIBUTION: pfol.CONTRIBUTION,
-      SERVICE_STTS: pfol.SERVICE_STTS,
-      SERVICE_STTS_VAL: stts ? stts.CMMN_CD_VAL : null,
-      RESULT: pfol.RESULT,
-      CREATED_DT: pfol.CREATED_DT,
-      MODIFIED_DT: pfol.MODIFIED_DT,
-      url: urlData[0] ? urlData : null,
-      IMG: imgData[0] ? imgData : null,
-      VIDEO: pfolVideo ? {URL: pfolVideo.URL} : null,
-      RATE: rateData
-    });
+      interest: intrstData[0] ? intrstData : null,
+      url: urlData[0] ? urlData : null
+    }
   }
-  return pfolData[0] ? pfolData : null;
+  else return null;
+};
+
+const portfolioInfo = async (pfSn) => {
+  const pfolData = [];
+  const pfolList = await db.TB_PF_PFOL.findAll({where: {PF_SN: pfSn}});
+  if(pfolList && pfolList.length !== 0){
+    for (const pfPfol of pfolList) {
+      const pfol = await db.TB_PFOL.findOne({where: {PFOL_SN: pfPfol.PFOL_SN}});
+      const stackData = [];
+      const roleData = [];
+      const urlData = [];
+      const imgData = [];
+      let rateData = null;
+      const stts = await db.TB_CMMN_CD.findOne({where: {CMMN_CD_TYPE: 'SERVICE_STTS', CMMN_CD: pfol.SERVICE_STTS}});
+      const pfolSt = await db.TB_PFOL_ST.findAll({where: {PFOL_SN: pfol.PFOL_SN}});
+      const pfolRole = await db.TB_PFOL_ROLE.findAll({where: {PFOL_SN: pfol.PFOL_SN}});
+      const pfolUrl = await db.TB_PFOL_URL.findAll({where: {PFOL_SN: pfol.PFOL_SN, DEL_YN: false}});
+      const pfolMedia = await db.TB_PFOL_MEDIA.findAll({where: {PFOL_SN: pfol.PFOL_SN, DEL_YN: false, TYPE: 'IMAGE'}});
+      const pfolRate = await db.TB_RATE.findAll({where: {PJT_SN: pfol.PJT_SN}});
+      const pfolVideo = await db.TB_PFOL_MEDIA.findOne({where: {PFOL_SN: pfol.PFOL_SN, DEL_YN: false, TYPE: 'VIDEO'}});
+
+      for (const s of pfolSt) {
+        const stack = await db.TB_ST.findOne({where: {ST_SN: s.ST_SN}});
+        stackData.push({
+          ST_NM: stack.ST_NM,
+          ST_LEVEL: s.ST_LEVEL
+        });
+      }
+      for (const r of pfolRole) {
+        const role = await db.TB_ROLE.findOne({where: {ROLE_SN: r.ROLE_SN}});
+        roleData.push({
+          ROLE_SN: role.ROLE_SN,
+          ROLE_NM: role.ROLE_NM
+        });
+      }
+      for (const u of pfolUrl) {
+        const url = await db.TB_URL.findOne({where: {URL_SN: u.URL_SN, DEL_YN: false}});
+        urlData.push({
+          URL_SN: url.URL_SN,
+          URL: url.URL,
+          OS: u.OS,
+          URL_INTRO: url.URL_INTRO
+        });
+      }
+      let imgCnt = 0;
+      for (const m of pfolMedia) {
+        imgData.push({
+          ID: imgCnt,
+          URL: m.URL,
+          MAIN_YN: m.MAIN_YN
+        });
+        imgCnt++;
+      }
+
+      for (const rate of pfolRate) {
+        if (rateData === null) rateData = rate.RATE_TEXT;
+        else rateData = `${rateData}, ${rate.RATE_TEXT}`;
+      }
+
+
+      pfolData.push({
+        PFOL_SN: pfol.PFOL_SN,
+        PFOL_NM: pfol.PFOL_NM,
+        INTRO: pfol.INTRO,
+        START_DT: pfol.START_DT,
+        END_DT: pfol.END_DT,
+        PERIOD: pfol.PERIOD,
+        MEM_CNT: pfol.MEM_CNT,
+        stack: stackData[0] ? stackData : null,
+        role: roleData[0] ? roleData : null,
+        CONTRIBUTION: pfol.CONTRIBUTION,
+        SERVICE_STTS: pfol.SERVICE_STTS,
+        SERVICE_STTS_VAL: stts ? stts.CMMN_CD_VAL : null,
+        RESULT: pfol.RESULT,
+        CREATED_DT: pfol.CREATED_DT,
+        MODIFIED_DT: pfol.MODIFIED_DT,
+        url: urlData[0] ? urlData : null,
+        IMG: imgData[0] ? imgData : null,
+        VIDEO: pfolVideo ? {URL: pfolVideo.URL} : null,
+        RATE: rateData
+      });
+    }
+    return pfolData[0] ? pfolData : null;
+  }
+  else return null
 };
 
 // 포트폴리오 전체 조회

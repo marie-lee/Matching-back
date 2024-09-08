@@ -102,8 +102,11 @@ class profileService {
     try {
       // 프로필 조회
       const profile = await profileRepository.findProfile(userSn);
+      let portfolioInfo = null;
       // 포트폴리오정보 조회(평가 내역있을 시 추가)
-      const portfolioInfo = await profileRepository.portfolioInfo(profile.PF_SN);
+      if(profile){
+        portfolioInfo = await profileRepository.portfolioInfo(profile.PF_SN);
+      }
 
       // 프로필 데이터가 없을 때
       if (!profile || profile.length === 0) {
