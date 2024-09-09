@@ -17,8 +17,8 @@ class recommendationService {
             const sortedEntries = Object.entries(dataJson).sort((a, b) => b[1] - a[1]);
             // 정렬된 키-값 쌍 배열에서 키(key)만 가져와서 배열로 만듦
             const sortedKeys = sortedEntries.map(entry => parseInt(entry[0], 10));
-
-            const userPfPfol = await profileService.pfPfolSelectAll(sortedKeys, user);
+            const pfSn = await profileService.findmyPfSn(user)
+            const userPfPfol = await profileService.pfPfolSelectAll(sortedKeys, pfSn);
 
             return userPfPfol.map(profile => {
                 const pfSn = profile.pfSn;

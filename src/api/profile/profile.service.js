@@ -38,13 +38,13 @@ class profileService {
     }
   }
 
-  async pfPfolSelectAll(snList = [], userSn = null){
+  async pfPfolSelectAll(snList = [], pfSn = null){
     let whereClause = '';
     let orderByClause = '';
     // keys 배열이 비어있지 않다면 WHERE 조건을 추가
     if (snList.length > 0) {
       // 본인 프로필 제거
-      const filteredSnList = snList.filter(sn => sn !== userSn);
+      const filteredSnList = snList.filter(sn => sn !== pfSn.dataValues.pfSn);
       const pfSnList = filteredSnList.join(','); // 배열을 문자열로 변환
       whereClause = `WHERE pf.PF_SN IN (${pfSnList})`;
       orderByClause = `ORDER BY FIELD(pf.PF_SN, ${pfSnList})`
@@ -583,6 +583,10 @@ class profileService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async findmyPfSn(user){
+    return await profileRepository.findMyPfSn(user)
   }
 }
 

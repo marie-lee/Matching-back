@@ -556,6 +556,10 @@ const findProfileAndPortfolioForVectorization = async (userSn) => {
   return db.query(query, { type: QueryTypes.SELECT });
 };
 
+const findMyPfSn = async (userSn) => {
+  return await db.TB_PF.findOne({ where: { USER_SN: userSn } , attributes:[['PF_SN', 'pfSn']]} );
+}
+
 module.exports = {
   createUserProfile,
   createUser,
@@ -584,5 +588,6 @@ module.exports = {
   findPortfolioInfo,
   portfolioInfo,
   findPortfolioDetail,
-  findProfileAndPortfolioForVectorization
+  findProfileAndPortfolioForVectorization,
+  findMyPfSn
 };
