@@ -125,9 +125,6 @@ class statusService {
     const transaction = await db.transaction();
     const {PJT_SN, USER_SN, REQ_STTS, REQ_SN} = reqDto
     try {
-
-      let pjt = await projectRepository.myOneProject(USER_SN, PJT_SN)
-      if (!pjt) return {message : '프로젝트에 대한 권한이 없습니다.'};
       let reqMem = await statusRepository.findReqMem(PJT_SN, REQ_SN);
       if (!reqMem) return {message : '수정할 회원이 없습니다.'};
       let pr = await statusRepository.findProjectRole(PJT_SN, reqMem.PJT_ROLE_SN)
