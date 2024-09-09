@@ -543,11 +543,11 @@ const findProfileAndPortfolioForVectorization = async (userSn) => {
                     INNER JOIN TB_USER usr ON usr.USER_SN = pf.USER_SN
                     LEFT JOIN TB_CAREER cr ON cr.PF_SN = pf.PF_SN
                     LEFT JOIN TB_PF_ST pfSt ON pfSt.PF_SN = pf.PF_SN
-                    INNER JOIN TB_ST st ON st.ST_SN = pfSt.ST_SN
+                    LEFT JOIN TB_ST st ON st.ST_SN = pfSt.ST_SN
                     LEFT JOIN TB_PF_INTRST pfI ON pfI.PF_SN = pf.PF_SN
                     LEFT JOIN TB_INTRST intrst ON intrst.INTRST_SN = pfI.INTRST_SN
                     LEFT JOIN TB_PF_URL pfU ON pfU.PF_SN = pf.PF_SN
-                    INNER JOIN TB_URL url ON pfU.URL_SN = url.URL_SN
+                    LEFT JOIN TB_URL url ON pfU.URL_SN = url.URL_SN
                     LEFT JOIN TB_PF_PFOL pfPl ON pfPl.PF_SN = pf.PF_SN
                     LEFT JOIN VIEW_PFOL vpl ON vpl.PFOL_SN = pfPl.PFOL_SN
                 WHERE usr.USER_SN = ${userSn} AND usr.DEL_YN = 'N'
