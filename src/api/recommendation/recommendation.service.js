@@ -23,8 +23,13 @@ class recommendationService {
             return userPfPfol.map(profile => {
                 const pfSn = profile.pfSn;
                 const similarityScore = dataJson[pfSn.toString()];
+
+                // 포트폴리오 배열이 비어있으면 null로 설정
+                const portfolio = (profile.portfolio.length ===  1 && profile.portfolio[0].pfolSn === null) ? null : profile.portfolio;
+
                 return {
                     ...profile,
+                    portfolio,  // 포트폴리오 배열이 비어있으면 null로 설정
                     similarityScore
                 };
             });
