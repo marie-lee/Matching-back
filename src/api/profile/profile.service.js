@@ -400,7 +400,7 @@ class profileService {
       if (portfolio.PFOL_SN) {
         pfol = await db.TB_PFOL.findOne({ where: { PFOL_SN: portfolio.PFOL_SN } });
         if (pfol) {
-          const stts = db.TB_CMMN_CD.findOne({where: {CMMN_CD_TYPE: 'SERVICE_STTS', CMMN_CD_VAL: portfolio.SERVICE_STTS}});
+          const stts = portfolio.SERVICE_STTS ? await db.TB_CMMN_CD.findOne({where: {CMMN_CD_TYPE: 'SERVICE_STTS', CMMN_CD_VAL: portfolio.SERVICE_STTS}}) : null;
           await db.TB_PFOL.update({
             PFOL_NM: portfolio.PFOL_NM,
             START_DT: portfolio.START_DT,
@@ -544,7 +544,7 @@ class profileService {
 
   async portfolioInsertTest(portfolio, pf, transaction, portfolioMedia, portfolioVideo, pfolCnt) {
     try {
-      const stts = await db.TB_CMMN_CD.findOne({where: {CMMN_CD_TYPE: 'SERVICE_STTS', CMMN_CD_VAL: portfolio.SERVICE_STTS}});
+      const stts = portfolio.SERVICE_STTS ? await db.TB_CMMN_CD.findOne({where: {CMMN_CD_TYPE: 'SERVICE_STTS', CMMN_CD_VAL: portfolio.SERVICE_STTS}}) : null;
       const pfol = await db.TB_PFOL.create({
         PFOL_NM: portfolio.PFOL_NM,
         START_DT: portfolio.START_DT,
