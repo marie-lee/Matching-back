@@ -12,7 +12,7 @@ class TokenService {
     }
 
     generateAccessToken(userSn) {
-        return jwt.sign({ USER_SN: userSn }, this.accessTokenSecret, { expiresIn: '30m' });
+        return jwt.sign({ USER_SN: userSn }, this.accessTokenSecret, { expiresIn: '2h' });
     }
 
     generateRefreshToken(userSn) {
