@@ -294,7 +294,7 @@ class profileService {
                 where: {PFOL_SN: delPfol.PFOL_SN, URL: delMedia.URL},
                 t
               });
-              const fileName = this.fileUrlParsing(delPfol.URL);
+              const fileName = this.fileUrlParsing(delMedia.URL);
               await minio.deleteFile(fileName);
             }
           }
