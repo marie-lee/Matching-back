@@ -1,7 +1,6 @@
 const db = require('../../config/db/db');
 const {logger} = require('../../utils/logger');
 const {oneCmmnVal} = require("../common/common.repository");
-
 const profileService = require("../profile/profile.service");
 const projectRepository = require("../project/project.repository");
 const statusRepository = require("./status.repository");
@@ -145,16 +144,25 @@ class statusService {
         await pr.increment('CNT', {by: 1, transaction});
         const pm = {PJT_SN: reqMem.PJT_SN, USER_SN: reqMem.USER_SN, PJT_ROLE_SN: reqMem.PJT_ROLE_SN};
         await projectRepository.createProjectMember(pm, transaction);
+        const pra = await statusRepository.findAllProjectRole(PJT_SN);
+        let allEqual = true;
+        for(const r of pra){
+          if(r.PJT_ROLE_SN === pr.PJT_ROLE_SN){
+            if(r.TOTAL_CNT !== r.CNT + 1){
+              allEqual = false;
+            }
+          }
+          else if(r.TOTAL_CNT !== r.CNT){
+            allEqual = false;
+          }
+          console.log('TOTAL_CNT : '+ r.TOTAL_CNT + " , CNT : " + r.CNT)
+        }
+        console.log(allEqual)
+        if(allEqual){
+          await statusRepository.updateProjectStatus(PJT_SN, 'PROGRESS', transaction);
+        }
       }
 
-      const pra = await statusRepository.findAllProjectRole(PJT_SN);
-      let allEqual = null
-      if(pra){
-        allEqual = pra.every(item => item.TOTAL_CNT === item.CNT);
-      }
-      if(allEqual){
-        await statusRepository.updateProjectStatus(PJT_SN, 'PROGRESS');
-      }
       await transaction.commit();
       return updateReq
     } catch (error) {
