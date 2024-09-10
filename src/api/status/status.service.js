@@ -129,7 +129,6 @@ class statusService {
       if (!reqMem) return {message : '수정할 회원이 없습니다.'};
       let pr = await statusRepository.findProjectRole(PJT_SN, reqMem.PJT_ROLE_SN)
       if (pr.TOTAL_CNT === pr.CNT) return {message : '파트 인원이 모두 찼습니다.'};
-      console.log(pr)
       let mem = await projectRepository.pjtRoleMem(
           {PJT_SN: PJT_SN, USER_SN: reqMem.USER_SN, PJT_ROLE_SN: reqMem.PJT_ROLE_SN}
       );
@@ -145,7 +144,7 @@ class statusService {
       if (reqMem.REQ_STTS === 'CONFIRM') {
         await pr.increment('CNT', {by: 1, transaction});
         const pm = {PJT_SN: reqMem.PJT_SN, USER_SN: reqMem.USER_SN, PJT_ROLE_SN: reqMem.PJT_ROLE_SN};
-        await projectRepository.createProjectMember(pm, {transaction});
+        await projectRepository.createProjectMember(pm, transaction);
       }
 
       const pra = await statusRepository.findAllProjectRole(PJT_SN);
