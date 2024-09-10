@@ -92,7 +92,7 @@ const myReqList = async(user) => {
 
 const projectReqList = async(user) => {
     return await db.TB_PJT.findAll({
-        where: { CREATED_USER_SN: user },
+        where: { CREATED_USER_SN: user, PJT_STTS: 'RECRUIT' },
         attributes: [
             ['PJT_SN', 'pjtSn'],
             ['PJT_NM', 'pjtNm'],
