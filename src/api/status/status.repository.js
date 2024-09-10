@@ -92,6 +92,7 @@ const projectReqList = async(user) => {
         attributes: [
             ['PJT_SN', 'pjtSn'],
             ['PJT_NM', 'pjtNm'],
+            ['PJT_OPEN_YN', 'pjtOpenYn']
         ],
         include: [
             {
