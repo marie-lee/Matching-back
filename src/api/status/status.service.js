@@ -147,6 +147,15 @@ class statusService {
         const pm = {PJT_SN: reqMem.PJT_SN, USER_SN: reqMem.USER_SN, PJT_ROLE_SN: reqMem.PJT_ROLE_SN};
         await projectRepository.createProjectMember(pm, {transaction});
       }
+
+      const pra = await statusRepository.findAllProjectRole(PJT_SN);
+      let allEqual = null
+      if(pra){
+        allEqual = pra.every(item => item.TOTAL_CNT === item.CNT);
+      }
+      if(allEqual){
+        await statusRepository.updateProjectStatus(PJT_SN, 'PROGRESS');
+      }
       await transaction.commit();
       return updateReq
     } catch (error) {

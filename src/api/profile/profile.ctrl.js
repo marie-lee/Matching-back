@@ -21,7 +21,7 @@ router.get('/profile', jwt.authenticateToken, async (req, res) => {
   }
 });
 
-router.get('/profile/:userSn', jwt.authenticateToken, async (req, res) => {
+router.get('/user/:userSn', jwt.authenticateToken, async (req, res) => {
   try {
     const mySn = req.userSn.USER_SN;
     const userSn = req.params.userSn;

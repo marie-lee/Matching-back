@@ -9,6 +9,10 @@ const findProjectRole = async (pjtSn, pjtRoleSn) => {
     return await db.TB_PJT_ROLE.findOne({ where: { PJT_SN: pjtSn, PJT_ROLE_SN: pjtRoleSn } });
 }
 
+const findAllProjectRole = async (pjtSn) => {
+    return await db.TB_PJT_ROLE.findAll({ where: { PJT_SN: pjtSn } });
+}
+
 const createRequest = async (reqData, transaction) => {
     return await db.TB_REQ.create(reqData, { transaction });
 }
@@ -122,14 +126,20 @@ const projectReqList = async(user) => {
         ],
     });
 }
+
+const updateProjectStatus = async (pjtSn, status, transaction) => {
+    return await db.TB_PJT.update({PJT_STTS: status}, {where: {PJT_SN: pjtSn}, transaction});
+}
 module.exports = {
     myRequestList,
     findRequest,
     findProjectRole,
+    findAllProjectRole,
     createRequest,
     findReqMem,
     updateRequest,
     projectRequestList,
     myReqList,
     projectReqList,
+    updateProjectStatus
 };

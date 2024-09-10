@@ -230,7 +230,7 @@ paths:
           $ref: '#/components/responses/pfPfolInfo200'
       security:
         - JWT: []
-  /member/profile/{userSn}:
+  /member/user/{userSn}:
     get:
       tags:
         - member
