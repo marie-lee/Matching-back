@@ -51,6 +51,7 @@ class statusService {
       const result = statusList.map(pjt => ({
         pjtSn: pjt.dataValues.pjtSn,
         pjtNm: pjt.dataValues.pjtNm,
+        pjtOpenYn: pjt.dataValues.pjtOpenYn,
         reqList: pjt.tr.map(req => ({
           reqSn: req.dataValues.reqSn,
           userSn: req.tu.dataValues.userSn,
@@ -62,7 +63,6 @@ class statusService {
       }));
       for (const pjt of result) {
         for (let status of pjt.reqList) {
-          console.log(status)
           const stts = await oneCmmnVal('REQ_STTS', status.reqStts);
           status.reqSttsCd = status.reqStts;
           if(stts) status.reqStts = stts.CMMN_CD_VAL;
