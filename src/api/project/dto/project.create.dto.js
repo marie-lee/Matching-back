@@ -3,7 +3,6 @@ class ProjectCreateDto {
         {
             PJT_NM,
             PJT_INTRO,
-            PJT_OPEN_YN,
             CONSTRUCTOR_ROLE,
             SELECTED_DT_YN,
             START_DT,
@@ -16,7 +15,6 @@ class ProjectCreateDto {
         }) {
         this.PJT_NM = PJT_NM;
         this.PJT_INTRO = PJT_INTRO;
-        this.PJT_OPEN_YN = PJT_OPEN_YN;
         this.CONSTRUCTOR_ROLE = CONSTRUCTOR_ROLE;
         this.SELECTED_DT_YN = SELECTED_DT_YN;
         this.START_DT = START_DT;
@@ -33,7 +31,6 @@ class ProjectCreateDto {
         const requiredFields = {
             PJT_NM: '프로젝트명이 입력되지 않았습니다.',
             PJT_INTRO: '프로젝트 간단 설명이 입력되지 않았습니다.',
-            PJT_OPEN_YN: '프로젝트 상세 공개 여부가 선택되지 않았습니다.',
             CONSTRUCTOR_ROLE: '프로젝트 등록자 역할이 입력되지 않았습니다.',
             ROLES: '프로젝트 참여 인원 및 분야가 입력되지 않았습니다.',
             SELECTED_DT_YN: '프로젝트 기간 선택 여부가 입력되지 않았습니다.',

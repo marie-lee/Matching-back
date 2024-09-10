@@ -76,7 +76,6 @@ class projectService {
         PJT_NM,
         PJT_IMG,
         PJT_INTRO,
-        PJT_OPEN_YN,
         CONSTRUCTOR_ROLE,
         SELECTED_DT_YN,
         START_DT,
@@ -93,7 +92,6 @@ class projectService {
         PJT_NM,
         PJT_IMG,
         PJT_INTRO,
-        PJT_OPEN_YN,
         CREATED_USER_SN: user,
         CONSTRUCTOR_ROLE,
         SELECTED_DT_YN,
@@ -157,6 +155,10 @@ class projectService {
   async toVectorPjt(userSn, pjtSn) {
     try {
       const pjtData = await this.myProject(userSn, pjtSn);
+      const cleanedPjtDetail = pjtData.dataValues.pjtDetail.replace(/\r\n/g, ' ');
+      pjtData.dataValues.pjtDetail = cleanedPjtDetail;
+      console.log(pjtData.dataValues.pjtDetail)
+
       const pjtJson = JSON.stringify(pjtData);
       await runPjtToVec(pjtJson).then(() => {
         console.log("프로젝트 벡터화 완료")
