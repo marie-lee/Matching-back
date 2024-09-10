@@ -4,7 +4,7 @@ info:
   version: 1.0.0
 servers:
   - url: http://218.232.137.30:20080/api
-  - url: http://localhost:8080/api
+  - url: http://localhost:3000/api
 tags:
   - name: member
     description: 멤버 관련
@@ -230,6 +230,31 @@ paths:
           $ref: '#/components/responses/pfPfolInfo200'
       security:
         - JWT: []
+  /member/profile/{userSn}:
+    get:
+      tags:
+        - member
+      summary: 회원 프로필/포트폴리오 상세 조회
+      description: 회원 프로필/포트폴리오의 상세 조회
+      parameters:
+        - in: path
+          name: userSn
+          required: true
+          description: 회원 일련번호
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/memPfPfol200'
+        '400':
+          description: 잘못된 요청
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '프로필 및 포트폴리오 조회 실패: {에러메시지}'
+      security:
+        - JWT: [ ]
   /member/profile/{pfolSn}:
     get:
       tags:
@@ -2745,6 +2770,181 @@ components:
                 - URL: http://example.com/image.jpg
                   MAIN_YN: true
               RATE: [ '평가1','평가2','평가3','평가4' ]
+    memPfPfol200:
+      description: 회원 프로필/프트폴리오 조회 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              PF_SN:
+                type: integer
+                description: 프로필 PK
+                example: 1
+              USER_SN:
+                type: integer
+                description: 회원 PK
+                example: 1
+              USER_NM:
+                type: string
+                description: 회원명
+                example: 홍길동
+              USER_IMG:
+                type: string
+                description: 회원 이미지
+                example: www.www.com
+              PF_INTRO:
+                type: string
+                description: 프로필 소개
+                example: "OO의 프로필입니다."
+              CAREER_NM:
+                type: string
+                description: 회사명
+                example: 회사명
+              ENTERING_DT:
+                type: string
+                description: 입사일
+                example: 2023-01-01
+              QUIT_DT:
+                type: string
+                description: 퇴사일
+                example: 2023-12-31
+              ST_NM:
+                type: string
+                description: 보유 스택
+                example: REACT
+              ST_LEVEL:
+                type: string
+                description: 보유 스택 수준
+                example: HIGH
+              INTEREST_NM:
+                type: string
+                description: 관심분야
+                example: WEB
+              URL_ADDR:
+                type: string
+                description: URL 주소
+                example: http://github.com/user
+              URL_INTRO:
+                type: string
+                description: URL 설명
+                example: 깃허브
+              PFOL_SN:
+                type: integer
+                description: 포트폴리오 Pk
+                example: 1
+              PFOL_NM:
+                type: string
+                description: 프로젝트명
+                example: project1
+              INTRO:
+                type: string
+                description: 프로젝트 소개
+              START_DT:
+                type: string
+                description: 프로젝트 시작일
+                example: 2024-01-01
+              END_DT:
+                type: string
+                description: 프로젝트 종료일
+                example: 2024-05-01
+              PERIOD:
+                type: integer
+                description: 프로젝트 진행 기간
+                example: 121
+              MEM_CNT:
+                type: integer
+                description: 프로젝트 참여 멤버
+              IMG:
+                type: string
+                description: 프로젝트 메인 이미지
+                example: http://000.000.000/image1.jps
+              IMG_SUB:
+                type: array
+                description: 포트폴리오 이미지 리스트
+            example:
+              profile:
+                - PF_SN: 1
+                  USER_SN: 1
+                  USER_NM: 홍길동
+                  USER_IMG: http://218.232.137.30:20090/matching/profile/img.jpg
+                  PF_INTRO: 안녕하신가요
+                  career:
+                    - CAREER_NM: 회사1
+                      ENTERING_DT: 2023-01-01
+                      QUIT_DT: 2023-10-31
+                    - CAREER_NM: 회사2
+                      ENTERING_DT: 2024-01-01
+                      QUIT_DT: NULL
+                  stack:
+                    - ST_NM: JAVA
+                      ST_LEVEL: HIGH
+                    - ST_NM: REACT
+                      ST_LEVEL: LOW
+                  interest:
+                    - INTEREST_NM: WEB
+                    - INTEREST_NM: JAVA
+                  url:
+                    - URL_ADDR: www.www.com
+                      URL_INTRO: 깃허브
+              portfolioInfo:
+                - PFOL_SN: 1
+                  PFOL_NM: 프로젝트1
+                  INTRO: 프로젝트1 소개
+                  START_DT: 2023-01-01
+                  END_DT: 2023-05-01
+                  PERIOD: 121
+                  MEM_CNT: 3
+                  stack:
+                    - ST_SN: 3
+                      ST_NM: JAVA
+                    - ST_SN: 1
+                      ST_NM: REACT
+                  role:
+                    - ROLE_SN: 3
+                      ROLE_NM: backend
+                    - ROLE_SN: 1
+                      ROLE_NM: 기획
+                  CONTRIBUTION: 30
+                  SERVICE_STTS: ACTIVE
+                  SERVICE_STTS_VAL: 배포
+                  CREATED_DT: 2023-01-01
+                  MODIFIED_DT: 2023-01-01
+                  url:
+                    - URL_SN: 2
+                      URL: https://www.naver.com
+                      OS: WINDOW
+                  IMG: http://218.232.137.30:20090/matching/portfolio/portfolio.png
+                  IMG_SUB: [ 'http://218.232.137.30:20090/matching/portfolio/portfolio.png','http://218.232.137.30:20090/matching/portfolio/portfolio.png' ]
+                - PFOL_SN: 2
+                  PFOL_NM: 프로젝트2
+                  INTRO: 프로젝트2 소개
+                  START_DT: 2023-01-01
+                  END_DT: 2023-05-01
+                  PERIOD: 121
+                  MEM_CNT: 3
+                  stack:
+                    - ST_SN: 3
+                      ST_NM: JAVA
+                    - ST_SN: 1
+                      ST_NM: REACT
+                  role:
+                    - ROLE_SN: 3
+                      ROLE_NM: backend
+                    - ROLE_SN: 1
+                      ROLE_NM: 기획
+                  CONTRIBUTION: 30
+                  SERVICE_STTS: ACTIVE
+                  SERVICE_STTS_VAL: 배포
+                  CREATED_DT: 2023-01-01
+                  MODIFIED_DT: 2023-01-01
+                  url:
+                    - URL_SN: 2
+                      URL: https://www.naver.com
+                      OS: WINDOW
+                  IMG: http://218.232.137.30:20090/matching/portfolio/portfolio.png
+                  IMG_SUB: [ 'http://218.232.137.30:20090/matching/portfolio/portfolio.png','http://218.232.137.30:20090/matching/portfolio/portfolio.png' ]
+
     myProjects200:
       description: 내 프로젝트 리스트 조회 성공
       content:
