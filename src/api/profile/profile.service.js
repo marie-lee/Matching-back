@@ -146,6 +146,7 @@ class profileService {
         };
       }
       // 프로필O 포트폴리오X
+      /*
       if (!portfolioInfo || portfolioInfo.length === 0) {
         return {
           profile: profile,
@@ -153,6 +154,7 @@ class profileService {
           message: '포트폴리오가 작성되지 않았습니다.'
         };
       }
+       */
       const pfPfol = {profile: profile, portfolioInfo: portfolioInfo};
       return pfPfol;
     } catch (error){
