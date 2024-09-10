@@ -57,12 +57,13 @@ const projectRequestList = async(pjtSn) => {
 
 const myReqList = async(user) => {
     return await db.TB_REQ.findAll({
-        where: {USER_SN: user, DEL_YN: false},
+        where: {USER_SN: user},
         attributes: [
             ['REQ_SN', 'reqSn'],
             [db.Sequelize.col('tp.PJT_SN'), 'pjtSn'],
             [db.Sequelize.col('tp.PJT_IMG'), 'pjtImg'],
             [db.Sequelize.col('tp.PJT_NM'), 'pjtNm'],
+            [db.Sequelize.col('tp.PJT_STTS'), 'PJT_STTS'],
             [db.Sequelize.fn('SUM', db.Sequelize.col('tp.tpr.TOTAL_CNT')), 'TO'],
             [db.Sequelize.col('tpr.PART'), 'part'],
             ['REQ_STTS', 'reqStts']
@@ -72,6 +73,7 @@ const myReqList = async(user) => {
                 model: db.TB_PJT,
                 as: 'tp',
                 attributes: [],
+                where: {PJT_STTS: 'RECRUIT'},
                 include: [
                     {
                         model: db.TB_PJT_ROLE,
