@@ -155,9 +155,9 @@ class projectService {
   async toVectorPjt(userSn, pjtSn) {
     try {
       const pjtData = await this.myProject(userSn, pjtSn);
-      const cleanedPjtDetail = pjtData.dataValues.pjtDetail.replace(/\r\n/g, ' ');
-      pjtData.dataValues.pjtDetail = cleanedPjtDetail;
-      console.log(pjtData.dataValues.pjtDetail)
+      const cleanedPjtDetail = pjtData.pjtDetail.replace(/\r\n/g, ' ');
+      pjtData.pjtDetail = cleanedPjtDetail;
+      console.log(pjtData.pjtDetail)
 
       const pjtJson = JSON.stringify(pjtData);
       await runPjtToVec(pjtJson).then(() => {
