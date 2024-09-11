@@ -218,7 +218,7 @@ class profileService {
                                   LEFT JOIN TB_ROLE r ON r.ROLE_SN = pr.ROLE_SN
                                   LEFT JOIN TB_PFOL_URL pu ON pl.PFOL_SN = pu.PFOL_SN
                                   LEFT JOIN TB_URL u ON pu.URL_SN = u.URL_SN
-                                  LEFT JOIN TB_PFOL_MEDIA pm ON pl.PFOL_SN = pm.PFOL_SN
+                                  LEFT JOIN TB_PFOL_MEDIA pm ON pl.PFOL_SN = pm.PFOL_SN AND pm.DEL_YN = 'N'
                                   LEFT JOIN TB_RATE tr ON tr.PJT_SN = pl.PJT_SN
                                   WHERE pl.PFOL_SN = ${pfolSn} AND pl.DEL_YN = 'N'
                                   GROUP BY pl.PFOL_SN;`;
