@@ -207,7 +207,8 @@ class profileService {
                                       , JSON_ARRAYAGG(DISTINCT
                                           JSON_OBJECT(
                                               'URL', pm.URL,
-                                              'MAIN_YN', pm.MAIN_YN
+                                              'MAIN_YN', pm.MAIN_YN,
+                                              'TYPE', pm.TYPE
                                           )
                                       ) AS media
                                       , JSON_ARRAYAGG(DISTINCT tr.RATE_TEXT) AS RATE
