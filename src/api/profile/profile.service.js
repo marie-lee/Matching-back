@@ -321,8 +321,10 @@ class profileService {
 
         if (userImg) {
           const user = await db.TB_USER.findOne({where: {USER_SN: userSn}});
-          const fileName = this.fileUrlParsing(user.USER_IMG);
-          await minio.deleteFile(fileName);
+          if(user.USER_IMG){
+            const fileName = this.fileUrlParsing(user.USER_IMG);
+            await minio.deleteFile(fileName);
+          }
           const url = await minio.profileUpload(userImg, userSn);
           await db.TB_USER.update({ USER_IMG: url }, { where: { USER_SN: userSn }, transaction: transaction});
         }
