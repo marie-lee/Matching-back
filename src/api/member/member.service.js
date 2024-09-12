@@ -107,12 +107,12 @@ class MemberService {
 
       switch(PURPOSE) {
         case 'register':
-          subject = '프로젝트 매칭 플랫폼 회원가입 이메일 인증';
-          text = `안녕하세요.\n프로젝트 매칭 플랫폼 회원가입에 필요한 이메일 인증번호입니다.\n\n인증번호: ${verificationCode}\n\n이메일 인증을 완료해주십시오.`;
+          subject = 'Hoit! 회원가입 이메일 인증';
+          text = `안녕하세요.\nHoit! 회원가입에 필요한 이메일 인증번호입니다.\n\n인증번호: ${verificationCode}\n\n이메일 인증을 완료해주십시오.`;
           break;
         case 'reset_password':
-          subject = '프로젝트 매칭 플랫폼 비밀번호 재설정 인증';
-          text = `안녕하세요.\n프로젝트 매칭 플랫폼 비밀번호 재설정에 필요한 인증번호입니다.\n\n인증번호: ${verificationCode}\n\n인증 후 새로운 비밀번호를 설정해주세요.`;
+          subject = 'Hoit! 비밀번호 재설정 인증';
+          text = `안녕하세요.\nHoit! 비밀번호 재설정에 필요한 인증번호입니다.\n\n인증번호: ${verificationCode}\n\n인증 후 새로운 비밀번호를 설정해주세요.`;
           break;
         default:
           throw new Error('Invalid email purpose');
