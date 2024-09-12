@@ -60,14 +60,20 @@ class WbsService {
     async createWbsInfo(userSn, pjtSn){
         try {
             const pjt = await wbsRepository.findProjectBySn(pjtSn);
-            if (userSn !== pjt.CREATED_USER_SN) {
-                return {message : '프로젝트 생성자가 아닙니다.'}
+            if(!pjt){
+                return {message : '프로젝트가 존재하지 않습니다.'}
             }
-
+            const memList = await projectRepository.findProjectMembers(userSn, pjtSn);
+            // if (!memList || memList.length === 0) {
+            //     return {message: '프로젝트 멤버가 존재하지 않습니다.'};
+            // }
             const pjtData = {
                 startDt: pjt.START_DT,
                 endDt: pjt.END_DT
             };
+            if (userSn !== pjt.CREATED_USER_SN) {
+                pjtData.type = 'member'
+            } else pjtData.type = 'leader'
 
             const members = await wbsRepository.findProjectMembers(pjtSn);
             let memberData = [];
@@ -86,7 +92,7 @@ class WbsService {
                 memberData.push(new MemberDto(userData));
             }
 
-            return new ProjectDto({ startDt: pjtData.startDt, endDt: pjtData.endDt, members: memberData });
+            return new ProjectDto({ type: pjtData.type, startDt: pjtData.startDt, endDt: pjtData.endDt, members: memberData });
         } catch (error) {
             logger.error('WBS 정보 생성 중 오류 발생:', error);
             throw error;

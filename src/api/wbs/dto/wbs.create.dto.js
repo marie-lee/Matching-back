@@ -1,5 +1,6 @@
 class ProjectDto {
-    constructor({ startDt = null, endDt = null, members = null, wbsData = [] }) { // 기본값으로 빈 배열 설정
+    constructor({ type = null, startDt = null, endDt = null, members = null, wbsData = [] }) { // 기본값으로 빈 배열 설정
+        this.type = type;
         this.startDt = startDt;
         this.endDt = endDt;
         this.members = members;
