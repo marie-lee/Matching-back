@@ -605,6 +605,24 @@ paths:
           $ref: '#/components/responses/getWBS400'
       security:
         - JWT: [ ]
+  /project/wbs/all/{pjtSn}:
+    get:
+      tags:
+        - wbs
+      summary: 프로젝트 WBS 데이터 미가공 조회
+      description: 프로젝트 WBS 데이터 미가공 조회
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+      responses:
+        '400':
+          $ref: '#/components/responses/getWBS400'
+      security:
+        - JWT: [ ]
   /project/wbs/issue/{pjtSn}/{ticketSn}:
     post:
       tags:

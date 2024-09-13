@@ -303,5 +303,18 @@ router.get('/project/wbs/create/issue/:pjtSn', jwt.authenticateToken, async (req
         return res.status(400).json(`업무 목록 조회 중 에러 발생 : ${error.message}`);
     }
 });
+// WBS 전체 전달
+router.get('/project/wbs/all/:pjtSn', jwt.authenticateToken, async (req, res)=> {
+    try{
+        const userSn = req.userSn.USER_SN;
+        const pjtSn = req.params.pjtSn;
+        const data = await wbsService.getWholeWbs(userSn, pjtSn);
+        if(data.message){ return res.status(400).json(data.message)}
+        else if(data[0] !== null){ return res.status(200).json(data); }
+        else { return res.status(400).json('조회되는 WBS가 없습니다.'); }
+    } catch (error){
+        return res.status(400).json(`WBS 조회 중 에러 발생 :  ${error.message}`);
+    }
+})
 
 module.exports = router;

@@ -733,6 +733,21 @@ class WbsService {
             throw error;
         }
     }
+
+    async getWholeWbs(userSn, pjtSn){
+        try {
+            const member = await wbsRepository.findProjectMember(userSn, pjtSn);
+            if (!member) {
+                return {message : '프로젝트 참여 멤버가 아닙니다.'};
+            }
+
+            return await wbsRepository.findWholeWbs(pjtSn, userSn);
+
+        } catch (error) {
+            logger.error('wbs 조회 중 오류 발생:', error.message);
+            throw error;
+        }
+    }
 }
 
 module.exports = new WbsService();
