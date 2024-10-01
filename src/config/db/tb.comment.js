@@ -10,6 +10,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false
         },
+        TICKET_SN: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
         ISSUE_SN: {
             type: DataTypes.INTEGER,
             allowNull: false
@@ -52,6 +56,7 @@ module.exports = (sequelize, DataTypes) => {
         TB_COMMENT.belongsTo(models.TB_PJT, { foreignKey: 'PJT_SN' });
         TB_COMMENT.belongsTo(models.TB_USER, { foreignKey: 'CREATER_SN' });
         TB_COMMENT.belongsTo(models.TB_ISSUE, { foreignKey: 'ISSUE_SN' });
+        TB_COMMENT.belongsTo(models.TB_WBS, { foreignKey: 'TICKET_SN' });
         TB_COMMENT.hasMany(models.TB_MENTION, { foreignKey: 'COMMENT_SN' });
     };
 

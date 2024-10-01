@@ -89,6 +89,7 @@ module.exports = (sequelize, DataTypes) => {
         TB_WBS.belongsTo(models.TB_USER, { foreignKey: 'CREATER_SN' });
         TB_WBS.belongsTo(models.TB_USER, { foreignKey: 'WORKER' });
         TB_WBS.hasMany(models.TB_ISSUE, { foreignKey: 'TICKET_SN' });
+        TB_WBS.hasMany(models.TB_COMMENT, { foreignKey: 'TICKET_SN' });
     };
 
     return TB_WBS;
