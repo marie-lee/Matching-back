@@ -166,7 +166,7 @@ class statusService {
           pjt.START_DT = new Date();
           pjt.END_DT = addDate(pjt.DURATION_UNIT, pjt.START_DT, pjt.PERIOD)
           console.log(pjt.START_DT, pjt.END_DT)
-          await projectRepository.updateProjectEndDate(pjt, transaction);
+          await projectRepository.updatePjtInfo(pjt, transaction);
         }
       }
 

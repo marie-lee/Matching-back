@@ -90,6 +90,40 @@ router.get('/project/member/:pjtSn', jwt.authenticateToken, async (req, res) => 
     }
 });
 
+// 프로젝트 종료일 수정
+router.put('/project/updateEndDate/:pjtSn', jwt.authenticateToken, async (req, res) => {
+  const user = req.userSn.USER_SN;
+  const pjtSn = req.params.pjtSn;
+  const endDate = req.body.endDate;
+  try {
+    const update = await projectService.updateEndDate(user, pjtSn, endDate);
+    return res.status(200).json(update); // 성공 응답 반환
+  } catch (error) {
+    logger.error('프로젝트 종료일 수정 중 오류 발생: ', error);
+    if (error.message.includes('권한이 없습니다.')) {
+      return res.status(403).json({ message: error.message });
+    }
+    return res.status(400).json({ message: error.message });
+  }
+});
+
+// 프로젝트 종료일 수정
+router.put('/project/updateProjectStatus/:pjtSn', jwt.authenticateToken, async (req, res) => {
+  const user = req.userSn.USER_SN;
+  const pjtSn = req.params.pjtSn;
+  const status = req.body.status;
+  try {
+    const update = await projectService.updateProjectStatus(user, pjtSn, status);
+    return res.status(200).json(update); // 성공 응답 반환
+  } catch (error) {
+    logger.error('프로젝트 상태 수정 중 오류 발생: ', error);
+    if (error.message.includes('권한이 없습니다.')) {
+      return res.status(403).json({ message: error.message });
+    }
+    return res.status(400).json({ message: error.message });
+  }
+});
+
 //평가자 목록 조회
 router.get('/project/rate/:pjtSn',jwt.authenticateToken,async(req,res)=>{
   const pjt = req.params.pjtSn;
