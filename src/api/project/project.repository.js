@@ -271,6 +271,11 @@ const findProjectMembersByProject = async (pjtSn) => {
   });
 };
 
+// 프로젝트 종료일 수정
+const updateProjectEndDate = async(pjt, transaction) => {
+  return await pjt.save({transaction});
+
+}
 module.exports = {
     createProject,
     findOrCreateStack,
@@ -297,5 +302,6 @@ module.exports = {
     findWbsTicketsByProject,
     updateContribution,
     findProjectMembersByProject,
-    getProjectInfo
+    getProjectInfo,
+    updateProjectEndDate
 };

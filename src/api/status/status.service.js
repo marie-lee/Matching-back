@@ -1,6 +1,7 @@
 const db = require('../../config/db/db');
 const {logger} = require('../../utils/logger');
 const {oneCmmnVal} = require("../common/common.repository");
+const {addDate} = require("../common/common.service");
 const profileService = require("../profile/profile.service");
 const projectRepository = require("../project/project.repository");
 const statusRepository = require("./status.repository");
@@ -157,9 +158,15 @@ class statusService {
           }
           console.log('TOTAL_CNT : '+ r.TOTAL_CNT + " , CNT : " + r.CNT)
         }
-        console.log(allEqual)
         if(allEqual){
           await statusRepository.updateProjectStatus(PJT_SN, 'PROGRESS', transaction);
+
+          const pjt = await projectRepository.getProjectById(PJT_SN);
+          console.log(pjt);
+          pjt.START_DT = new Date();
+          pjt.END_DT = addDate(pjt.DURATION_UNIT, pjt.START_DT, pjt.PERIOD)
+          console.log(pjt.START_DT, pjt.END_DT)
+          await projectRepository.updateProjectEndDate(pjt, transaction);
         }
       }
 
