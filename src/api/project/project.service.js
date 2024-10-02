@@ -173,14 +173,10 @@ class projectService {
     const transaction = await db.transaction();
     try {
       const user = await projectRepository.findProjectMember(pjtSn, userSn);
-      if (!user) {
-        throw new Error('해당 프로젝트에 대한 접근 권한이 없습니다.');
-      }
+      if (!user) { throw new Error('해당 프로젝트에 대한 접근 권한이 없습니다.'); }
 
       const pjt = await db.TB_PJT.findByPk(pjtSn);
-      if (pjt.CREATED_USER_SN !== userSn) {
-        throw new Error('수정 권한이 없습니다.');
-      }
+      if (pjt.CREATED_USER_SN !== userSn) { throw new Error('수정 권한이 없습니다.'); }
 
       const formatEndDt = new Date(endDate);
       formatEndDt.setHours(23, 59, 59, 0);
@@ -196,7 +192,7 @@ class projectService {
       throw new Error('프로젝트 종료일 수정 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   }
-async updateProjectStatus(userSn, pjtSn, status) {
+  async updateProjectStatus(userSn, pjtSn, status) {
     const transaction = await db.transaction();
     try {
       const user = await projectRepository.findProjectMember(pjtSn, userSn);
@@ -223,6 +219,25 @@ async updateProjectStatus(userSn, pjtSn, status) {
     }
   }
 
+  // 프로젝트 종료일 확인
+  async checkProjectEndDate(){
+    const pjtList = await projectRepository.findProgressPjt();
+    const now = new Date();
+    const finishedProjects = pjtList.filter(pjt => now >= pjt.END_DT);
+    const transaction = await db.transaction();
+    try {
+      const updatePromises = finishedProjects.map(async (pjt) => {
+        pjt.PJT_STTS = 'FINISH';
+        return projectRepository.updatePjtInfo(pjt, transaction);
+      });
+      await Promise.all(updatePromises);
+      await transaction.commit();
+    } catch (error) {
+      await transaction.rollback();
+      logger.error(`프로젝트 종료 수정 중 오류가 발생했습니다: ${error.message}`);
+      throw new Error('프로젝트 종료 수정 중 오류가 발생했습니다.');
+    }
+  }
 
   async createWbs(userSn, pjtSn, pjtData, memberData, wbsData){
     const t = await db.transaction();

@@ -274,7 +274,10 @@ const findProjectMembersByProject = async (pjtSn) => {
 // 프로젝트 종료일 수정
 const updatePjtInfo = async(pjt, transaction) => {
   return await pjt.save({transaction});
-
+}
+// 진행중인 프로젝트 리스트 조회
+const findProgressPjt = async() => {
+  return await db.TB_PJT.findAll({ where: {DEL_YN: false, PJT_STTS: 'PROGRESS'}})
 }
 module.exports = {
     createProject,
@@ -303,5 +306,6 @@ module.exports = {
     updateContribution,
     findProjectMembersByProject,
     getProjectInfo,
-  updatePjtInfo
+    updatePjtInfo,
+    findProgressPjt
 };

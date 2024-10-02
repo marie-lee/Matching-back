@@ -23,6 +23,8 @@ const wbsCtrl = require('./api/wbs/wbs.ctrl');
 const statusCtrl = require('./api/status/status.ctrl');
 const recommendationCtrl = require('./api/recommendation/recommendation.ctrl');
 
+const scheduler = require('./utils/scheduler');
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
