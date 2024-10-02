@@ -29,6 +29,7 @@
     "passport-google-oauth20": "^2.0.0",
     "path": "^0.12.7",
     "sequelize": "^6.37.3",
+    "socket.io": "^4.8.0",
     "swagger-ui-express": "^5.0.0",
     "winston": "^3.13.0",
     "winston-daily-rotate-file": "^5.0.0",
