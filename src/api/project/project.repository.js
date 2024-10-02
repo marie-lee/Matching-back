@@ -272,7 +272,7 @@ const findProjectMembersByProject = async (pjtSn) => {
 };
 
 // 프로젝트 종료일 수정
-const updateProjectEndDate = async(pjt, transaction) => {
+const updatePjtInfo = async(pjt, transaction) => {
   return await pjt.save({transaction});
 
 }
@@ -303,5 +303,5 @@ module.exports = {
     updateContribution,
     findProjectMembersByProject,
     getProjectInfo,
-    updateProjectEndDate
+  updatePjtInfo
 };

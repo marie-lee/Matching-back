@@ -61,6 +61,7 @@ const addDate = (type, date, period) => {
   }else {
     result.setMonth(result.getMonth() + period);
   }
+  result.setHours(23, 59, 59, 0);
   return result;
 };
 
