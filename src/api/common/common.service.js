@@ -54,4 +54,14 @@ const sortTasks = (tasks) => {
   });
 };
 
-module.exports = {oneCmmnVal, formatDt, sortTasks};
+const addDate = (type, date, period) => {
+  const result = new Date(date);
+  if(type === 'DAY'){
+    result.setDate(result.getDate() + period);
+  }else {
+    result.setMonth(result.getMonth() + period);
+  }
+  return result;
+};
+
+module.exports = {oneCmmnVal, formatDt, sortTasks, addDate};
