@@ -1,9 +1,5 @@
 const db = require('../../config/db/db');
-const {logger} = require('../../utils/logger');
-const {QueryTypes} = require("sequelize");
-const {throwError} = require("../../utils/errors");
-const {getProjectIntro} = require("../project/project.service");
-const {error} = require("winston");
+
 const moment = require("moment")
 
 const oneCmmnVal = async (cmmnCdType, cmmnCd) => {
@@ -65,4 +61,12 @@ const addDate = (type, date, period) => {
   return result;
 };
 
-module.exports = {oneCmmnVal, formatDt, sortTasks, addDate};
+const calculatePeriod = (startDt, endDt) => {
+  const startDate = new Date(startDt);
+  const endDate = new Date(endDt);
+
+  const differenceInTime = endDate.getTime() - startDate.getTime();
+  return Math.ceil(differenceInTime / (1000 * 60 * 60 * 24)) + 1;
+}
+
+module.exports = {oneCmmnVal, formatDt, sortTasks, addDate, calculatePeriod};
