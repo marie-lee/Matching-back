@@ -226,6 +226,7 @@ class projectService {
     try {
       const updatePromises = finishedProjects.map(async (pjt) => {
         pjt.PJT_STTS = 'FINISH';
+        await this.addProjectPfol(pjt, transaction);
         return projectRepository.updatePjtInfo(pjt, transaction);
       });
       await Promise.all(updatePromises);
