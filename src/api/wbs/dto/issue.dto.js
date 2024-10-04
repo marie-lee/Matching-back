@@ -6,11 +6,11 @@ class IssueDto {
         this.ISSUE_SN = issueSn;
         this.updateIssueData = new UpdateIssueDto({priority, status, mentions})
     }
-    validation(){
-        if(this.updateIssueData.PRIORITY == null && this.updateIssueData.STATUS == null){
-            throw Error('업데이트할 내용이 없습니다.');
-        }
-    }
+    // validation(){
+    //     if(this.updateIssueData.PRIORITY == null && this.updateIssueData.STATUS == null){
+    //         throw Error('업데이트할 내용이 없습니다.');
+    //     }
+    // }
 }
 
 class UpdateIssueDto {
