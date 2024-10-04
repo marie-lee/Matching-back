@@ -283,7 +283,7 @@ const mentionData = async(issueSn, pjtSn) => {
                               tpm.PART
                           FROM TB_MENTION tm
                           INNER JOIN TB_USER tu ON tu.USER_SN = tm.TARGET_SN
-                          INNER JOIN TB_PJT_M tpm ON tpm.PJT_SN = ${pjtSn}
+                          INNER JOIN TB_PJT_M tpm ON tpm.PJT_SN = ${pjtSn} AND tpm.USER_SN = tu.USER_SN
                           WHERE tm.ISSUE_SN = ${issueSn} AND tm.COMMENT_SN IS NULL AND tm.DEL_YN = FALSE 
                           GROUP BY tm.MENTION_SN;`
     return await db.query(query, {type: QueryTypes.SELECT});
