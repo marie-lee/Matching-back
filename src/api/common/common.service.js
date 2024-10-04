@@ -5,6 +5,7 @@ const {throwError} = require("../../utils/errors");
 const {getProjectIntro} = require("../project/project.service");
 const {error} = require("winston");
 const moment = require("moment")
+const commonRepository = require('./common.repository');
 
 const oneCmmnVal = async (cmmnCdType, cmmnCd) => {
   try {
@@ -65,4 +66,77 @@ const addDate = (type, date, period) => {
   return result;
 };
 
-module.exports = {oneCmmnVal, formatDt, sortTasks, addDate};
+const createCommentAlarm = async (receiver, sender, pjt, post, postType, transaction) => {
+  if(postType==='issue'){
+    const data = {
+      RECEIVER_SN: receiver,
+      SENDER_SN: sender,
+      DETAIL: `이슈 '${post.ISSUE_NM}'에 새 댓글이 있습니다.`,
+      TYPE: 'ISSUE_COMMENT',
+      PJT_SN: pjt.PJT_SN,
+      POST_SN: post.ISSUE_SN,
+      POST_TYPE: 'ISSUE'
+    };
+
+    await commonRepository.createAlarm(data, transaction);
+  }
+  else if(postType==='ticket'){
+    const data = {
+      RECEIVER_SN: receiver,
+      SENDER_SN: sender,
+      DETAIL: `업무 '${post.TICKET_NAME}'에 새 댓글이 있습니다.`,
+      TYPE: 'TASK_COMMENT',
+      PJT_SN: pjt.PJT_SN,
+      POST_SN: post.TICKET_SN,
+      POST_TYPE: 'TASK'
+    };
+
+    await commonRepository.createAlarm(data, transaction);
+  }
+}
+
+const createMentionAlarm = async (receiver, sender, type, pjt, post, postType, transaction) =>{
+  if(type==='issueMention'){
+    const data = {
+      RECEIVER_SN: receiver,
+      SENDER_SN: sender,
+      DETAIL: `이슈 '${post.ISSUE_NM}'에 멘션되었습니다.`,
+      TYPE: 'ISSUE_MENTION',
+      PJT_SN: pjt.PJT_SN,
+      POST_SN: post.ISSUE_SN,
+      POST_TYPE: 'ISSUE'
+    };
+
+    await commonRepository.createAlarm(data, transaction);
+  }
+  else if(type==='commentMention'){
+    if(postType==='issue'){
+      const data = {
+        RECEIVER_SN: receiver,
+        SENDER_SN: sender,
+        DETAIL: `이슈 '${post.ISSUE_NM}'의 댓글에 멘션되었습니다.`,
+        TYPE: 'COMMENT_MENTION',
+        PJT_SN: pjt.PJT_SN,
+        POST_SN: post.ISSUE_SN,
+        POST_TYPE: 'ISSUE'
+      };
+
+      await commonRepository.createAlarm(data, transaction);
+    }
+    else if(postType==='ticket'){
+      const data = {
+        RECEIVER_SN: receiver,
+        SENDER_SN: sender,
+        DETAIL: `업무 '${post.TICKET_NAME}'의 댓글에 멘션되었습니다.`,
+        TYPE: 'COMMENT_MENTION',
+        PJT_SN: pjt.PJT_SN,
+        POST_SN: post.TICKET_SN,
+        POST_TYPE: 'TASK'
+      };
+
+      await commonRepository.createAlarm(data, transaction);
+    }
+  }
+}
+
+module.exports = {oneCmmnVal, formatDt, sortTasks, addDate, createCommentAlarm, createMentionAlarm};

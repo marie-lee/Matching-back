@@ -78,6 +78,8 @@ module.exports = (sequelize, DataTypes) => {
     TB_USER.hasMany(models.TB_MENTION, { foreignKey: 'TARGET_SN' });
     TB_USER.hasMany(models.TB_MENTION, { foreignKey: 'CREATER_SN' });
     TB_USER.hasMany(models.TB_COMMENT, { foreignKey: 'CREATER_SN' });
+    TB_USER.hasMany(models.TB_ALARM, { foreignKey: 'RECEIVER_SN' });
+    TB_USER.hasMany(models.TB_ALARM, { foreignKey: 'SENDER_SN' });
   };
 
   return TB_USER;

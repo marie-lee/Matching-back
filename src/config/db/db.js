@@ -45,6 +45,7 @@ db.TB_ISSUE = require('./tb.issue')(db, Sequelize.DataTypes);
 db.TB_COMMENT = require('./tb.comment')(db, Sequelize.DataTypes);
 db.TB_MENTION = require('./tb.mention')(db, Sequelize.DataTypes);
 db.TB_RATE = require('./tb.rate')(db, Sequelize.DataTypes);
+db.TB_ALARM = require('./tb.alarm')(db, Sequelize.DataTypes);
 
 // Sequelize 인스턴스의 models 객체를 사용하여 모든 모델 간의 관계 설정
 Object.keys(db.models).forEach(modelName => {
