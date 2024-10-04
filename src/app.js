@@ -6,6 +6,7 @@ const errorMiddleware = require('./middleware/errorMidleware');
 const { logger } = require('./utils/logger');
 const cors = require('cors');
 const http = require('http');
+const https = require("https");
 const socketIo = require('socket.io');
 const { setupSocket } = require('./utils/alarm');
 const fs = require('fs');
@@ -28,7 +29,7 @@ const statusCtrl = require('./api/status/status.ctrl');
 const recommendationCtrl = require('./api/recommendation/recommendation.ctrl');
 
 const scheduler = require('./utils/scheduler');
-const https = require("https");
+
 
 const app = express();
 app.use(express.json());

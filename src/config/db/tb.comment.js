@@ -12,11 +12,11 @@ module.exports = (sequelize, DataTypes) => {
         },
         TICKET_SN: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: true
         },
         ISSUE_SN: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: true
         },
         TEXT: {
             type: DataTypes.STRING(2000),
