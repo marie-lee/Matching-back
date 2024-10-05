@@ -843,6 +843,39 @@ paths:
           $ref: '#/components/responses/createIssueComment400'
       security:
         - JWT: [ ]
+  /project/wbs/task/comment/{pjtSn}/{taskSn}:
+    post:
+      tags:
+        - wbs
+      summary: wbs 업무 댓글 생성
+      description: wbs 업무 댓글 생성
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: integer
+        - in: path
+          name: taskSn
+          required: true
+          description: 업무 일련번호
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createTaskComment'
+      responses:
+        '200':
+          $ref: '#/components/responses/createTaskComment200'
+        '404':
+          $ref: '#/components/responses/createTaskComment404'
+        '400':
+          $ref: '#/components/responses/createTaskComment400'
+      security:
+        - JWT: [ ]
   /project/wbs/tracking/{pjtSn}:
     get:
       tags:
@@ -2208,6 +2241,17 @@ components:
               description: 멘션할 회원 일련번호
               example: [ 9 ]
     createIssueComment:
+      type: object
+      properties:
+        TEXT:
+          type: string
+          description: 댓글 내용
+          example: 어쩌구저쩌구랄랄라랄
+        MENTIONS:
+          type: integer
+          description: 멘션할 회원 일련번호
+          example: [ 1,5 ]
+    createTaskComment:
       type: object
       properties:
         TEXT:
@@ -4490,6 +4534,27 @@ components:
           schema:
             type: string
             example: 'wbs 이슈 댓글 작성 중 에러 발생 : (에러메세지)'
+    createTaskComment200:
+      description: wbs 업무 댓글 작성 성공
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: '댓글이 작성되었습니다.'
+    createTaskComment404:
+      description: wbs 업무 댓글 작성 실패
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: 'message: 업무에 대한 정보가 없습니다.'
+    createTaskComment400:
+      description: wbs 업무 댓글 작성 오류 발생
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: 'wbs 업무 댓글 작성 중 에러 발생 : (에러메세지)'
     createTask200:
       description: wbs 업무 추가 완료
       content:
@@ -4971,4 +5036,5 @@ components:
               message:
                 type: string
                 example: '업무 목록 조회 에러 발생 : 에러메시지'
+
 

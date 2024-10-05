@@ -102,7 +102,7 @@ class WbsService {
     }
 
 
-// WBS 수정
+    // WBS 수정
     async editWbs(userSn, pjtSn, pjtData){
         const t = await wbsRepository.beginTransaction();
         try {
@@ -278,6 +278,7 @@ class WbsService {
             throw error
         }
     }
+
     // 이슈 수정
     async updateIssue(issueDto){
         const transaction = await db.transaction()
@@ -341,6 +342,7 @@ class WbsService {
             throw error
         }
     }
+
     async trackingTicket(pjtSn){
         try {
             const tracking =  await wbsRepository.trackingIssue(pjtSn);
@@ -439,6 +441,60 @@ class WbsService {
             throw error;
         }
     }
+
+    async createTaskComment(createTaskCommentDto){
+    const transaction =  await db.transaction();
+    const { MENTIONS, ...COMMENT } = createTaskCommentDto;
+    try {
+      const mem = await projectRepository.findProjectMember(COMMENT.PJT_SN, COMMENT.CREATER_SN);
+      if (!mem) return {message: '조회 권한이 없습니다.'};
+      const pjt = await projectRepository.getProjectById(COMMENT.PJT_SN);
+      if (!pjt) return {message: '프로젝트를 찾을 수 없습니다.'};
+      const task = await wbsRepository.findTicket(COMMENT.TICKET_SN, COMMENT.PJT_SN);
+      if (!task) return {message: '업무를 찾을 수 없습니다.'};
+      const comment = await wbsRepository.createTaskComment(COMMENT, transaction);
+
+      // // 알림 위치
+      // if(mem.USER_SN !== issue.USER_SN){
+      //   await cmmnService.createCommentAlarm(issue.USER_SN, mem.USER_SN, pjt, issue, 'issue', transaction);
+      //   alarm.notifyComment('issue', issue.USER_SN, {
+      //     senderSn: mem.USER_SN,
+      //     senderNm: mem.USER_NM,
+      //     title: issue.ISSUE_NM,
+      //     pjtSn: pjt.PJT_SN,
+      //     postSn: issue.ISSUE_SN,
+      //     postType: 'issue'
+      //   });
+      // }
+      for (const mention of MENTIONS) {
+        const member = await projectRepository.findProjectMember(COMMENT.PJT_SN, mention)
+        if(!member) return {message: '멘션할 수 없는 회원입니다. ', targetSn: mention}
+        const mentionData = {
+          TARGET_SN: mention,
+          CREATER_SN: COMMENT.CREATER_SN,
+          COMMENT_SN: comment.COMMENT_SN
+        }
+        const result = await wbsRepository.addMentionFromIssue(mentionData, transaction);
+        // // 알림위치
+        // if (mem.USER_SN !== member.USER_SN) {
+        //   await cmmnService.createMentionAlarm(member.USER_SN, mem.USER_SN, 'commentMention', pjt, issue, 'issue', transaction);
+        //   alarm.notifyMention('issueComment', member.USER_SN, {
+        //     senderSn: mem.USER_SN,
+        //     senderNm: mem.USER_NM,
+        //     title: issue.ISSUE_NM,
+        //     pjtSn: pjt.PJT_SN,
+        //     postSn: issue.ISSUE_SN,
+        //     postType: 'issue'
+        //   });
+        // }
+      }
+      await transaction.commit()
+      return comment
+    } catch (error) {
+      await transaction.rollback()
+      throw error;
+    }
+  }
 
     async createTask(createTaskDto) {
         const transaction =  await db.transaction();
