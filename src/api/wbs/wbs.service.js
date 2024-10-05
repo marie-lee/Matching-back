@@ -399,18 +399,7 @@ class WbsService {
             const issue = await wbsRepository.issueDetail(COMMENT.ISSUE_SN, COMMENT.PJT_SN);
             if (!issue) return {message: '이슈를 찾을 수 없습니다.'};
             const comment = await wbsRepository.createComment(COMMENT, transaction);
-            // 알림 위치
-            if(mem.USER_SN !== issue.USER_SN){
-                await cmmnService.createCommentAlarm(issue.USER_SN, mem.USER_SN, pjt, issue, 'issue', transaction);
-                alarm.notifyComment('issue', issue.USER_SN, {
-                    senderSn: mem.USER_SN,
-                    senderNm: mem.USER_NM,
-                    title: issue.ISSUE_NM,
-                    pjtSn: pjt.PJT_SN,
-                    postSn: issue.ISSUE_SN,
-                    postType: 'issue'
-                });
-            }
+            
             for (const mention of MENTIONS) {
                 const member = await projectRepository.findProjectMember(COMMENT.PJT_SN, mention)
                 if(!member) return {message: '멘션할 수 없는 회원입니다. ', targetSn: mention}
@@ -421,7 +410,7 @@ class WbsService {
                     COMMENT_SN: comment.COMMENT_SN
                 }
                 const result = await wbsRepository.addMentionFromIssue(mentionData, transaction);
-                // 알림위치
+                // 멘션 알림
                 if (mem.USER_SN !== member.USER_SN) {
                     await cmmnService.createMentionAlarm(member.USER_SN, mem.USER_SN, 'commentMention', pjt, issue, 'issue', transaction);
                     alarm.notifyMention('issueComment', member.USER_SN, {
@@ -433,6 +422,18 @@ class WbsService {
                         postType: 'issue'
                     });
                 }
+            }
+            // 댓글 등록 알림
+            if(mem.USER_SN !== issue.USER_SN){
+                await cmmnService.createCommentAlarm(issue.USER_SN, mem.USER_SN, pjt, issue, 'issue', transaction);
+                alarm.notifyComment('issue', issue.USER_SN, {
+                    senderSn: mem.USER_SN,
+                    senderNm: mem.USER_NM,
+                    title: issue.ISSUE_NM,
+                    pjtSn: pjt.PJT_SN,
+                    postSn: issue.ISSUE_SN,
+                    postType: 'issue'
+                });
             }
             await transaction.commit()
             return comment
@@ -454,18 +455,6 @@ class WbsService {
       if (!task) return {message: '업무를 찾을 수 없습니다.'};
       const comment = await wbsRepository.createTaskComment(COMMENT, transaction);
 
-      // // 알림 위치
-      // if(mem.USER_SN !== issue.USER_SN){
-      //   await cmmnService.createCommentAlarm(issue.USER_SN, mem.USER_SN, pjt, issue, 'issue', transaction);
-      //   alarm.notifyComment('issue', issue.USER_SN, {
-      //     senderSn: mem.USER_SN,
-      //     senderNm: mem.USER_NM,
-      //     title: issue.ISSUE_NM,
-      //     pjtSn: pjt.PJT_SN,
-      //     postSn: issue.ISSUE_SN,
-      //     postType: 'issue'
-      //   });
-      // }
       for (const mention of MENTIONS) {
         const member = await projectRepository.findProjectMember(COMMENT.PJT_SN, mention)
         if(!member) return {message: '멘션할 수 없는 회원입니다. ', targetSn: mention}
@@ -475,19 +464,31 @@ class WbsService {
           COMMENT_SN: comment.COMMENT_SN
         }
         const result = await wbsRepository.addMentionFromIssue(mentionData, transaction);
-        // // 알림위치
-        // if (mem.USER_SN !== member.USER_SN) {
-        //   await cmmnService.createMentionAlarm(member.USER_SN, mem.USER_SN, 'commentMention', pjt, issue, 'issue', transaction);
-        //   alarm.notifyMention('issueComment', member.USER_SN, {
-        //     senderSn: mem.USER_SN,
-        //     senderNm: mem.USER_NM,
-        //     title: issue.ISSUE_NM,
-        //     pjtSn: pjt.PJT_SN,
-        //     postSn: issue.ISSUE_SN,
-        //     postType: 'issue'
-        //   });
-        // }
+        // 멘션 알림
+        if (mem.USER_SN !== member.USER_SN) {
+          await cmmnService.createMentionAlarm(member.USER_SN, mem.USER_SN, 'commentMention', pjt, task, 'ticket', transaction);
+          alarm.notifyMention('ticketComment', member.USER_SN, {
+            senderSn: mem.USER_SN,
+            senderNm: mem.USER_NM,
+            title: task.TICKET_NAME,
+            pjtSn: pjt.PJT_SN,
+            postSn: task.TICKET_SN,
+            postType: 'task'
+          });
+        }
       }
+        // 댓글 등록 알림
+        if(mem.USER_SN !== task.WORKER){
+            await cmmnService.createCommentAlarm(task.WORKER, mem.USER_SN, pjt, task, 'ticket', transaction);
+            alarm.notifyComment('ticket', task.WORKER, {
+                senderSn: mem.USER_SN,
+                senderNm: mem.USER_NM,
+                title: task.TICKET_NAME,
+                pjtSn: pjt.PJT_SN,
+                postSn: task.TICKET_SN,
+                postType: 'task'
+            });
+        }
       await transaction.commit()
       return comment
     } catch (error) {
