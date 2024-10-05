@@ -317,7 +317,7 @@ class WbsService {
                 if (addMention.length > 0) {
                     for (const target of addMention) {
                         const mem = await projectRepository.findProjectMember(PJT_SN, target)
-                        if(!mem) return {message: '멘션할 수 없는 회원입니다. ', targetSn: mention}
+                        if(!mem) return {message: '멘션할 수 없는 회원입니다. ', targetSn: target}
                         const mentionData = {TARGET_SN: target, CREATER_SN: USER_SN, ISSUE_SN: ISSUE_SN}
                         await wbsRepository.addMentionFromIssue(mentionData, transaction);
                         if(user.USER_SN !== mem.USER_SN ){
