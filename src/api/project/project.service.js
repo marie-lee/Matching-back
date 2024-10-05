@@ -220,6 +220,7 @@ class projectService {
   // 프로젝트 종료일 확인
   async checkProjectEndDate(){
     const pjtList = await projectRepository.findProgressPjt();
+    // 알림 위치
     const now = new Date();
     const finishedProjects = pjtList.filter(pjt => now >= pjt.END_DT);
     const transaction = await db.transaction();

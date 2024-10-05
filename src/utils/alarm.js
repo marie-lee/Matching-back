@@ -3,7 +3,6 @@ const users = {}; // 사용자 ID와 소켓 ID를 매핑할 객체
 let io;
 function setupSocket(socketIo) {
     socketIo.on('connection', (socket) => {
-        console.log('새로운 클라이언트 연결:', socket.id);
         io = socketIo;
         socket.on('register', (token) => {
             const user = jwt.verifyAccessToken(token); // JWT 비밀키
@@ -50,34 +49,62 @@ function sendNotification(userId, notification) {
     }
 }
 
-// 댓글 작성 시 알림 예시
-function notifyComment(postAuthorId, commentData) {
-    const notification = {
-        type: 'COMMENT',
-        message: `새 댓글이 있습니다: ${commentData.content}`,
-        data: commentData,
-    };
-    sendNotification(postAuthorId, notification);
+// 댓글 작성 시 알림
+function notifyComment(type, postAuthorId, commentData) {
+    if(type==='issue'){
+        const notification = {
+            type: 'ISSUE_COMMENT',
+            message: `이슈 '${commentData.title}'에 새 댓글이 있습니다.`,
+            data: commentData,
+        };
+        sendNotification(postAuthorId, notification);
+    }
+    else if(type==='ticket'){
+        const notification = {
+            type: 'TASK_COMMENT',
+            message: `업무 '${commentData.title}' 새 댓글이 있습니다.`,
+            data: commentData,
+        };
+        sendNotification(postAuthorId, notification);
+    }
 }
 
-// 이슈 또는 멘션 시 알림 예시
-function notifyMention(mentionedUserId, mentionData) {
-    const notification = {
-        type: 'MENTION',
-        message: `멘션되었습니다: ${mentionData.content}`,
-        data: mentionData,
-    };
-    sendNotification(mentionedUserId, notification);
+// 이슈 또는 댓글에 멘션 시 알림
+function notifyMention(type,mentionedUserId, mentionData) {
+    if(type==='issue'){
+        const notification = {
+            type: 'ISSUE_MENTION',
+            message: `이슈 '${mentionData.title}'에 멘션되었습니다.`,
+            data: mentionData,
+        };
+        sendNotification(mentionedUserId, notification);
+    }
+    else if(type==='issueComment') {
+        const notification = {
+            type: 'COMMENT_MENTION',
+            message: `이슈 '${mentionData.title}'의 댓글에 멘션되었습니다.`,
+            data: mentionData,
+        };
+        sendNotification(mentionedUserId, notification);
+    }
+    else if(type==='ticketComment') {
+        const notification = {
+            type: 'COMMENT_MENTION',
+            message: `업무 '${mentionData.title}'의 댓글에 멘션되었습니다.`,
+            data: mentionData,
+        };
+        sendNotification(mentionedUserId, notification);
+    }
 }
 
 // 종료 1주일 전 알림
 function notifyClose(onwerUserId, data) {
     const notification = {
         type: 'CLOSE',
-        message: `종료 1주일 전입니다.: ${data.content}`,
+        message: `프로젝트 '${data.pjtNm}' 종료 1주일 전입니다.`,
         data: data,
     };
-    sendNotification(mentionedUserId, notification);
+    sendNotification(onwerUserId, notification);
 }
 
-module.exports = { setupSocket, notifyComment, notifyMention };
+module.exports = {setupSocket, notifyComment, notifyClose, notifyMention};
