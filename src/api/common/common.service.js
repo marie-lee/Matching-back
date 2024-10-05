@@ -135,6 +135,17 @@ const createMentionAlarm = async (receiver, sender, type, pjt, post, postType, t
   }
 }
 
+const projectCloseAlarm = async (receiver, pjt, transaction) =>{
+  const data = {
+    RECEIVER_SN: receiver,
+    DETAIL: `프로젝트 '${pjt.PJT_NM}' 종료 1주일 전입니다.`,
+    TYPE: 'CLOSE',
+    PJT_SN: pjt.PJT_SN,
+  };
+
+  await commonRepository.createAlarm(data, transaction);
+}
+
 const calculatePeriod = (startDt, endDt) => {
   const startDate = new Date(startDt);
   const endDate = new Date(endDt);
@@ -143,4 +154,4 @@ const calculatePeriod = (startDt, endDt) => {
   return Math.ceil(differenceInTime / (1000 * 60 * 60 * 24)) + 1;
 }
 
-module.exports = {oneCmmnVal, formatDt, sortTasks, addDate, createCommentAlarm, createMentionAlarm, calculatePeriod};
+module.exports = {oneCmmnVal, formatDt, sortTasks, addDate, createCommentAlarm, createMentionAlarm, projectCloseAlarm, calculatePeriod};

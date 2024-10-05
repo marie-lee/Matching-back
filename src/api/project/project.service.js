@@ -1,8 +1,10 @@
 const db = require('../../config/db/db');
 const {logger} = require('../../utils/logger');
+const alarm = require('../../utils/alarm');
 
 const projectRepository = require("./project.repository");
 const minioService = require('../../middleware/minio/minio.service');
+const commonService = require("../common/common.service");
 
 const commonRepository = require("../common/common.repository");
 const wbsRepository = require("../wbs/wbs.repository");
@@ -220,9 +222,20 @@ class projectService {
   // 프로젝트 종료일 확인
   async checkProjectEndDate(){
     const pjtList = await projectRepository.findProgressPjt();
-    // 알림 위치
     const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const oneWeekLater = new Date(today);
+    oneWeekLater.setDate(today.getDate() + 7);
+
     const finishedProjects = pjtList.filter(pjt => now >= pjt.END_DT);
+
+    const upcomingProjects = pjtList.filter(pjt => {
+      const endDate = new Date(pjt.END_DT);
+      return endDate.toISOString().slice(0, 10) === oneWeekLater.toISOString().slice(0, 10);
+    });
+
+
     const transaction = await db.transaction();
     try {
       const updatePromises = finishedProjects.map(async (pjt) => {
@@ -231,6 +244,18 @@ class projectService {
         return projectRepository.updatePjtInfo(pjt, transaction);
       });
       await Promise.all(updatePromises);
+      const notifyPromises = upcomingProjects.map(async (pjt) => {
+        const ownerList = await projectRepository.findOwnerMember(pjt.PJT_SN);
+        for(const owner of ownerList){
+          await commonService.projectCloseAlarm(owner.USER_SN, pjt, transaction);
+          alarm.notifyClose(owner.USER_SN, {
+            title: pjt.PJT_NM,
+            pjtSn: pjt.PJT_SN
+          });
+        }
+      });
+      await Promise.all(notifyPromises);
+
       await transaction.commit();
     } catch (error) {
       await transaction.rollback();
