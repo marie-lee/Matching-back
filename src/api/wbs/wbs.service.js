@@ -305,16 +305,20 @@ class WbsService {
             if (updateIssueData.MENTIONS) {
                 const {deleteMention, addMention} = updateIssueData.MENTIONS;
                 if (deleteMention.length > 0) {
-                    for (const mention of deleteMention) {
-                        const data = await wbsRepository.findMention(mention, USER_SN);
-                        if(data) await wbsRepository.deleteMentionFromIssue(mention, transaction);
+                    for (const target of deleteMention) {
+                        const data = await wbsRepository.findMention(target, USER_SN, ISSUE_SN);
+                        if(data) {
+                            data.DEL_YN = true;
+                            data.DELETED_DT = new Date();
+                            await wbsRepository.deleteMentionFromIssue(data, transaction);
+                        }
                     }
                 }
                 if (addMention.length > 0) {
-                    for (const mention of addMention) {
-                        const mem = await projectRepository.findProjectMember(PJT_SN, mention)
+                    for (const target of addMention) {
+                        const mem = await projectRepository.findProjectMember(PJT_SN, target)
                         if(!mem) return {message: '멘션할 수 없는 회원입니다. ', targetSn: mention}
-                        const mentionData = {TARGET_SN: mention, CREATER_SN: USER_SN, ISSUE_SN: ISSUE_SN}
+                        const mentionData = {TARGET_SN: target, CREATER_SN: USER_SN, ISSUE_SN: ISSUE_SN}
                         await wbsRepository.addMentionFromIssue(mentionData, transaction);
                         if(user.USER_SN !== mem.USER_SN ){
                             await cmmnService.createMentionAlarm(mem.USER_SN, user.USER_SN, 'issueMention', pjt, issue, 'issue', transaction);

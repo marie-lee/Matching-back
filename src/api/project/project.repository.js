@@ -50,6 +50,11 @@ const getProjectById = async(pjtSn) => {
     return await db.TB_PJT.findByPk(pjtSn);
 }
 
+// 프로젝트 스택 조회
+const findProjectStack = async(pjtSn) => {
+  return await db.TB_PJT_SKILL.findAll({where: {PJT_SN: pjtSn}, attributes:['ST_SN']});
+}
+
 // 프로젝트 전체 조회
 const getAllProjects = async() => {
     const query = `SELECT pj.PJT_SN as pjtSn, pj.PJT_NM as pjtNm, pj.PJT_IMG as pjtImg, pj.START_DT as startDt, pj.END_DT as endDt, pj.PERIOD as period, pj.DURATION_UNIT as durationUnit, pj.PJT_INTRO as pjtIntro, pj.PJT_DETAIL as pjtDetail
@@ -307,5 +312,6 @@ module.exports = {
     findProjectMembersByProject,
     getProjectInfo,
     updatePjtInfo,
+    findProjectStack,
     findProgressPjt
 };

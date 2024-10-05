@@ -192,16 +192,22 @@ const findTicket = async (ticketSn, pjtSn) =>{
 const createIssue = async (issueDto, issueCnt, transaction)=>{
     return await db.TB_ISSUE.create({...issueDto, ISSUE_CNT: issueCnt},{transaction})
 }
-const findMention = async(mentionSn, userSn) =>{
-    return await db.TB_MENTION.findOne({where:{MENTION_SN: mentionSn, CREATER_SN: userSn}});
+const findMention = async(target, userSn, issueSn) =>{
+    return await db.TB_MENTION.findOne({
+        where:{
+            TARGET_SN: target,
+            CREATER_SN: userSn,
+            ISSUE_SN: issueSn,
+            COMMENT_SN: { [Op.is]: null },
+            DEL_YN: false
+        }
+    });
 }
 const addMentionFromIssue = async(mentionData,transaction) => {
     await db.TB_MENTION.create(mentionData,{transaction});
 }
-const deleteMentionFromIssue = async(mentionSn, transaction)=>{
-    return await db.TB_MENTION.update(
-        {DELETED_DT: db.Sequelize.fn('NOW'), DEL_YN: true},
-        {where:{MENTION_SN: mentionSn}}, {transaction});
+const deleteMentionFromIssue = async(data, transaction)=>{
+    return await data.save({transaction});
 }
 
 const findIssue = async(issueSn,pjtSn) =>{
@@ -280,11 +286,10 @@ const mentionData = async(issueSn, pjtSn) => {
                               tu.USER_SN,
                               tu.USER_NM,
                               tu.USER_IMG,
-                              tpr.PART
+                              tpm.PART
                           FROM TB_MENTION tm
                           INNER JOIN TB_USER tu ON tu.USER_SN = tm.TARGET_SN
-                          INNER JOIN TB_PJT_M tpm ON tpm.PJT_SN = ${pjtSn}
-                          INNER JOIN TB_PJT_ROLE tpr ON tpm.PJT_ROLE_SN = tpr.PJT_ROLE_SN 
+                          INNER JOIN TB_PJT_M tpm ON tpm.PJT_SN = ${pjtSn} AND tpm.USER_SN = tu.USER_SN
                           WHERE tm.ISSUE_SN = ${issueSn} AND tm.COMMENT_SN IS NULL AND tm.DEL_YN = FALSE 
                           GROUP BY tm.MENTION_SN;`
     return await db.query(query, {type: QueryTypes.SELECT});

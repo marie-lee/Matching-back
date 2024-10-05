@@ -1,14 +1,15 @@
 const db = require('../../config/db/db');
 const {logger} = require('../../utils/logger');
-const {QueryTypes} = require("sequelize");
 
 const projectRepository = require("./project.repository");
 const minioService = require('../../middleware/minio/minio.service');
 
-const {runPjtToVec} = require("../../utils/matching/spawnVectorization");
-const {throwError} = require("../../utils/errors");
 const commonRepository = require("../common/common.repository");
-const {transport} = require("winston");
+const wbsRepository = require("../wbs/wbs.repository");
+const profileRepository = require("../profile/profile.repository");
+
+const { calculatePeriod } = require("../common/common.service");
+const {runPjtToVec} = require("../../utils/matching/spawnVectorization");
 
 
 class projectService {
@@ -196,21 +197,18 @@ class projectService {
     const transaction = await db.transaction();
     try {
       const user = await projectRepository.findProjectMember(pjtSn, userSn);
-      if (!user) {
-        throw new Error('해당 프로젝트에 대한 접근 권한이 없습니다.');
-      }
+      if (!user) { throw new Error('해당 프로젝트에 대한 접근 권한이 없습니다.'); }
       const pjt = await db.TB_PJT.findByPk(pjtSn);
-      if (pjt.CREATED_USER_SN !== userSn) {
-        throw new Error('수정 권한이 없습니다.');
-      }
+      if (pjt.CREATED_USER_SN !== userSn) { throw new Error('수정 권한이 없습니다.'); }
       pjt.PJT_STTS = status;
-      if(status === 'FINISH'){
-        pjt.END_DT = new Date();
+      if(status === 'FINISH'){ pjt.END_DT = new Date(); }
+      await projectRepository.updatePjtInfo(pjt, transaction);
+
+      if(pjt.PJT_STTS === 'FINISH'){
+        await this.addProjectPfol(pjt, transaction);
       }
 
-      await projectRepository.updatePjtInfo(pjt, transaction);
       await transaction.commit();
-
       return { message: '프로젝트 상태가 수정되었습니다.' };
     } catch (error) {
       await transaction.rollback();
@@ -229,6 +227,7 @@ class projectService {
     try {
       const updatePromises = finishedProjects.map(async (pjt) => {
         pjt.PJT_STTS = 'FINISH';
+        await this.addProjectPfol(pjt, transaction);
         return projectRepository.updatePjtInfo(pjt, transaction);
       });
       await Promise.all(updatePromises);
@@ -504,6 +503,36 @@ class projectService {
       await transaction.rollback();
       logger.error('기여도 계산 중 오류 발생:', error);
       throw error;
+    }
+  }
+  async addProjectPfol(pjt, transaction){
+    const memList = await wbsRepository.findProjectMembers(pjt.PJT_SN);
+    const stacks = await projectRepository.findProjectStack(pjt.PJT_SN);
+
+    for (const mem of memList) {
+      const pf = await profileRepository.findProfile(mem.USER_SN);
+      const pfol = await db.TB_PFOL.create({
+        PFOL_NM: pjt.PJT_NM,
+        START_DT: pjt.START_DT,
+        END_DT: pjt.END_DT,
+        PERIOD: calculatePeriod(pjt.START_DT, pjt.END_DT),
+        INTRO: pjt.PJT_INTRO,
+        MEM_CNT: memList.length,
+        CONTRIBUTION: mem.CONTRIBUTION,
+        SERVICE_STTS: 'COMPLETE',
+        PJT_SN: pjt.PJT_SN,
+      }, { transaction });
+      await db.TB_PF_PFOL.create({ PF_SN: pf.PF_SN, PFOL_SN: pfol.PFOL_SN }, { transaction });
+
+      for(const st of stacks){
+        await db.TB_PFOL_ST.create({PFOL_SN: pfol.PFOL_SN, ST_SN: st.ST_SN},{transaction});
+      }
+      const [r] = await db.TB_ROLE.findOrCreate({
+        where: { ROLE_NM: mem.PART },
+        defaults: { ROLE_NM: mem.PART },
+        transaction: transaction
+      });
+      await db.TB_PFOL_ROLE.create({ PFOL_SN: pfol.PFOL_SN, ROLE_SN: r.ROLE_SN }, { transaction });
     }
   }
 }

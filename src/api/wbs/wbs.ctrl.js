@@ -125,7 +125,6 @@ router.put('/project/wbs/issue/:pjtSn/:issueSn', jwt.authenticateToken, async (r
             status: req.body.STATUS,
             mentions: req.body.MENTIONS,
         });
-        issueDto.validation();
 
         const data = await wbsService.updateIssue(issueDto);
         if(data.message){
