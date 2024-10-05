@@ -7,6 +7,7 @@ const {ProjectDto, MemberDto, WbsDataDto, WbsEditDto} = require("./dto/wbs.creat
 const CreateIssueDto = require("./dto/issue.create.dto");
 const IssueDto = require('./dto/issue.dto')
 const CreateCommentDto = require("./dto/comment.create.dto");
+const CreateTaskCommentDto = require("./dto/comment.task.create.dto");
 const {TaskCreateDto, IssuedTaskCreateDto, TaskEditDto} = require("./dto/task.dto");
 // wbs 템플릿 조회
 router.get('/project/wbs/template', jwt.authenticateToken, async (req, res) => {
@@ -215,6 +216,25 @@ router.post('/project/wbs/task/create/:pjtSn', jwt.authenticateToken, async (req
     }
 });
 
+// 업무댓글
+router.post('/project/wbs/task/comment/:pjtSn/:taskSn', jwt.authenticateToken, async (req, res) => {
+  const pjtSn = req.params.pjtSn;
+  const userSn = req.userSn.USER_SN;
+  const taskSn = req.params.taskSn;
+
+  const createTaskCommentDto = new CreateTaskCommentDto({
+    pjtSn: req.params.pjtSn, userSn: req.userSn.USER_SN, taskSn: req.params.taskSn, commentData: req.body,
+  });
+  createTaskCommentDto.validate()
+  try {
+    const comment = await wbsService.createTaskComment(createTaskCommentDto);
+    if(comment.message) return res.status(404).json(comment);
+    return res.status(200).json('댓글이 작성되었습니다.');
+  } catch (error){
+    logger.error(`wbs 업무 댓글작성 중 에러 발생 : ${error}`);
+    return res.status(400).json(`wbs 업무 댓글작성 중 에러 발생 : ${error.message}`)
+  }
+})
 // WBS 이슈 파생 업무 생성
 router.post('/project/wbs/task/create/:pjtSn/:issueSn', jwt.authenticateToken, async (req, res) => {
     const issuedTaskCreateDto = new IssuedTaskCreateDto({

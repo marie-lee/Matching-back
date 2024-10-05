@@ -21,6 +21,7 @@ const getWbsTemplate = async (pjtSn) => {
         attributes: ['TEMPLATE_DATA'],
     });
 }
+
 const findWbs = async (pjtSn) => {
     return await db.TB_WBS.findOne({
         where: { PJT_SN: pjtSn, PARENT_SN: null, ORDER_NUM: 1, DEL_YN: false }
@@ -184,14 +185,17 @@ const findChildData = async (pjtSn, parentSn) => {
         order: [['ORDER_NUM', 'ASC']]
     });
 };
+
 const findTicket = async (ticketSn, pjtSn) =>{
     return await db.TB_WBS.findOne({
         where : {PJT_SN: pjtSn, TICKET_SN: ticketSn, DEL_YN: false },
     })
 }
+
 const createIssue = async (issueDto, issueCnt, transaction)=>{
     return await db.TB_ISSUE.create({...issueDto, ISSUE_CNT: issueCnt},{transaction})
 }
+
 const findMention = async(target, userSn, issueSn) =>{
     return await db.TB_MENTION.findOne({
         where:{
@@ -203,9 +207,11 @@ const findMention = async(target, userSn, issueSn) =>{
         }
     });
 }
+
 const addMentionFromIssue = async(mentionData,transaction) => {
     await db.TB_MENTION.create(mentionData,{transaction});
 }
+
 const deleteMentionFromIssue = async(data, transaction)=>{
     return await data.save({transaction});
 }
@@ -213,12 +219,14 @@ const deleteMentionFromIssue = async(data, transaction)=>{
 const findIssue = async(issueSn,pjtSn) =>{
     return await db.TB_ISSUE.findOne({where:{ISSUE_SN: issueSn, PJT_SN: pjtSn, DEL_YN: false}})
 }
+
 const updateIssue = async(issue, transaction) =>{
     return await issue.save({transaction})
 }
+
 const trackingIssue = async(pjtSn) => {
-    const query = `SELECT 
-                            tw.ISSUE_TICKET_SN AS PARENT_TICKET_SN, 
+    const query = `SELECT
+                            tw.ISSUE_TICKET_SN AS PARENT_TICKET_SN,
                             ti.ISSUE_SN AS ISSUE_SN,
                             ti.CREATED_DT AS ISSUE_CREATED_DT,
                             JSON_ARRAYAGG(
@@ -229,11 +237,12 @@ const trackingIssue = async(pjtSn) => {
                             ) AS TICKETS
                         FROM TB_WBS tw
                         INNER JOIN TB_ISSUE ti ON tw.PJT_SN = ti.PJT_SN AND ti.TICKET_SN = tw.ISSUE_TICKET_SN
-                        WHERE tw.PJT_SN = ${pjtSn} AND tw.ISSUE_TICKET_SN IS NOT NULL 
+                        WHERE tw.PJT_SN = ${pjtSn} AND tw.ISSUE_TICKET_SN IS NOT NULL
                         GROUP BY PARENT_TICKET_SN, ISSUE_SN, ISSUE_CREATED_DT
                         ORDER BY PARENT_TICKET_SN;`;
     return await db.query(query, {type: QueryTypes.SELECT});
 }
+
 const issueDetail = async(issueSn,pjtSn) =>{
     const query = `WITH RECURSIVE TicketHierarchy AS (
     SELECT
@@ -280,6 +289,7 @@ WHERE th.PARENT_SN IS NULL;
     const result =  await db.query(query, {type: QueryTypes.SELECT});
     return result.length > 0 ? result[0] : {};
 }
+
 const mentionData = async(issueSn, pjtSn) => {
     const query = `SELECT
                               tm.MENTION_SN,
@@ -290,10 +300,11 @@ const mentionData = async(issueSn, pjtSn) => {
                           FROM TB_MENTION tm
                           INNER JOIN TB_USER tu ON tu.USER_SN = tm.TARGET_SN
                           INNER JOIN TB_PJT_M tpm ON tpm.PJT_SN = ${pjtSn} AND tpm.USER_SN = tu.USER_SN
-                          WHERE tm.ISSUE_SN = ${issueSn} AND tm.COMMENT_SN IS NULL AND tm.DEL_YN = FALSE 
+                          WHERE tm.ISSUE_SN = ${issueSn} AND tm.COMMENT_SN IS NULL AND tm.DEL_YN = FALSE
                           GROUP BY tm.MENTION_SN;`
     return await db.query(query, {type: QueryTypes.SELECT});
 }
+
 const issueCommentData = async(issueSn) => {
     const query = `WITH MENTIONED_USERS AS (
                                 SELECT
@@ -327,6 +338,14 @@ const issueCommentData = async(issueSn) => {
 
 const createComment = async(commentData, transaction) => {
     return await db.TB_COMMENT.create(commentData, {transaction})
+}
+
+const createTaskComment = async(commentData, transaction) => {
+  return await db.TB_COMMENT.create(commentData, {transaction})
+}
+
+const addMentionFromTask = async(mentionData,transaction) => {
+  await db.TB_MENTION.create(mentionData,{transaction});
 }
 
 const findIssueCnt = async (pjtSn) => {
@@ -447,5 +466,7 @@ module.exports = {
     findWorkList,
     findIssuePart,
     findCreateIssue,
-    findWholeWbs
+    findWholeWbs,
+    createTaskComment,
+    addMentionFromTask
 };
