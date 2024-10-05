@@ -101,7 +101,7 @@ function notifyMention(type,mentionedUserId, mentionData) {
 function notifyClose(onwerUserId, data) {
     const notification = {
         type: 'CLOSE',
-        message: `프로젝트 '${data.pjtNm}' 종료 1주일 전입니다.`,
+        message: `프로젝트 '${data.title}' 종료 1주일 전입니다.`,
         data: data,
     };
     sendNotification(onwerUserId, notification);

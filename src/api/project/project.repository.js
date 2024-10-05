@@ -284,6 +284,11 @@ const updatePjtInfo = async(pjt, transaction) => {
 const findProgressPjt = async() => {
   return await db.TB_PJT.findAll({ where: {DEL_YN: false, PJT_STTS: 'PROGRESS'}})
 }
+
+// 프로젝트 owner 권한 멤버 리스트 조회
+const findOwnerMember = async(pjtSn) => {
+    return await db.TB_PJT_M.findAll({where: {PJT_SN: pjtSn, DEL_YN: false, ROLE: 'owner'}});
+}
 module.exports = {
     createProject,
     findOrCreateStack,
@@ -313,5 +318,6 @@ module.exports = {
     getProjectInfo,
     updatePjtInfo,
     findProjectStack,
-    findProgressPjt
+    findProgressPjt,
+    findOwnerMember
 };
