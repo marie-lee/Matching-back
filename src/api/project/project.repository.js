@@ -176,6 +176,7 @@ const myOneProject = async(userSn, pjtSn) => {
 const pjtRoleInfo = async(pjtRoleSn) => {
         return await db.TB_PJT_ROLE.findOne({where: {PJT_ROLE_SN: pjtRoleSn}});
 }
+
 const pjtRoleMem = async(memData) => {
         return await db.TB_PJT_M.findOne({where:memData});
 }
@@ -280,6 +281,7 @@ const findProjectMembersByProject = async (pjtSn) => {
 const updatePjtInfo = async(pjt, transaction) => {
   return await pjt.save({transaction});
 }
+
 // 진행중인 프로젝트 리스트 조회
 const findProgressPjt = async() => {
   return await db.TB_PJT.findAll({ where: {DEL_YN: false, PJT_STTS: 'PROGRESS'}})
@@ -288,6 +290,39 @@ const findProgressPjt = async() => {
 // 프로젝트 owner 권한 멤버 리스트 조회
 const findOwnerMember = async(pjtSn) => {
     return await db.TB_PJT_M.findAll({where: {PJT_SN: pjtSn, DEL_YN: false, ROLE: 'owner'}});
+}
+
+const isProjectOwner = async(pjtSn, userSn) => {
+  return await db.TB_PJT_M.findOne({
+    where: {
+      PJT_SN: pjtSn,
+      USER_SN: userSn,
+      ROLE: 'owner',
+      DEL_YN: false
+    }
+  }) !== null;
+}
+
+const findAllProjectMembers = async(pjtSn) => {
+  return await db.TB_PJT_M.findAll({
+    where: {PJT_SN: pjtSn, DEL_YN: false},
+    attributes: [
+      ['PJT_MEM_SN', 'pjtMemSn'],
+      ['USER_SN', 'userSn'],
+      [db.Sequelize.col('TB_USER.USER_NM'), 'userNm'],
+      [db.Sequelize.col('TB_USER.USER_IMG'), 'userImg'],
+      ['PJT_ROLE_SN', 'pjtRoleSn'],
+      [db.Sequelize.col('TB_PJT_ROLE.PART'), 'part'],
+      ['FIRST_DT', 'firstDt'],
+      ['END_DT', 'endDt'],
+      ['DEL_YN', 'delYn'],
+      ['ROLE', 'role']
+    ],
+    include: [
+      {model: db.TB_USER, attributes: []},
+      {model: db.TB_PJT_ROLE, attributes: [], where: {DEL_YN: false}}
+    ]
+  });
 }
 module.exports = {
     createProject,
@@ -319,5 +354,7 @@ module.exports = {
     updatePjtInfo,
     findProjectStack,
     findProgressPjt,
-    findOwnerMember
+    findOwnerMember,
+    findAllProjectMembers,
+    isProjectOwner
 };

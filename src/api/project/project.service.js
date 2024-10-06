@@ -71,6 +71,26 @@ class projectService {
     }
   }
 
+  async getProjectMemberList(userSn, pjtSn) {
+    try {
+
+      const isOwner = await projectRepository.isProjectOwner(pjtSn, userSn);
+
+      if (!isOwner) {
+        return { message: '프로젝트 멤버 조회 권한이 없습니다.' };
+      }
+
+      const memList = await projectRepository.findAllProjectMembers(pjtSn);
+
+      if (!memList || memList.length === 0) {
+        return { message: '프로젝트 멤버가 존재하지 않습니다.' };
+      }
+      return memList;
+    } catch (error) {
+      logger.error('프로젝트 멤버 조회 중 오류 발생:', error);
+      throw error;
+    }
+  }
   // 프로젝트 등록
   async registerProject(projectCreateDto, user, file) {
     const transaction = await db.transaction();
