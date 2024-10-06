@@ -2,7 +2,7 @@ const {logger} = require('../../utils/logger');
 const db = require('../../config/db/db');
 const {formatDt, sortTasks} = require("../common/common.service");
 const cmmnRepository = require("../common/common.repository");
-const cmmnService = require("../common/common.service");
+const alarmService = require("../alarm/alarm.service");
 const wbsRepository = require("./wbs.repository");
 const userRepository = require("../member/member.repository");
 const { ProjectDto, MemberDto} = require("./dto/wbs.create.dto");
@@ -258,7 +258,7 @@ class WbsService {
                     }
                     if(user.USER_SN !== mem.USER_SN){
                         await wbsRepository.addMentionFromIssue(mentionData, transaction);
-                        await cmmnService.createMentionAlarm(mem.USER_SN, user.USER_SN, 'issueMention', pjt, issue, 'issue', transaction);
+                        await alarmService.createMentionAlarm(mem.USER_SN, user.USER_SN, 'issueMention', pjt, issue, 'issue', transaction);
                         alarm.notifyMention('issue', mem.USER_SN, {
                             senderSn: user.USER_SN,
                             senderNm: user.USER_NM,
@@ -322,7 +322,7 @@ class WbsService {
                         const mentionData = {TARGET_SN: target, CREATER_SN: USER_SN, ISSUE_SN: ISSUE_SN}
                         await wbsRepository.addMentionFromIssue(mentionData, transaction);
                         if(user.USER_SN !== mem.USER_SN ){
-                            await cmmnService.createMentionAlarm(mem.USER_SN, user.USER_SN, 'issueMention', pjt, issue, 'issue', transaction);
+                            await alarmService.createMentionAlarm(mem.USER_SN, user.USER_SN, 'issueMention', pjt, issue, 'issue', transaction);
                             alarm.notifyMention('issue', mem.USER_SN, {
                                 senderSn: user.USER_SN,
                                 senderNm: user.USER_NM,
@@ -412,7 +412,7 @@ class WbsService {
                 const result = await wbsRepository.addMentionFromIssue(mentionData, transaction);
                 // 멘션 알림
                 if (mem.USER_SN !== member.USER_SN) {
-                    await cmmnService.createMentionAlarm(member.USER_SN, mem.USER_SN, 'commentMention', pjt, issue, 'issue', transaction);
+                    await alarmService.createMentionAlarm(member.USER_SN, mem.USER_SN, 'commentMention', pjt, issue, 'issue', transaction);
                     alarm.notifyMention('issueComment', member.USER_SN, {
                         senderSn: mem.USER_SN,
                         senderNm: mem.USER_NM,
@@ -425,7 +425,7 @@ class WbsService {
             }
             // 댓글 등록 알림
             if(mem.USER_SN !== issue.USER_SN){
-                await cmmnService.createCommentAlarm(issue.USER_SN, mem.USER_SN, pjt, issue, 'issue', transaction);
+                await alarmService.createCommentAlarm(issue.USER_SN, mem.USER_SN, pjt, issue, 'issue', transaction);
                 alarm.notifyComment('issue', issue.USER_SN, {
                     senderSn: mem.USER_SN,
                     senderNm: mem.USER_NM,
@@ -466,7 +466,7 @@ class WbsService {
         const result = await wbsRepository.addMentionFromIssue(mentionData, transaction);
         // 멘션 알림
         if (mem.USER_SN !== member.USER_SN) {
-          await cmmnService.createMentionAlarm(member.USER_SN, mem.USER_SN, 'commentMention', pjt, task, 'ticket', transaction);
+          await alarmService.createMentionAlarm(member.USER_SN, mem.USER_SN, 'commentMention', pjt, task, 'ticket', transaction);
           alarm.notifyMention('ticketComment', member.USER_SN, {
             senderSn: mem.USER_SN,
             senderNm: mem.USER_NM,
@@ -479,7 +479,7 @@ class WbsService {
       }
         // 댓글 등록 알림
         if(mem.USER_SN !== task.WORKER){
-            await cmmnService.createCommentAlarm(task.WORKER, mem.USER_SN, pjt, task, 'ticket', transaction);
+            await alarmService.createCommentAlarm(task.WORKER, mem.USER_SN, pjt, task, 'ticket', transaction);
             alarm.notifyComment('ticket', task.WORKER, {
                 senderSn: mem.USER_SN,
                 senderNm: mem.USER_NM,

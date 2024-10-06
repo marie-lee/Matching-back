@@ -4,7 +4,7 @@ const alarm = require('../../utils/alarm');
 
 const projectRepository = require("./project.repository");
 const minioService = require('../../middleware/minio/minio.service');
-const commonService = require("../common/common.service");
+const alarmService = require('../alarm/alarm.service');
 
 const commonRepository = require("../common/common.repository");
 const wbsRepository = require("../wbs/wbs.repository");
@@ -247,7 +247,7 @@ class projectService {
       const notifyPromises = upcomingProjects.map(async (pjt) => {
         const ownerList = await projectRepository.findOwnerMember(pjt.PJT_SN);
         for(const owner of ownerList){
-          await commonService.projectCloseAlarm(owner.USER_SN, pjt, transaction);
+          await alarmService.projectCloseAlarm(owner.USER_SN, pjt, transaction);
           alarm.notifyClose(owner.USER_SN, {
             title: pjt.PJT_NM,
             pjtSn: pjt.PJT_SN

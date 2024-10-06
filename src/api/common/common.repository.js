@@ -12,7 +12,4 @@ const oneCmmnCd = async(cmmnCdType, cmmnCdVal)=>{
         attributes: ['CMMN_CD'],
     })
 }
-const createAlarm = async (data, transaction)=>{
-    return await db.TB_ALARM.create(data,{transaction});
-}
-module.exports = {oneCmmnVal,oneCmmnCd,createAlarm};
+module.exports = {oneCmmnVal,oneCmmnCd};
