@@ -958,8 +958,8 @@ paths:
     get:
       tags:
         - project
-      summary: 프로젝트 멤버 리스트 조회
-      description: 프로젝트 멤버 리스트 조회
+      summary: 프로젝트 멤버, 파트 리스트 조회
+      description: 프로젝트 멤버, 파트 리스트 조회
       parameters:
         - in: path
           name: pjtSn
@@ -975,43 +975,50 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    pjtMemSn:
-                      type: integer
-                      description: 프로젝트 멤버 일련번호
-                    userSn:
-                      type: integer
-                      description: 사용자 일련번호
-                    userNm:
+                type: object
+                properties:
+                  memList:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        pjtMemSn:
+                          type: integer
+                          description: 프로젝트 멤버 일련번호
+                        userSn:
+                          type: integer
+                          description: 사용자 일련번호
+                        userNm:
+                          type: string
+                          description: 사용자 이름
+                        userImg:
+                          type: string
+                          description: 사용자 프로필 이미지 URL
+                        pjtRoleSn:
+                          type: integer
+                          description: 프로젝트 역할 일련번호
+                        part:
+                          type: string
+                          description: 멤버의 파트(역할)
+                        firstDt:
+                          type: string
+                          format: date
+                          description: 참가일자
+                        endDt:
+                          type: string
+                          format: date
+                          description: 종료일자
+                        delYn:
+                          type: boolean
+                          description: 참여여부
+                        role:
+                          type: string
+                          description: 프로젝트 내 멤버의 권한
+                  partList:
+                    type: array
+                    items:
                       type: string
-                      description: 사용자 이름
-                    userImg:
-                      type: string
-                      description: 사용자 프로필 이미지 URL
-                    pjtRoleSn:
-                      type: integer
-                      description: 프로젝트 역할 일련번호
-                    part:
-                      type: string
-                      description: 멤버의 파트(역할)
-                    firstDt:
-                      type: string
-                      format: date
-                      description: 참가일자
-                    endDt:
-                      type: string
-                      format: date
-                      description: 종료일자
-                    delYn:
-                      type: boolean
-                      description: 참여여부
-                    role:
-                      type: string
-                      description:
-                        프로젝트 내 멤버의 권한
+                    description: 프로젝트 내 역할(파트) 리스트
         '400':
           description: 요청 처리 중 오류 발생
           content:
@@ -1032,8 +1039,10 @@ paths:
                   message:
                     type: string
                     example: '프로젝트 멤버 조회 권한이 없습니다.'
-  /project/memberList/{pjtSn}/{memberSn}:
+  /project/memberList/role/{pjtSn}/{memberSn}:
     put:
+      tags:
+        - project
       summary: 프로젝트 멤버 권한 변경
       description: 프로젝트 멤버 권한 변경
       parameters:
@@ -1095,6 +1104,71 @@ paths:
 
       security:
         - JWT: [ ]
+  /project/memberList/part/{pjtSn}/{memberSn}:
+    put:
+      tags:
+        - project
+      summary: 프로젝트 멤버 파트 변경
+      description: 프로젝트 멤버 파트 변경
+      parameters:
+        - name: pjtSn
+          in: path
+          required: true
+          description: 프로젝트 일련번호
+          schema:
+            type: string
+        - name: memberSn
+          in: path
+          required: true
+          description: 멤버 일련번호
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newPart:
+                  type: string
+                  description:
+                    변경할 파트
+      responses:
+        '200':
+          description: 멤버 파트 변경 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 멤버 파트가 성공적으로 변경되었습니다.
+        '403':
+          description: 권한 없음
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 권한이 없습니다.
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example:
+                      프로젝트 멤버 파트 변경 실패: 해당 멤버를 찾을 수 없습니다.
+      security:
+        - JWT: [ ]
+
   /project/wbs/issue/{pjtSn}/{issueSn}:
     put:
       tags:

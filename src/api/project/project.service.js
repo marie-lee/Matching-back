@@ -85,7 +85,9 @@ class projectService {
       if (!memList || memList.length === 0) {
         return { message: '프로젝트 멤버가 존재하지 않습니다.' };
       }
-      return memList;
+      const partList = await projectRepository.getProjectPartList(pjtSn);  // 역할 리스트 가져오기
+
+      return {'memList':memList,'partList':partList};
     } catch (error) {
       logger.error('프로젝트 멤버 조회 중 오류 발생:', error);
       throw error;
@@ -590,7 +592,7 @@ class projectService {
       }
 
       if (newRole !== 'owner' && newRole !== 'member') {
-        throw new Error('유효하지 않은 역할입니다.');
+        throw new Error('유효하지 않은 권한입니다.');
       }
 
       const member = await projectRepository.findProjectMember(pjtSn, memberSn);
@@ -598,11 +600,39 @@ class projectService {
         throw new Error('해당 멤버를 찾을 수 없습니다.');
       }
 
-      if (member.ROLE === newRole) {
-        throw new Error('이미 해당 역할을 가지고 있습니다.');
+      await projectRepository.updateMemberRole(pjtSn, memberSn, newRole, transaction);
+
+      await transaction.commit();
+      return { message: '멤버 권한이 성공적으로 변경되었습니다.' };
+    } catch (error) {
+      await transaction.rollback();
+      logger.error('멤버 권한 변경 중 오류 발생:', error);
+      throw error;
+    }
+  }
+
+  async changeMemberPart(userSn, pjtSn, memberSn, newPart) {
+    const transaction = await db.transaction();
+    try {
+      // 프로젝트 소유자 여부 확인
+      const isOwner = await projectRepository.isProjectOwner(pjtSn, userSn);
+      if (!isOwner) {
+        throw new Error('권한이 없습니다.');
       }
 
-      await projectRepository.updateMemberRole(pjtSn, memberSn, newRole, transaction);
+      const partList = await projectRepository.getProjectPartList(pjtSn);
+
+      const validParts = partList.map(part => part.part);
+      if (!validParts.includes(newPart)) {
+        throw new Error('유효하지 않은 파트입니다.');
+      }
+
+      const member = await projectRepository.findProjectMember(pjtSn, memberSn);
+      if (!member) {
+        throw new Error('해당 멤버를 찾을 수 없습니다.');
+      }
+
+      await projectRepository.updateMemberPart(pjtSn, memberSn, newPart, transaction);
 
       await transaction.commit();
       return { message: '멤버 역할이 성공적으로 변경되었습니다.' };
@@ -612,5 +642,6 @@ class projectService {
       throw error;
     }
   }
+
 }
 module.exports = new projectService();

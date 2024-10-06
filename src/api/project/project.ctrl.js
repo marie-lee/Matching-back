@@ -216,7 +216,7 @@ router.get('/project/memberList/:pjtSn', jwt.authenticateToken, async (req, res)
   }
 });
 // 프로젝트 멤버 권한 변경
-router.put('/project/memberList/:pjtSn/:memberSn', jwt.authenticateToken, async (req, res) => {
+router.put('/project/memberList/role/:pjtSn/:memberSn', jwt.authenticateToken, async (req, res) => {
   const userSn = req.userSn.USER_SN;
   const pjtSn = req.params.pjtSn;
   const memberSn = req.params.memberSn;
@@ -231,6 +231,25 @@ router.put('/project/memberList/:pjtSn/:memberSn', jwt.authenticateToken, async 
       return res.status(403).json({ message: error.message });
     }
     return res.status(400).json('프로젝트 멤버 권한 변경 실패: ' + error.message);
+  }
+});
+
+// 프로젝트 멤버 역할 변경
+router.put('/project/memberList/part/:pjtSn/:memberSn', jwt.authenticateToken, async (req, res) => {
+  const userSn = req.userSn.USER_SN;
+  const pjtSn = req.params.pjtSn;
+  const memberSn = req.params.memberSn;
+  const { newPart } = req.body;
+
+  try {
+    const result = await projectService.changeMemberPart(userSn, pjtSn, memberSn, newPart);
+    return res.status(200).json(result);
+  } catch (error) {
+    logger.error('프로젝트 멤버 역할 변경 실패: ', error);
+    if (error.message === '권한이 없습니다.') {
+      return res.status(403).json({ message: error.message });
+    }
+    return res.status(400).json('프로젝트 멤버 역할 변경 실패: ' + error.message);
   }
 });
 module.exports = router;
