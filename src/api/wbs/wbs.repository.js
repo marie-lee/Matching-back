@@ -336,6 +336,37 @@ const issueCommentData = async(issueSn) => {
     return await db.query(query, {type: QueryTypes.SELECT});
 }
 
+const taskCommentData = async(taskSn) => {
+    const query = `WITH MENTIONED_USERS AS (
+                                SELECT
+                                    m.COMMENT_SN,
+                                    JSON_ARRAYAGG(
+                                        JSON_OBJECT(
+                                            'MENTIONS_SN', m.MENTION_SN,
+                                            'USER_SN', tu.USER_SN,
+                                            'USER_NM', tu.USER_NM
+                                        )
+                                    ) AS MENTIONED_USERS
+                                FROM TB_MENTION m
+                                INNER JOIN TB_USER tu ON tu.USER_SN = m.TARGET_SN
+                                WHERE m.COMMENT_SN IS NOT NULL AND m.DEL_YN = false
+                                GROUP BY m.COMMENT_SN
+                            )
+                            SELECT
+                                c.COMMENT_SN,
+                                c.TEXT,
+                                c.CREATER_SN,
+                                tu.USER_NM AS CREATER_NM,
+                                tu.USER_IMG AS CREATER_IMG,
+                                COALESCE(mu.MENTIONED_USERS, JSON_ARRAY()) AS mentions,
+                                c.CREATED_DT
+                            FROM TB_COMMENT c
+                            INNER JOIN TB_USER tu ON tu.USER_SN = c.CREATER_SN
+                            LEFT JOIN MENTIONED_USERS mu ON mu.COMMENT_SN = c.COMMENT_SN
+                            WHERE c.TICKET_SN = ${taskSn};`
+    return await db.query(query, {type: QueryTypes.SELECT});
+}
+
 const createComment = async(commentData, transaction) => {
     return await db.TB_COMMENT.create(commentData, {transaction})
 }
@@ -475,6 +506,7 @@ module.exports = {
     issueDetail,
     mentionData,
     issueCommentData,
+    taskCommentData,
     createComment,
     findIssueCnt,
     findOrderNum,

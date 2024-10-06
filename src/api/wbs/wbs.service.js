@@ -689,7 +689,8 @@ class WbsService {
                 startDt: task.START_DT ? formatDt(task.START_DT) : null,
                 endDt: task.END_DT ? formatDt(task.END_DT) : null,
                 status: status ? status.CMMN_CD_VAL : null,
-                issues: []
+                issues: [],
+                COMMENTS: []
             }
             if(task.PARENT_SN){
                 const depth2 = await wbsRepository.findTicket(task.PARENT_SN, pjtSn);
@@ -700,6 +701,7 @@ class WbsService {
                 }
             }
             const issues = await wbsRepository.findIssuesByTicket(taskSn, pjtSn);
+            const comments = await wbsRepository.taskCommentData(taskSn);
             if(issues){
                 for(const issue of issues){
                     const issueCreater = await userRepository.findUser(issue.PRESENT_SN);
@@ -713,6 +715,12 @@ class WbsService {
                     result.issues.push(issueResult);
                 }
             }
+            if(comments){
+                    result.COMMENTS = comments.map(c => ({
+                        ...c, CREATED_DT: formatDt(c.CREATED_DT),
+                    }));
+            }
+
             return result;
         }
         catch (error) {
