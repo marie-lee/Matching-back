@@ -5293,6 +5293,41 @@ components:
                     creater:
                       type: string
                       description: 이슈 생성자
+              COMMENTS:
+                type: array
+                items:
+                  properties:
+                    COMMENT_SN:
+                      type: integer
+                      description: 댓글 일련번호
+                    TEXT:
+                      type: string
+                      description: 댓글 텍스트
+                    CREATER_SN:
+                      type: integer
+                      description: 멘션한 유저 일련번호
+                    CREATER_NM:
+                      type: string
+                      description: 멘션한 유저명
+                    CREATER_IMG:
+                      type: string
+                      description: 멘션한 유저 이미지 url
+                    MENTIONS:
+                      type: array
+                      items:
+                        properties:
+                          MENTION_SN:
+                            type: integer
+                            description: 멘션 일련번호
+                          USER_SN:
+                            type: integer
+                            description: 멘션한 유저 일련번호
+                          USER_NM:
+                            type: string
+                            description: 멘션한 유저명
+                          USER_IMG:
+                            type: string
+                            description: 멘션한 유저 이미지 url
             example:
               - taskSn: 1
                 workPackage: 백엔드
@@ -5321,6 +5356,20 @@ components:
                     issueTitle: 테이블 추가
                     userSn: 4
                     creater: 김철수
+                COMMENTS:
+                  - COMMENT_SN: 1
+                    TEXT: 댓글입니다.
+                    CREATER_SN: 1
+                    CREATER_NM: 홍길동
+                    CREATER_IMG: img.jpg
+                    mentions:
+                      - MENTIONS_SN: 1
+                        USER_SN: 2
+                        USER_NM: 아무개
+                      - MENTIONS_SN: 2
+                        USER_SN: 4
+                        USER_NM: 김철수
+                    CREATED_DT: 2024-01-01 00:00:00
     getTaskDetail400:
       description: 업무 상세 조회 에러
       content:
