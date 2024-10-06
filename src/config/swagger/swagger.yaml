@@ -975,6 +975,26 @@ paths:
           $ref: '#/components/responses/createTask400'
       security:
         - JWT: [ ]
+  /project/wbs/past/{pjtSn}:
+    get:
+      tags:
+        - wbs
+      summary: 전체 지난 업무/이슈 조회
+      description: 전체 지난 업무/이슈 조회
+      parameters:
+        - in: path
+          name: pjtSn
+          required: true
+          schema:
+            type: integer
+          description: 프로젝트 일련번호
+      responses:
+        '200':
+          $ref: '#/components/responses/getPast200'
+        '400':
+          $ref: '#/components/responses/getPast400'
+      security:
+        - JWT: [ ]
   /project/wbs/dashboard/{pjtSn}:
     get:
       tags:
@@ -4569,6 +4589,65 @@ components:
           schema:
             type: string
             example: '업무 등록 중 에러 발생 : (에러메세지)'
+    getPast200:
+      description: 전체 지난 업무/이슈 조회 성공
+      content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pastTasks:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      ticketSn:
+                        type: integer
+                      ticketNum:
+                        type: string
+                      priority:
+                        type: string
+                      title:
+                        type: string
+                      worker:
+                        type: string
+                      status:
+                        type: string
+                      startDt:
+                        type: string
+                        format: date
+                      dueDate:
+                        type: string
+                        format: date
+                openIssues:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      issueSn:
+                        type: integer
+                      issueNum:
+                        type: string
+                      priority:
+                        type: string
+                      title:
+                        type: string
+                      status:
+                        type: string
+                      present:
+                        type: string
+                      createdDt:
+                        type: string
+                        format: date
+    getPast400:
+      description: 전체 지난 업무/이슈 조회 오류 발생
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
     getDashboard200:
       description: wbs 대시보드 조회 성공
       content:

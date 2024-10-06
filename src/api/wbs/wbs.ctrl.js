@@ -335,5 +335,17 @@ router.get('/project/wbs/all/:pjtSn', jwt.authenticateToken, async (req, res)=> 
         return res.status(400).json(`WBS 조회 중 에러 발생 :  ${error.message}`);
     }
 })
+//전체 지난 업무/이슈 조회
+router.get('/project/wbs/past/:pjtSn',jwt.authenticateToken, async (req,res)=>{
+  try{
+    const userSn = req.userSn.USER_SN;
+    const pjtSn = req.params.pjtSn;
+    const data = await wbsService.getPastTasksAndIssues(userSn,pjtSn);
+    return res.status(200).json(data);
 
+  } catch (error){
+    logger.error('전체 지난 업무/이슈 조회 중 에러 발생: ',error);
+    return res.status(400).json('전체 지난 업무/이슈 조회 중 에러 발생: '+error.message);
+  }
+});
 module.exports = router;
