@@ -215,4 +215,22 @@ router.get('/project/memberList/:pjtSn', jwt.authenticateToken, async (req, res)
     return res.status(400).json('프로젝트 멤버 리스트 조회 실패: ' + error.message);
   }
 });
+// 프로젝트 멤버 권한 변경
+router.put('/project/memberList/:pjtSn/:memberSn', jwt.authenticateToken, async (req, res) => {
+  const userSn = req.userSn.USER_SN;
+  const pjtSn = req.params.pjtSn;
+  const memberSn = req.params.memberSn;
+  const { newRole } = req.body;
+
+  try {
+    const result = await projectService.changeMemberRole(userSn, pjtSn, memberSn, newRole);
+    return res.status(200).json(result);
+  } catch (error) {
+    logger.error('프로젝트 멤버 권한 변경 실패: ', error);
+    if (error.message === '권한이 없습니다.') {
+      return res.status(403).json({ message: error.message });
+    }
+    return res.status(400).json('프로젝트 멤버 권한 변경 실패: ' + error.message);
+  }
+});
 module.exports = router;

@@ -463,7 +463,6 @@ class projectService {
     }
   }
 
-
   async getMyRates(userSn,pjtSn) {
     try {
       const myRates = await projectRepository.findMyRates(userSn,pjtSn);
@@ -550,6 +549,7 @@ class projectService {
       throw error;
     }
   }
+
   async addProjectPfol(pjt, transaction){
     const memList = await wbsRepository.findProjectMembers(pjt.PJT_SN);
     const stacks = await projectRepository.findProjectStack(pjt.PJT_SN);
@@ -578,6 +578,38 @@ class projectService {
         transaction: transaction
       });
       await db.TB_PFOL_ROLE.create({ PFOL_SN: pfol.PFOL_SN, ROLE_SN: r.ROLE_SN }, { transaction });
+    }
+  }
+
+  async changeMemberRole(userSn, pjtSn, memberSn, newRole) {
+    const transaction = await db.transaction();
+    try {
+      const isOwner = await projectRepository.isProjectOwner(pjtSn, userSn);
+      if (!isOwner) {
+        throw new Error('권한이 없습니다.');
+      }
+
+      if (newRole !== 'owner' && newRole !== 'member') {
+        throw new Error('유효하지 않은 역할입니다.');
+      }
+
+      const member = await projectRepository.findProjectMember(pjtSn, memberSn);
+      if (!member) {
+        throw new Error('해당 멤버를 찾을 수 없습니다.');
+      }
+
+      if (member.ROLE === newRole) {
+        throw new Error('이미 해당 역할을 가지고 있습니다.');
+      }
+
+      await projectRepository.updateMemberRole(pjtSn, memberSn, newRole, transaction);
+
+      await transaction.commit();
+      return { message: '멤버 역할이 성공적으로 변경되었습니다.' };
+    } catch (error) {
+      await transaction.rollback();
+      logger.error('멤버 역할 변경 중 오류 발생:', error);
+      throw error;
     }
   }
 }

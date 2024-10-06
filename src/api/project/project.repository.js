@@ -324,6 +324,21 @@ const findAllProjectMembers = async(pjtSn) => {
     ]
   });
 }
+
+const updateMemberRole = async (pjtSn, memberSn, newRole, transaction) => {
+  return await db.TB_PJT_M.update(
+    { ROLE: newRole },
+    {
+      where: {
+        PJT_SN: pjtSn,
+        USER_SN: memberSn,
+        DEL_YN: false
+      },
+      transaction
+    }
+  );
+};
+
 module.exports = {
     createProject,
     findOrCreateStack,
@@ -356,5 +371,6 @@ module.exports = {
     findProgressPjt,
     findOwnerMember,
     findAllProjectMembers,
-    isProjectOwner
+    isProjectOwner,
+    updateMemberRole
 };
