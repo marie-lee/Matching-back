@@ -399,7 +399,7 @@ class WbsService {
             const issue = await wbsRepository.issueDetail(COMMENT.ISSUE_SN, COMMENT.PJT_SN);
             if (!issue) return {message: '이슈를 찾을 수 없습니다.'};
             const comment = await wbsRepository.createComment(COMMENT, transaction);
-            
+
             for (const mention of MENTIONS) {
                 const member = await projectRepository.findProjectMember(COMMENT.PJT_SN, mention)
                 if(!member) return {message: '멘션할 수 없는 회원입니다. ', targetSn: mention}
@@ -867,6 +867,82 @@ class WbsService {
             throw error;
         }
     }
+
+    async getPastTasksAndIssues(userSn, pjtSn){
+    const today = new Date();
+    const todayDate = today.setHours(0, 0, 0, 0);
+    try {
+      const mem = await projectRepository.findProjectMember(pjtSn, userSn);
+      if (!mem) return {message: '프로젝트 멤버가 아닙니다.'}
+
+      const ownerList = await projectRepository.findOwnerMember(pjtSn);
+      const isOwner = ownerList.some(owner => owner.USER_SN === userSn);
+      if (!isOwner) return { message: '프로젝트 소유자 권한이 없습니다.' };
+
+      const result = {
+        Tasks: [],
+        Issues: []
+      };
+
+      // 지난 업무 조회
+      const allTasks = await wbsRepository.findAllTasks(pjtSn);
+      for(const task of allTasks){
+        if(task.END_DT && new Date(task.END_DT) < today && task.STATUS !== 'TICKET_CPLT' && task.STATUS !== 'TICKET_CLS') {
+          const [priority, status, worker, projectMember] = await Promise.all([
+            cmmnRepository.oneCmmnVal('TICKET_PRRT', task.PRIORITY),
+            cmmnRepository.oneCmmnVal('TICKET_STTS', task.STATUS),
+            task.WORKER ? userRepository.findUser(task.WORKER) : null,
+            task.WORKER ? projectRepository.findProjectMember(pjtSn, task.WORKER) : null
+          ]);
+
+          const taskResult = {
+            ticketSn: task.TICKET_SN,
+            ticketNum: projectMember ? `${projectMember.PART}-${task.TICKET_SN}` : `TASK-${task.TICKET_SN}`,
+            priority: priority ? priority.CMMN_CD_VAL : null,
+            title: task.TICKET_NAME,
+            worker: worker ? worker.USER_NM : null,
+            status: status ? status.CMMN_CD_VAL : null,
+            startDt: task.START_DT ? formatDt(task.START_DT) : null,
+            dueDate: task.END_DT ? formatDt(task.END_DT) : null
+          };
+          result.Tasks.push(taskResult);
+        }
+      }
+
+      // 열린 이슈 조회
+      const allIssues = await wbsRepository.findAllIssues(pjtSn);
+      for(const issue of allIssues){
+        if(issue.STATUS !== 'ISSUE_CPLT' && issue.STATUS !== 'ISSUE_CLS') {
+          const [issuePriority, issueStatus, issuePresent, issuePart] = await Promise.all([
+            cmmnRepository.oneCmmnVal('ISSUE_PRRT', issue.PRIORITY),
+            cmmnRepository.oneCmmnVal('ISSUE_STTS', issue.STATUS),
+            projectRepository.findProjectMember(pjtSn, issue.PRESENT_SN),
+            wbsRepository.findIssuePart(pjtSn, issue.TICKET_SN)
+          ]);
+          const presentUser = await userRepository.findUser(issuePresent.USER_SN);
+
+          const issueResult = {
+            issueSn: issue.ISSUE_SN,
+            issueNum: issuePart ? `${issuePart.PART}-i${issue.ISSUE_CNT}-${issue.ISSUE_SN}` : `ISSUE-i${issue.ISSUE_CNT}-${issue.ISSUE_SN}`,
+            priority: issuePriority ? issuePriority.CMMN_CD_VAL : null,
+            title: issue.ISSUE_NM,
+            status: issueStatus ? issueStatus.CMMN_CD_VAL : null,
+            present: presentUser.USER_NM,
+            createdDt: formatDt(issue.CREATED_DT)
+          };
+          result.Issues.push(issueResult);
+        }
+      }
+
+      if(result.Tasks) sortTasks(result.Tasks);
+      if(result.Issues) sortTasks(result.Issues);
+
+      return result;
+    }
+    catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = new WbsService();

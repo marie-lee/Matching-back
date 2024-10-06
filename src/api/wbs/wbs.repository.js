@@ -425,6 +425,26 @@ const findWholeWbs = async (pjtSn) => {
     return await db.TB_WBS.findAll({where: {PJT_SN: pjtSn, DEL_YN: false}});
 }
 
+const findAllTasks = async (pjtSn) => {
+  return await db.TB_WBS.findAll({
+    where: {
+      PJT_SN: pjtSn,
+      DEL_YN: false,
+      STATUS: {
+        [Op.ne]: null
+      }
+    }
+  });
+};
+
+const findAllIssues = async (pjtSn) => {
+  return await db.TB_ISSUE.findAll({
+    where: {
+      PJT_SN: pjtSn,
+      DEL_YN: false
+    }
+  });
+};
 module.exports = {
     beginTransaction,
     commitTransaction,
@@ -468,5 +488,7 @@ module.exports = {
     findCreateIssue,
     findWholeWbs,
     createTaskComment,
-    addMentionFromTask
+    addMentionFromTask,
+    findAllIssues,
+    findAllTasks
 };
