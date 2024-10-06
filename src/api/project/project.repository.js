@@ -339,6 +339,29 @@ const updateMemberRole = async (pjtSn, memberSn, newRole, transaction) => {
   );
 };
 
+const updateMemberPart = async (pjtSn, memberSn, newPart, transaction) => {
+  return await db.TB_PJT_M.update(
+    { PART: newPart },
+    {
+      where: {
+        PJT_SN: pjtSn,
+        USER_SN: memberSn,
+        DEL_YN: false
+      },
+      transaction
+    }
+  );
+};
+
+const getProjectPartList = async (pjtSn) => {
+  return await db.TB_PJT_ROLE.findAll({
+    where: { PJT_SN: pjtSn, DEL_YN: false },
+    attributes: [
+      [db.Sequelize.fn('DISTINCT', db.Sequelize.col('PART')), 'part']
+    ],
+    raw: true
+  });
+};
 module.exports = {
     createProject,
     findOrCreateStack,
@@ -372,5 +395,7 @@ module.exports = {
     findOwnerMember,
     findAllProjectMembers,
     isProjectOwner,
-    updateMemberRole
+    updateMemberRole,
+    getProjectPartList,
+    updateMemberPart
 };
