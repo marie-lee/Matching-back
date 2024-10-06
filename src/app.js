@@ -27,6 +27,7 @@ const projectCtrl = require('./api/project/project.ctrl');
 const wbsCtrl = require('./api/wbs/wbs.ctrl');
 const statusCtrl = require('./api/status/status.ctrl');
 const recommendationCtrl = require('./api/recommendation/recommendation.ctrl');
+const alarmCtrl = require('./api/alarm/alarm.ctrl');
 
 const scheduler = require('./utils/scheduler');
 
@@ -34,22 +35,17 @@ const scheduler = require('./utils/scheduler');
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// morgan 미들웨어 설정
-app.use(morganMiddleware);
-// 에러 미들웨어 설정
-app.use(errorMiddleware);
-// JSON 형식의 요청 본문을 파싱하기 위한 미들웨어
-app.use(express.json());
-// URL 인코딩된 요청 본문을 파싱하기 위한 미들웨어
-app.use(express.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-
 // CORS 설정
 const corsOptions = {
   origin : '*',
   credential: true
 };
 app.use(cors(corsOptions));
+// morgan 미들웨어 설정
+app.use(morganMiddleware);
+// 에러 미들웨어 설정
+app.use(errorMiddleware);
+app.use(bodyParser.json());
 
 // db 동기화
 db.sync({ force: false }).then(() => {
@@ -65,6 +61,7 @@ app.use("/api", projectCtrl);
 app.use("/api", statusCtrl);
 app.use("/api", recommendationCtrl);
 app.use("/api", wbsCtrl);
+app.use("/api", alarmCtrl);
 
 // https 인증서
 const privateKey = fs.readFileSync('/etc/letsencrypt/live/218.232.137.30.nip.io/privkey.pem', 'utf8');

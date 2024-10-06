@@ -8,6 +8,8 @@ servers:
 tags:
   - name: member
     description: 멤버 관련
+  - name: alarm
+    description: 알림 관련
   - name: project
     description: 프로젝트 관련
   - name: status
@@ -319,6 +321,208 @@ paths:
               schema:
                 type: string
                 example: '이메일 체크중 에러 발생 : 에러메시지'
+  /alarm:
+    get:
+      tags:
+        - alarm
+      summary: 나에게 온 알림 조회
+      description: 나에게 온 알림 조회
+      responses:
+        '200':
+          $ref: '#/components/responses/getAllAlarm200'
+        '400':
+          description: 나에게 온 알림 조회 실패
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: '나에게 온 알림 조회 실패 : 에러메시지'
+      security:
+        - JWT: [ ]
+  /alarm/{alarmSn}:
+    patch:
+      tags:
+        - alarm
+      summary: 알림 확인 처리
+      description: 알림 확인 처리
+      parameters:
+        - in: path
+          name: alarmSn
+          required: true
+          schema:
+            type: integer
+            description: 알림의 일련번호
+      responses:
+        '200':
+          description: 알림 확인 처리 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: '알림 확인 처리 성공'
+        '400':
+          description: 알림 확인 처리 실패
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: '알림 확인 처리 실패 : 에러메시지'
+        '403':
+          description: 본인 알림이 아닐 경우
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 403
+                  message:
+                    type: string
+                    example: '본인 알림이 아닙니다.'
+      security:
+        - JWT: [ ]
+    delete:
+      tags:
+        - alarm
+      summary: 알림 삭제
+      description: 알림 삭제
+      parameters:
+        - in: path
+          name: alarmSn
+          required: true
+          schema:
+            type: integer
+            description: 알림의 일련번호
+      responses:
+        '200':
+          description: 알림 삭제 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: '알림 삭제 성공'
+        '400':
+          description: 알림 삭제 실패
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: '알림 삭제 실패 : 에러메시지'
+        '403':
+          description: 본인 알림이 아닐 경우
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 403
+                  message:
+                    type: string
+                    example: '본인 알림이 아닙니다.'
+      security:
+        - JWT: [ ]
+  /alarm/all:
+    patch:
+      tags:
+        - alarm
+      summary: 전체 알림 확인 처리
+      description: 전체 알림 확인 처리
+      responses:
+        '200':
+          description: 전체 알림 확인 처리 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: '전체 알림 확인 처리 성공'
+        '400':
+          description: 전체 알림 확인 처리 실패
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: '전체 알림 확인 처리 실패 : 에러메시지'
+      security:
+        - JWT: [ ]
+    delete:
+      tags:
+        - alarm
+      summary: 확인된 알림 전체 삭제
+      description: 확인된 알림 전체 삭제
+      responses:
+        '200':
+          description: 확인된 알림 전체 삭제 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: '확인된 알림 전체 삭제 성공'
+        '400':
+          description: 확인된 알림 전체 삭제 실패
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: '확인된 알림 전체 삭제 실패 : 에러메시지'
+      security:
+        - JWT: [ ]
   /project:
     get:
       tags:
@@ -5036,5 +5240,58 @@ components:
               message:
                 type: string
                 example: '업무 목록 조회 에러 발생 : 에러메시지'
-
-
+    getAllAlarm200:
+      description: 나에게 온 알림 조회 성공
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                alarmSn:
+                  type: integer
+                senderSn:
+                  type: integer
+                senderNm:
+                  type: string
+                detail:
+                  type: string
+                type:
+                  type: string
+                pjtSn:
+                  type: integer
+                postSn:
+                  type: integer
+                postType:
+                  type: string
+                checkYn:
+                  type: string
+          example:
+            - alarmSn: 1
+              senderSn: 1
+              senderNm: 홍길동
+              detail: 업무 'DB설계'에 새 댓글이 있습니다.
+              type: TASK_COMMENT
+              pjtSn: 1
+              postSn: 1
+              postType: TASK
+              checkYn: 0
+            - alarmSn: 2
+              senderSn: 2
+              senderNm: 김철수
+              detail: 이슈 '로그인 실패'의 댓글에 멘션되었습니다.
+              type: COMMENT_MENTION
+              pjtSn: 1
+              postSn: 3
+              postType: ISSUE
+              checkYn: 0
+            - alarmSn: 3
+              senderSn: null
+              senderNm: null
+              detail: 프로젝트 '프로젝트명'종료 1주일 전입니다.
+              type: CLOSE
+              pjtSn: 1
+              postSn: null
+              postType: null
+              checkYn: 0
