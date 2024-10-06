@@ -200,4 +200,19 @@ router.get('/project/contribution/:pjtSn',jwt.authenticateToken,async (req,res)=
   }
 });
 
+//멤버 리스트 조회 owner
+router.get('/project/memberList/:pjtSn', jwt.authenticateToken, async (req, res) => {
+  const userSn = req.userSn.USER_SN;
+  const pjtSn = req.params.pjtSn;
+  try {
+    const members = await projectService.getProjectMemberList(userSn, pjtSn);
+    if (members.message) {
+      return res.status(403).json({ message: members.message });
+    }
+    return res.status(200).json(members);
+  } catch (error) {
+    logger.error('프로젝트 멤버 리스트 조회 실패: ', error);
+    return res.status(400).json('프로젝트 멤버 리스트 조회 실패: ' + error.message);
+  }
+});
 module.exports = router;
