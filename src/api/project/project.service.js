@@ -74,10 +74,10 @@ class projectService {
   async getProjectMemberList(userSn, pjtSn) {
     try {
 
-      const isOwner = await projectRepository.isProjectOwner(pjtSn, userSn);
+      const isMember = await projectRepository.findProjectMember(pjtSn,userSn);
 
-      if (!isOwner) {
-        return { message: '프로젝트 멤버 조회 권한이 없습니다.' };
+      if (!isMember) {
+        return { message: '프로젝트 멤버가 아닙니다.' };
       }
 
       const memList = await projectRepository.findAllProjectMembers(pjtSn);

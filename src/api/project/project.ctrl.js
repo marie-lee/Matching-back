@@ -200,7 +200,7 @@ router.get('/project/contribution/:pjtSn',jwt.authenticateToken,async (req,res)=
   }
 });
 
-//멤버 리스트 조회 owner
+//멤버 리스트 조회
 router.get('/project/memberList/:pjtSn', jwt.authenticateToken, async (req, res) => {
   const userSn = req.userSn.USER_SN;
   const pjtSn = req.params.pjtSn;
@@ -215,6 +215,7 @@ router.get('/project/memberList/:pjtSn', jwt.authenticateToken, async (req, res)
     return res.status(400).json('프로젝트 멤버 리스트 조회 실패: ' + error.message);
   }
 });
+
 // 프로젝트 멤버 권한 변경
 router.put('/project/memberList/role/:pjtSn/:memberSn', jwt.authenticateToken, async (req, res) => {
   const userSn = req.userSn.USER_SN;
