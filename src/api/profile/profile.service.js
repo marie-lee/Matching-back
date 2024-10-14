@@ -213,6 +213,43 @@ class profileService {
                                       ) AS media
                                       , JSON_ARRAYAGG(DISTINCT tr.RATE_TEXT) AS RATE
                                   FROM TB_PFOL pl
+                                  SELECT pl.PFOL_SN
+                                      , pl.PFOL_NM
+                                      , pl.START_DT
+                                      , pl.END_DT
+                                      , pl.PERIOD
+                                      , pl.INTRO
+                                      , pl.MEM_CNT
+                                      , pl.CONTRIBUTION
+                                      , pl.SERVICE_STTS
+                                      , pl.RESULT
+                                      , JSON_ARRAYAGG(DISTINCT
+                                          JSON_OBJECT(
+                                              'ST_NM', st.ST_NM
+                                          )
+                                      ) AS stack
+                                      , JSON_ARRAYAGG(DISTINCT
+                                          JSON_OBJECT(
+                                              'ROLE_NM', r.ROLE_NM
+                                          )
+                                      ) AS roles
+                                      , JSON_ARRAYAGG(DISTINCT
+                                          JSON_OBJECT(
+                                              'URL', u.URL,
+                                              'URL_INTRO', u.URL_INTRO,
+                                              'RELEASE_YN', pu.RELEASE_YN,
+                                              'OS', pu.OS
+                                          )
+                                      ) AS urls
+                                      , JSON_ARRAYAGG(DISTINCT
+                                          JSON_OBJECT(
+                                              'URL', pm.URL,
+                                              'MAIN_YN', pm.MAIN_YN,
+                                              'TYPE', pm.TYPE
+                                          )
+                                      ) AS media
+                                      , JSON_ARRAYAGG(DISTINCT tr.RATE_TEXT) AS RATE
+                                  FROM TB_PFOL pl
                                   LEFT JOIN TB_PFOL_ST ps ON pl.PFOL_SN = ps.PFOL_SN
                                   LEFT JOIN TB_ST st ON st.ST_SN = ps.ST_SN
                                   LEFT JOIN TB_PFOL_ROLE pr ON pl.PFOL_SN = pr.PFOL_SN
