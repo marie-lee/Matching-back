@@ -287,9 +287,9 @@ const findProgressPjt = async() => {
   return await db.TB_PJT.findAll({ where: {DEL_YN: false, PJT_STTS: 'PROGRESS'}})
 }
 
-// 프로젝트 owner 권한 멤버 리스트 조회
+// 프로젝트 leader 권한 멤버 리스트 조회
 const findOwnerMember = async(pjtSn) => {
-    return await db.TB_PJT_M.findAll({where: {PJT_SN: pjtSn, DEL_YN: false, ROLE: 'owner'}});
+    return await db.TB_PJT_M.findAll({where: {PJT_SN: pjtSn, DEL_YN: false, ROLE: 'leader'}});
 }
 
 const isProjectOwner = async(pjtSn, userSn) => {
