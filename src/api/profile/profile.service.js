@@ -88,7 +88,6 @@ class profileService {
                                     LEFT JOIN TB_INTRST intrst ON intrst.INTRST_SN = pfI.INTRST_SN
                                     LEFT JOIN TB_PF_URL pfU ON pfU.PF_SN = pf.PF_SN
                                     LEFT JOIN TB_URL url ON pfU.URL_SN = url.URL_SN
-//                                     LEFT JOIN TB_PF_PFOL pfPl ON pfPl.PF_SN = pf.PF_SN
                                     ${joinClause}
                                     LEFT JOIN VIEW_PFOL vpl ON vpl.PFOL_SN = pfPl.PFOL_SN
                                 ${whereClause}
