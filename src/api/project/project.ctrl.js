@@ -229,7 +229,7 @@ router.put('/project/memberList/role/:pjtSn/:memberSn', jwt.authenticateToken, a
   } catch (error) {
     logger.error('프로젝트 멤버 권한 변경 실패: ', error);
     if (error.message === '권한이 없습니다.') {
-      return res.status(403).json({ message: error.message });
+      return res.status(400).json({ message: error.message });
     }
     return res.status(400).json('프로젝트 멤버 권한 변경 실패: ' + error.message);
   }
@@ -248,7 +248,7 @@ router.put('/project/memberList/part/:pjtSn/:memberSn', jwt.authenticateToken, a
   } catch (error) {
     logger.error('프로젝트 멤버 역할 변경 실패: ', error);
     if (error.message === '권한이 없습니다.') {
-      return res.status(403).json({ message: error.message });
+      return res.status(400).json({ message: error.message });
     }
     return res.status(400).json('프로젝트 멤버 역할 변경 실패: ' + error.message);
   }

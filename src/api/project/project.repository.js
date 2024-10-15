@@ -297,7 +297,7 @@ const isProjectOwner = async(pjtSn, userSn) => {
     where: {
       PJT_SN: pjtSn,
       USER_SN: userSn,
-      ROLE: 'owner',
+      ROLE: 'leader',
       DEL_YN: false
     }
   }) !== null;

@@ -591,7 +591,7 @@ class projectService {
         throw new Error('권한이 없습니다.');
       }
 
-      if (newRole !== 'owner' && newRole !== 'member') {
+      if (newRole !== 'leader' && newRole !== 'member') {
         throw new Error('유효하지 않은 권한입니다.');
       }
 
