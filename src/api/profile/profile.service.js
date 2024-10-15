@@ -39,6 +39,7 @@ class profileService {
   }
 
   async pfPfolSelectAll(snList = [], pfSn = null){
+    let joinClause = `LEFT JOIN TB_PF_PFOL pfPl ON pfPl.PF_SN = pf.PF_SN`;
     let whereClause = '';
     let orderByClause = '';
     // keys 배열이 비어있지 않다면 WHERE 조건을 추가
@@ -48,6 +49,7 @@ class profileService {
       const pfSnList = filteredSnList.join(','); // 배열을 문자열로 변환
       whereClause = `WHERE pf.PF_SN IN (${pfSnList})`;
       orderByClause = `ORDER BY FIELD(pf.PF_SN, ${pfSnList})`
+      joinClause = `INNER JOIN TB_PF_PFOL pfPl ON pfPl.PF_SN = pf.PF_SN`;
     }
     const query = `SELECT pf.PF_SN as pfSn, usr.USER_SN as userSn, usr.USER_NM as userNm
                                     , JSON_OBJECT(
@@ -86,7 +88,8 @@ class profileService {
                                     LEFT JOIN TB_INTRST intrst ON intrst.INTRST_SN = pfI.INTRST_SN
                                     LEFT JOIN TB_PF_URL pfU ON pfU.PF_SN = pf.PF_SN
                                     LEFT JOIN TB_URL url ON pfU.URL_SN = url.URL_SN
-                                    LEFT JOIN TB_PF_PFOL pfPl ON pfPl.PF_SN = pf.PF_SN
+//                                     LEFT JOIN TB_PF_PFOL pfPl ON pfPl.PF_SN = pf.PF_SN
+                                    ${joinClause}
                                     LEFT JOIN VIEW_PFOL vpl ON vpl.PFOL_SN = pfPl.PFOL_SN
                                 ${whereClause}
                                 GROUP BY pf.PF_SN, usr.USER_SN, usr.USER_NM
