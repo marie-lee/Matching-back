@@ -225,21 +225,22 @@ const updateIssue = async(issue, transaction) =>{
 }
 
 const trackingIssue = async(pjtSn) => {
-    const query = `SELECT
-                            tw.ISSUE_TICKET_SN AS PARENT_TICKET_SN,
-                            ti.ISSUE_SN AS ISSUE_SN,
-                            ti.CREATED_DT AS ISSUE_CREATED_DT,
-                            JSON_ARRAYAGG(
-                                JSON_OBJECT(
-                                    'TICKET_SN', tw.TICKET_SN,
-                                    'CREATED_DT', tw.CREATED_DT
-                                )
-                            ) AS TICKETS
-                        FROM TB_WBS tw
-                        INNER JOIN TB_ISSUE ti ON tw.PJT_SN = ti.PJT_SN AND ti.TICKET_SN = tw.ISSUE_TICKET_SN
-                        WHERE tw.PJT_SN = ${pjtSn} AND tw.ISSUE_TICKET_SN IS NOT NULL
-                        GROUP BY PARENT_TICKET_SN, ISSUE_SN, ISSUE_CREATED_DT
-                        ORDER BY PARENT_TICKET_SN;`;
+    const query = `select 
+                              tw.TICKET_SN AS PARENT_TICKET_SN
+                              , ti.ISSUE_SN
+                              , ti.CREATED_DT as ISSUE_CREATED_DT
+                              , JSON_ARRAYAGG(
+                                  JSON_OBJECT(
+                                      'TICKET_SN', tw2.TICKET_SN,
+                                        'CREATED_DT', tw2.CREATED_DT
+                                    )
+                                ) AS TICKETS
+                             from TB_WBS tw 
+                             inner join TB_ISSUE ti on ti.PJT_SN = tw.PJT_SN and tw.TICKET_SN = ti.TICKET_SN
+                             left join TB_WBS tw2 ON tw2.PJT_SN = ti.PJT_SN and tw2.ISSUE_TICKET_SN = ti.TICKET_SN
+                             where tw.PJT_SN = ${pjtSn}
+                             GROUP BY PARENT_TICKET_SN, ISSUE_SN, ISSUE_CREATED_DT
+                             ORDER BY PARENT_TICKET_SN;`;
     return await db.query(query, {type: QueryTypes.SELECT});
 }
 
